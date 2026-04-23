@@ -26,6 +26,8 @@ targets:
       - target: DeviceActivityMonitorExtension
       - target: ShieldConfigurationExtension
       - target: ShieldActionExtension
+    configFiles:
+      Debug: Build.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.moonkj.LockinFocus

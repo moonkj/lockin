@@ -15,7 +15,12 @@ struct SettingsView: View {
     @State private var showStrictUnlock: Bool = false
     @State private var showPasscodeSetup: Bool = false
     @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
-    @State private var emergencyUnlockDone: Bool = false
+
+    #if ADMIN_TOOLS_ENABLED
+    @State private var versionTaps: Int = 0
+    @State private var showAdminEntry: Bool = false
+    @State private var showAdminPanel: Bool = false
+    #endif
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
@@ -47,13 +52,6 @@ struct SettingsView: View {
                         }
                         .listRowBackground(AppColors.surface)
 
-                        Button(role: .destructive) {
-                            attemptEmergencyUnlock()
-                        } label: {
-                            Text("모든 차단 즉시 해제")
-                                .foregroundStyle(AppColors.error)
-                        }
-                        .listRowBackground(AppColors.surface)
                     } header: {
                         sectionHeader("차단")
                     }
@@ -84,7 +82,7 @@ struct SettingsView: View {
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
-                        .tint(AppColors.primaryText)
+                        .tint(AppColors.accent)
                         .disabled(!passcodeIsSet && !strictMode)
                         .listRowBackground(AppColors.surface)
 
@@ -119,6 +117,16 @@ struct SettingsView: View {
                             Spacer()
                             Text(appVersion).foregroundStyle(AppColors.secondaryText)
                         }
+                        .contentShape(Rectangle())
+                        #if ADMIN_TOOLS_ENABLED
+                        .onTapGesture {
+                            versionTaps += 1
+                            if versionTaps >= 10 {
+                                versionTaps = 0
+                                showAdminEntry = true
+                            }
+                        }
+                        #endif
                         .listRowBackground(AppColors.surface)
                     } header: {
                         sectionHeader("앱 정보")
@@ -165,11 +173,14 @@ struct SettingsView: View {
                 if saved { passcodeIsSet = true }
             }
         }
-        .alert("차단 해제 완료", isPresented: $emergencyUnlockDone) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text("모든 차단이 꺼졌어요. 홈으로 돌아가면 차단됐던 앱이 정상 열립니다.")
+        #if ADMIN_TOOLS_ENABLED
+        .sheet(isPresented: $showAdminEntry) {
+            AdminEntryView { showAdminPanel = true }
         }
+        .sheet(isPresented: $showAdminPanel) {
+            AdminPanelView().environmentObject(deps)
+        }
+        #endif
     }
 
     /// 기본 iOS secondaryLabel 은 흰 배경 위에서 거의 안 보일 만큼 연해서
@@ -222,15 +233,6 @@ struct SettingsView: View {
         }
     }
 
-    /// 엄격 모드가 켜져 있으면 긴급 해제도 Friction 을 거치게 한다.
-    private func attemptEmergencyUnlock() {
-        if strictMode {
-            showStrictUnlock = true
-        } else {
-            emergencyUnlock()
-        }
-    }
-
     private func save() {
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
@@ -244,18 +246,6 @@ struct SettingsView: View {
         }
     }
 
-    /// 사용자가 앱에 잠겨 다른 앱에 접근 못 할 때를 위한 긴급 탈출.
-    /// shield 전체 해제 + 스케줄 모니터링 중단 + 수동 집중 상태 리셋 + 스케줄 OFF.
-    /// 이걸 빠뜨리면 Dashboard 가 "집중 중" 상태를 유지하거나 Extension 이 다시 shield 적용.
-    private func emergencyUnlock() {
-        deps.blocking.clearShield()
-        deps.monitoring.stopMonitoring(name: "block_main")
-        deps.persistence.isManualFocusActive = false
-        deps.persistence.manualFocusStartedAt = nil
-        schedule.isEnabled = false
-        deps.persistence.schedule = schedule
-        emergencyUnlockDone = true
-    }
 }
 
 #Preview {

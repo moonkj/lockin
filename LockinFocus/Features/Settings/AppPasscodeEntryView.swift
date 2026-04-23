@@ -28,6 +28,8 @@ struct AppPasscodeEntryView: View {
                         .keyboardType(.numberPad)
                         .font(.system(size: 28, weight: .medium, design: .rounded))
                         .monospacedDigit()
+                        .foregroundStyle(AppColors.primaryText)
+                        .tint(AppColors.primaryText)
                         .padding(16)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)

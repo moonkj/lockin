@@ -79,7 +79,7 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .firstReturn:       return "arrow.uturn.backward.circle.fill"
         case .returnNovice:      return "10.circle.fill"
         case .returnAdept:       return "50.circle.fill"
-        case .returnMaster:      return "100.circle.fill"
+        case .returnMaster:      return "crown.fill"
         case .perfectDay:        return "sun.max.fill"
         case .streak3Days:       return "flame.fill"
         case .streak7Days:       return "flame.circle.fill"

@@ -58,6 +58,9 @@ final class PreviewPersistenceStore: PersistenceStore {
     func awardSessionCompletionIfEligible(now: Date) -> Bool { false }
     func awardDailyLoginIfNew() -> Bool { false }
 
+    // Admin debug no-op
+    func debugSetDailyFocusHistory(_ entries: [DailyFocus]) {}
+
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue
         interceptQueue.removeAll()
