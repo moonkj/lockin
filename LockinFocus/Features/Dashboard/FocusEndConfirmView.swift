@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// 수동 집중 종료 전 10초 "심호흡" 개입 뷰.
+/// 수동 집중 종료 전 10초 개입 뷰.
 /// Intercept 와 같은 철학: 자동 종료를 자각의 순간으로 바꾸기.
-/// 10초 동안 원이 호흡처럼 커졌다 작아지고, 그 후에만 종료 버튼이 활성화된다.
+/// 중앙에서 4개의 원이 연속으로 바깥으로 퍼지는 파형(리플) 애니메이션을 보여주고,
+/// 10초가 지난 뒤에만 "종료할게요" 버튼이 활성화된다.
 struct FocusEndConfirmView: View {
     let onConfirm: () -> Void
 
@@ -10,7 +11,10 @@ struct FocusEndConfirmView: View {
 
     @State private var remaining: Int = 10
     @State private var timer: Timer?
-    @State private var breathScale: CGFloat = 0.7
+
+    private let rippleCount: Int = 4
+    private let rippleDuration: Double = 3.2
+    private let startedAt: Date = Date()
 
     private var canConfirm: Bool { remaining == 0 }
 
@@ -21,22 +25,16 @@ struct FocusEndConfirmView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                breathCircle
+                rippleView
+                    .frame(width: 280, height: 280)
 
                 Spacer().frame(height: 32)
-
-                Text(breathLabel)
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(AppColors.secondaryText)
-                    .animation(.easeInOut(duration: 0.3), value: breathScale)
-
-                Spacer().frame(height: 24)
 
                 Text("정말 종료할까요?")
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("천천히 숨을 쉬면서 한 번 더 생각해봐요.")
+                Text("잠시 숨을 고르면서 한 번 더 생각해봐요.")
                     .font(.system(size: 14))
                     .foregroundStyle(AppColors.secondaryText)
                     .padding(.top, 8)
@@ -61,42 +59,54 @@ struct FocusEndConfirmView: View {
                 .padding(.bottom, 24)
             }
         }
-        .onAppear {
-            startCountdown()
-            startBreathing()
-        }
-        .onDisappear {
-            timer?.invalidate()
-        }
+        .onAppear(perform: startCountdown)
+        .onDisappear { timer?.invalidate() }
         .interactiveDismissDisabled(true)
     }
 
-    // MARK: - Breathing visuals
+    // MARK: - Ripples
 
-    private var breathCircle: some View {
-        ZStack {
-            Circle()
-                .fill(AppColors.primaryText.opacity(0.08))
-                .frame(width: 220, height: 220)
-                .scaleEffect(breathScale)
+    /// TimelineView 가 매 프레임 경과 시간을 제공하고, 4개 원이 서로 다른 phase 로 퍼진다.
+    private var rippleView: some View {
+        TimelineView(.animation) { context in
+            let elapsed = context.date.timeIntervalSince(startedAt)
+            ZStack {
+                ForEach(0..<rippleCount, id: \.self) { idx in
+                    let progress = rippleProgress(elapsed: elapsed, index: idx)
+                    rippleCircle(progress: progress)
+                }
 
-            Circle()
-                .stroke(AppColors.primaryText.opacity(0.4), lineWidth: 2)
-                .frame(width: 220, height: 220)
-                .scaleEffect(breathScale)
+                // 중앙 정적 이너 원(카운트다운 배경).
+                Circle()
+                    .fill(AppColors.primaryText.opacity(0.08))
+                    .frame(width: 96, height: 96)
 
-            Text("\(remaining)")
-                .font(.system(size: 44, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.primaryText)
-                .monospacedDigit()
+                Text("\(remaining)")
+                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.primaryText)
+                    .monospacedDigit()
+            }
         }
     }
 
-    private var breathLabel: String {
-        breathScale > 0.85 ? "천천히 들이쉬어요" : "천천히 내쉬어요"
+    private func rippleProgress(elapsed: Double, index: Int) -> Double {
+        let offset = rippleDuration * Double(index) / Double(rippleCount)
+        let t = (elapsed + offset).truncatingRemainder(dividingBy: rippleDuration)
+        return t / rippleDuration
     }
 
-    // MARK: - Timers
+    private func rippleCircle(progress: Double) -> some View {
+        // 중심 96pt 부근에서 시작해 280pt 까지 커지며 점점 투명해진다.
+        let baseSize: CGFloat = 96
+        let maxSize: CGFloat = 280
+        let size = baseSize + (maxSize - baseSize) * CGFloat(progress)
+        let strokeAlpha = (1 - progress) * 0.5
+        return Circle()
+            .stroke(AppColors.primaryText.opacity(strokeAlpha), lineWidth: 1.5)
+            .frame(width: size, height: size)
+    }
+
+    // MARK: - Countdown
 
     private func startCountdown() {
         timer?.invalidate()
@@ -104,14 +114,6 @@ struct FocusEndConfirmView: View {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if remaining > 0 { remaining -= 1 }
             if remaining == 0 { t.invalidate() }
-        }
-    }
-
-    private func startBreathing() {
-        // 2.5초 주기로 0.7 <-> 1.0 반복 → 10초 동안 두 호흡 주기 체감.
-        breathScale = 0.7
-        withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
-            breathScale = 1.0
         }
     }
 }
