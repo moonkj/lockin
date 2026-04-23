@@ -54,6 +54,8 @@ struct DashboardView: View {
                             .padding(.horizontal, 4)
                     }
 
+                    DailyQuoteCard()
+
                     Spacer(minLength: 24)
                 }
                 .padding(.horizontal, 20)
