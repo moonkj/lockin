@@ -75,3 +75,30 @@ targets:
         CODE_SIGN_ENTITLEMENTS: ShieldActionExtension/ShieldActionExtension.entitlements
         INFOPLIST_FILE: ShieldActionExtension/Info.plist
         SKIP_INSTALL: "YES"
+
+  LockinFocusTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: LockinFocusTests
+    dependencies:
+      - target: LockinFocus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocusTests
+        INFOPLIST_FILE: LockinFocusTests/Info.plist
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/LockinFocus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LockinFocus
+        GENERATE_INFOPLIST_FILE: "NO"
+
+schemes:
+  LockinFocus:
+    build:
+      targets:
+        LockinFocus: all
+        LockinFocusTests: [test]
+    test:
+      targets:
+        - LockinFocusTests
+    run:
+      config: Debug

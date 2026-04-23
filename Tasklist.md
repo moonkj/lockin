@@ -95,7 +95,7 @@
 ### Phase 4 — Debugger → Test → Reviewer 사이클
 - [x] **Debugger 1차 점검 완료** — `docs/05_Debugger_Report.md`. H4 Critical(activity 이름 1글자) + H8 High(온보딩 전환) 직접 Fix. BUILD SUCCEEDED.
 - [x] **팀리더 H2 DEFER 승격 Fix** — Features 3곳 `"primary"` → `"block_main"` 통일. BUILD SUCCEEDED.
-- [ ] Test Engineer 단위/통합 테스트 작성
+- [x] Test Engineer 단위/통합 테스트 작성 — `docs/06_Test_Report.md`. 5 파일 / 21 케이스. H1 회귀 방지 Extension 큐 스키마 계약 테스트 포함. Project.yml 에 `LockinFocusTests` 타깃 + test 스킴 추가. 샌드박스로 `xcodegen` / `xcodebuild test` 실행 차단 — 팀리더 수동 실행 대기.
 - [ ] Reviewer 최종 리뷰 — 개선 필요 시 R2로 Architect 복귀
 
 ### Phase 5 — 확장 기능
@@ -133,3 +133,4 @@
 - [2026-04-23] [Debugger] [H9] ScheduleEditor 저장 경로 — Settings/Dashboard 모두 `save()` 에서 persistence + applyWhitelist + startSchedule 재호출. 정상. H2 의 activity 이름 불일치만 잔여 이슈. Low.
 - [2026-04-23] [Debugger] [H10] 권한 거부 재시도 — `authorizationDenied` 플래그 + 설정 딥링크 + 재요청 버튼. 정상. Low.
 - [2026-04-23] [팀리더] [H2 DEFER → Fix 승격] Debugger 가 DEFER 로 기록한 주 스케줄 activity 이름 불일치를 팀리더가 즉시 처리. 메인 앱 `Features/Dashboard/DashboardView.swift:87`, `Features/Settings/SettingsView.swift:112`, `Features/Onboarding/OnboardingContainerView.swift:139` 세 곳의 `name: "primary"` 를 `name: "block_main"` 으로 통일. Extension 의 prefix 규약과 일치하여 평일 17:00 종료 시 shield 자동 해제 경로가 복원됨. BUILD SUCCEEDED.
+- [2026-04-23] [Test Engineer] [Phase 4 단위 테스트] `LockinFocusTests` 타깃 추가 + 5 파일 / 21 케이스 작성. **H1 회귀 방지 핵심**: `UserDefaultsPersistenceStoreTests.testDrainInterceptQueue_decodesExtensionRawFormat` 가 ShieldActionExtension 이 쓰는 `[[String: Any]]` raw 포맷(키 `interceptQueue`, 필드 timestamp/type/subjectKind, enum rawValue) 을 코드로 고정. `InterceptEventTests` 가 enum rawValue 문자열(`"returned"`, `"interceptRequested"`, `"application"`, `"category"`, `"webDomain"`) 변경을 즉시 감지. `UserDefaultsPersistenceStore.init(defaults:)` 주입 이니셜라이저 기존 존재 확인, Coder-A 복귀 불필요. 샌드박스로 `xcodegen` / `xcodebuild test` 실행 차단 — 팀리더 수동 실행 필요.

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		05FDAEC033E4DCC0DF29567B /* NextScheduleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */; };
 		073D9557E253F67F0F68EF7F /* ScheduleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CACB2946DEE398B7959B5A /* ScheduleEditorView.swift */; };
+		0E0FA37CC5D7C2E8AF119828 /* InterceptEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066DCB71D94F4B9303B14EDF /* InterceptEventTests.swift */; };
 		103F3EE57604C510F0A388BE /* NoopBlockingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E98561A891720BA1268508C /* NoopBlockingEngine.swift */; };
 		10968BDE652908473BF2C9B0 /* LockinFocusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C98439901996EBD355FA5E6 /* LockinFocusApp.swift */; };
 		10C18ED3BA5D207FBD3F1051 /* ShieldConfigurationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 818F5F39328805D4299B7C0A /* ShieldConfigurationProvider.swift */; };
@@ -26,9 +27,12 @@
 		46D1B9D0F3B3804A178B1379 /* ValueStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6FDCAB053901C238ABF42 /* ValueStepView.swift */; };
 		4A8BFAB4BBAF79952F58C636 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B8BE7E92D981AB99567935 /* AppGroup.swift */; };
 		534327B8530619B9CEB3BEA3 /* AuthorizationStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79ABA2AFED8F1277D0C9967 /* AuthorizationStepView.swift */; };
+		57E35FBD488C4A697951CE5C /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC7DD93F50D33E6BBF77996 /* ScheduleTests.swift */; };
 		5ADB81EF4E1557A05E1BC220 /* ScheduleStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAB627C6CEEA8F81B3715C5 /* ScheduleStepView.swift */; };
 		64B2478D22AF15DAF5464A65 /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0366439E43C7603508733E5 /* DeviceActivityMonitorExtension.swift */; };
 		6C9FB985622F2E3DA37EA0B4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64DCB7C6B83A9A92D0190785 /* Assets.xcassets */; };
+		7093CAF5DD23DB744372FFC3 /* UserDefaultsPersistenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999147B975E461182ABFC26D /* UserDefaultsPersistenceStoreTests.swift */; };
+		710F21BB1B94A0F58062FFC5 /* InMemoryPersistenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A9034FD1C0FEA5AED3C09E /* InMemoryPersistenceStoreTests.swift */; };
 		71D90CAEFBE9D462D47F33BA /* FocusScoreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295A2BDDA79EC295EC174FDD /* FocusScoreCard.swift */; };
 		77ABD5DFA6C9FA330FAA4EE2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749BEF23E0F08587B35F4C60 /* RootView.swift */; };
 		77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C78B4527F59D699D95EA69 /* DashboardView.swift */; };
@@ -36,6 +40,7 @@
 		8CB2A2D1AF3CE2C3C928B5B9 /* ShieldConfigurationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9132B7BD9976599A5BCDF218 /* SecondaryLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602472ED29E475EA09BB034D /* SecondaryLinkButton.swift */; };
 		9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6E9C83DAEDDF5985FF50AC /* InMemoryPersistenceStore.swift */; };
+		AFBFC6B8C133FD4AA04B81BB /* PreviewEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A724848C91AC020F13069A2 /* PreviewEngineTests.swift */; };
 		B749D701269FDF99AAC6D22B /* DeviceActivityMonitoringEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5750899AE35A97DD30F8754 /* DeviceActivityMonitoringEngine.swift */; };
 		B8388129C92E770E27A621C3 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20030115AE19410F1CB31C87 /* AppDependencies.swift */; };
 		C0E0119CDC4634E19C816FF6 /* ExtensionAppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0AF3C1C8AB416111F45B070 /* ExtensionAppGroup.swift */; };
@@ -52,6 +57,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0A2BB7AC7DA86DDF85751324 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B3D31C5B089A4B068D75314 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EC95E8EF2664728EE282870F;
+			remoteInfo = LockinFocus;
+		};
 		3B38082943CA2135B4071D5C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7B3D31C5B089A4B068D75314 /* Project object */;
@@ -92,6 +104,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		066DCB71D94F4B9303B14EDF /* InterceptEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterceptEventTests.swift; sourceTree = "<group>"; };
+		06B7972E68A4861B71C0715B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		09CACB2946DEE398B7959B5A /* ScheduleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEditorView.swift; sourceTree = "<group>"; };
 		0B493A9B4412E6ACEF1DF5CE /* BlockingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingEngine.swift; sourceTree = "<group>"; };
 		11F336E2376512A5A09BAA16 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -105,12 +119,14 @@
 		2C98439901996EBD355FA5E6 /* LockinFocusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockinFocusApp.swift; sourceTree = "<group>"; };
 		2D89BBE650022E377B013D61 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2EC34718370D9DBDAD5004B5 /* AllowedAppsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowedAppsCard.swift; sourceTree = "<group>"; };
+		2EC7DD93F50D33E6BBF77996 /* ScheduleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleTests.swift; sourceTree = "<group>"; };
 		30B8BE7E92D981AB99567935 /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
 		312C4FD8B6F1F74B2701ACC7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3AFDDD12B219434BC5E0D7C6 /* InterceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterceptView.swift; sourceTree = "<group>"; };
 		3E98561A891720BA1268508C /* NoopBlockingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopBlockingEngine.swift; sourceTree = "<group>"; };
 		47EB10BEBF04307CB751C5E3 /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		4D0CF2E38F552EFDDD527D5B /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
+		4DE4E0646275015609D52C38 /* LockinFocusTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LockinFocusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D52573B47BF888347673235 /* NoopMonitoringEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopMonitoringEngine.swift; sourceTree = "<group>"; };
 		5E6E9C83DAEDDF5985FF50AC /* InMemoryPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPersistenceStore.swift; sourceTree = "<group>"; };
 		602472ED29E475EA09BB034D /* SecondaryLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryLinkButton.swift; sourceTree = "<group>"; };
@@ -119,8 +135,11 @@
 		749BEF23E0F08587B35F4C60 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		74D1539DA2D384D2D62CC417 /* UserDefaultsPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPersistenceStore.swift; sourceTree = "<group>"; };
 		77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextScheduleCard.swift; sourceTree = "<group>"; };
+		7A724848C91AC020F13069A2 /* PreviewEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewEngineTests.swift; sourceTree = "<group>"; };
 		818F5F39328805D4299B7C0A /* ShieldConfigurationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationProvider.swift; sourceTree = "<group>"; };
 		8EAE4332564C20753A82C570 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		95A9034FD1C0FEA5AED3C09E /* InMemoryPersistenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPersistenceStoreTests.swift; sourceTree = "<group>"; };
+		999147B975E461182ABFC26D /* UserDefaultsPersistenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPersistenceStoreTests.swift; sourceTree = "<group>"; };
 		A0AF3C1C8AB416111F45B070 /* ExtensionAppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionAppGroup.swift; sourceTree = "<group>"; };
 		A3229573037A43175F6707FD /* MonitoringEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringEngine.swift; sourceTree = "<group>"; };
 		A5FD3CF96E22F2F6DFE5EDCB /* ShieldActionExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,10 +188,24 @@
 			children = (
 				B21B03DBE1A6A641C55A2A60 /* DeviceActivityMonitorExtension.appex */,
 				D23E9027F307D6A61CF49ADC /* LockinFocus.app */,
+				4DE4E0646275015609D52C38 /* LockinFocusTests.xctest */,
 				A5FD3CF96E22F2F6DFE5EDCB /* ShieldActionExtension.appex */,
 				C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		36BDAC0F87FA8893B489B8DC /* LockinFocusTests */ = {
+			isa = PBXGroup;
+			children = (
+				06B7972E68A4861B71C0715B /* Info.plist */,
+				95A9034FD1C0FEA5AED3C09E /* InMemoryPersistenceStoreTests.swift */,
+				066DCB71D94F4B9303B14EDF /* InterceptEventTests.swift */,
+				7A724848C91AC020F13069A2 /* PreviewEngineTests.swift */,
+				2EC7DD93F50D33E6BBF77996 /* ScheduleTests.swift */,
+				999147B975E461182ABFC26D /* UserDefaultsPersistenceStoreTests.swift */,
+			);
+			path = LockinFocusTests;
 			sourceTree = "<group>";
 		};
 		3C768F9148C5C355DF63913F /* Dashboard */ = {
@@ -339,6 +372,7 @@
 			children = (
 				FE3312D7B9AEA5BF540F8F42 /* DeviceActivityMonitorExtension */,
 				5BEE7369C3A8F065A2658AC8 /* LockinFocus */,
+				36BDAC0F87FA8893B489B8DC /* LockinFocusTests */,
 				5568A743921A9BE071028AA3 /* ShieldActionExtension */,
 				50862DDDA9AE6B04BB91592E /* ShieldConfigurationExtension */,
 				1F1E64BAE54E72D138FE8027 /* Products */,
@@ -457,6 +491,24 @@
 			productReference = A5FD3CF96E22F2F6DFE5EDCB /* ShieldActionExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		D0289F61DBE46E5B2311EFF5 /* LockinFocusTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EDF6D257E8998C2992A27261 /* Build configuration list for PBXNativeTarget "LockinFocusTests" */;
+			buildPhases = (
+				E81620DACCB3AE5139F207A0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2D842FA38818C9FC6DB5250C /* PBXTargetDependency */,
+			);
+			name = LockinFocusTests;
+			packageProductDependencies = (
+			);
+			productName = LockinFocusTests;
+			productReference = 4DE4E0646275015609D52C38 /* LockinFocusTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		EC95E8EF2664728EE282870F /* LockinFocus */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A03445BF9E3DE697C4781FC5 /* Build configuration list for PBXNativeTarget "LockinFocus" */;
@@ -500,6 +552,10 @@
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
+					D0289F61DBE46E5B2311EFF5 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 					EC95E8EF2664728EE282870F = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -522,6 +578,7 @@
 			targets = (
 				3169D889DAFA1ED17F275495 /* DeviceActivityMonitorExtension */,
 				EC95E8EF2664728EE282870F /* LockinFocus */,
+				D0289F61DBE46E5B2311EFF5 /* LockinFocusTests */,
 				8777F31CC6233B0D6ADB9F7D /* ShieldActionExtension */,
 				5556ADC12CE1A0A296D97A1E /* ShieldConfigurationExtension */,
 			);
@@ -606,9 +663,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E81620DACCB3AE5139F207A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				710F21BB1B94A0F58062FFC5 /* InMemoryPersistenceStoreTests.swift in Sources */,
+				0E0FA37CC5D7C2E8AF119828 /* InterceptEventTests.swift in Sources */,
+				AFBFC6B8C133FD4AA04B81BB /* PreviewEngineTests.swift in Sources */,
+				57E35FBD488C4A697951CE5C /* ScheduleTests.swift in Sources */,
+				7093CAF5DD23DB744372FFC3 /* UserDefaultsPersistenceStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2D842FA38818C9FC6DB5250C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EC95E8EF2664728EE282870F /* LockinFocus */;
+			targetProxy = 0A2BB7AC7DA86DDF85751324 /* PBXContainerItemProxy */;
+		};
 		878FE19E9B64509BA7AFB75E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 8777F31CC6233B0D6ADB9F7D /* ShieldActionExtension */;
@@ -703,6 +777,24 @@
 			};
 			name = Release;
 		};
+		320D376C9916118A0A9983AD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LockinFocusTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.imurmkj.LockinFocusTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LockinFocus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LockinFocus";
+			};
+			name = Debug;
+		};
 		39E6B19185C2ABAA37FE3723 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -781,6 +873,24 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		7B73151FDD701618BBB51784 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LockinFocusTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.imurmkj.LockinFocusTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LockinFocus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LockinFocus";
+			};
+			name = Release;
 		};
 		9E5EA491B14BAA144D288F3B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -939,6 +1049,15 @@
 			buildConfigurations = (
 				C37E4CCA8FCB89A4352FDA7A /* Debug */,
 				39E6B19185C2ABAA37FE3723 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EDF6D257E8998C2992A27261 /* Build configuration list for PBXNativeTarget "LockinFocusTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				320D376C9916118A0A9983AD /* Debug */,
+				7B73151FDD701618BBB51784 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
