@@ -28,6 +28,16 @@ final class ManagedSettingsBlockingEngine: BlockingEngine {
     // MARK: - BlockingEngine
 
     func applyWhitelist(for selection: FamilyActivitySelection) {
+        // 빈 selection 은 "허용 앱 없음" 이지만 `.all(except: [])` 로 번역하면
+        // 모든 카테고리 전체 차단이 되어 사용자가 iPhone 을 못 쓴다. 안전 가드.
+        let hasAnyAllowed =
+            !selection.applicationTokens.isEmpty ||
+            !selection.categoryTokens.isEmpty ||
+            !selection.webDomainTokens.isEmpty
+        guard hasAnyAllowed else {
+            clearShield()
+            return
+        }
         store.shield.applicationCategories =
             .all(except: selection.applicationTokens)
         store.shield.webDomainCategories =
@@ -74,5 +84,5 @@ final class ManagedSettingsBlockingEngine: BlockingEngine {
 
 extension ManagedSettingsStore.Name {
     /// 명명된 Store — 추후 "집중/휴식" 분리 대비.
-    static let lockinPrimary = Self("com.imurmkj.LockinFocus.primary")
+    static let lockinPrimary = Self("com.moonkj.LockinFocus.primary")
 }

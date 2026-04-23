@@ -3,10 +3,10 @@ import FamilyControls
 
 /// 온보딩 5 스텝 컨테이너.
 /// 1) 가치 제안
-/// 2) 시스템 기본 허용 (프리셋)
-/// 3) 허용 앱 선택 (FamilyActivityPicker)
-/// 4) 스케줄
-/// 5) 권한 요청
+/// 2) 권한 요청 (Family Controls) — Picker 가 권한 전에는 앱 리스트를 보여주지 않으므로 먼저 수행
+/// 3) 시스템 기본 허용 (프리셋)
+/// 4) 허용 앱 선택 (FamilyActivityPicker)
+/// 5) 스케줄
 ///
 /// 흰색 배경, 단계 점 인디케이터 하단 고정.
 struct OnboardingContainerView: View {
@@ -67,17 +67,17 @@ struct OnboardingContainerView: View {
         case 0:
             ValueStepView(onNext: goNext)
         case 1:
-            SystemPresetStepView(onNext: goNext)
-        case 2:
-            AppPickerStepView(selection: $draftSelection, onNext: goNext)
-        case 3:
-            ScheduleStepView(schedule: $draftSchedule, onNext: goNext)
-        case 4:
             AuthorizationStepView(
                 denied: $authorizationDenied,
                 onAuthorize: requestAuthorization,
                 onOpenSettings: openSystemSettings
             )
+        case 2:
+            SystemPresetStepView(onNext: goNext)
+        case 3:
+            AppPickerStepView(selection: $draftSelection, onNext: goNext)
+        case 4:
+            ScheduleStepView(schedule: $draftSchedule, onNext: goNext)
         default:
             EmptyView()
         }
@@ -112,12 +112,10 @@ struct OnboardingContainerView: View {
                 try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
                 await MainActor.run {
                     authorizationDenied = false
-                    finishOnboarding()
+                    goNext()
                 }
             } catch {
-                await MainActor.run {
-                    authorizationDenied = true
-                }
+                await MainActor.run { authorizationDenied = true }
             }
         }
     }
@@ -133,12 +131,14 @@ struct OnboardingContainerView: View {
         deps.persistence.schedule = draftSchedule
         deps.persistence.hasCompletedOnboarding = true
 
-        // 실구현이 들어온 경우에만 동작. Preview mock 은 noop.
-        deps.blocking.applyWhitelist(for: draftSelection)
-        do {
-            try deps.monitoring.startSchedule(draftSchedule, name: "block_main")
-        } catch {
-            // Phase 3: 조용히 무시. 로그는 Debugger 단계에서 추가.
+        // 스케줄이 꺼진 상태로 온보딩을 끝내면 shield 를 적용하지 않는다.
+        // 허용 앱 0개인 경우에도 BlockingEngine 이 내부적으로 clearShield 로 폴백.
+        if draftSchedule.isEnabled {
+            deps.blocking.applyWhitelist(for: draftSelection)
+            try? deps.monitoring.startSchedule(draftSchedule, name: "block_main")
+        } else {
+            deps.blocking.clearShield()
+            deps.monitoring.stopMonitoring(name: "block_main")
         }
 
         // RootView 가 deps.persistence.hasCompletedOnboarding 를 다시 읽도록 강제 재렌더.

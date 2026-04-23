@@ -33,7 +33,7 @@ struct ScheduleStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("언제 쉬게 할까요")
+                Text("집중 시간대를 골라주세요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 

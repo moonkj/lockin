@@ -20,7 +20,7 @@ struct AppSelectionView: View {
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundStyle(AppColors.primaryText)
 
-                        Text("여기서 고르지 않은 앱은 쉬는 시간에 열리지 않아요.")
+                        Text("카테고리 오른쪽 `>` 를 탭하면 개별 앱을 고를 수 있어요.\n여기서 고르지 않은 앱은 집중 시간에 열리지 않아요.")
                             .font(.system(size: 14))
                             .foregroundStyle(AppColors.secondaryText)
                     }

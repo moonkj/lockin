@@ -11,7 +11,7 @@ import XCTest
 /// 확인한다. Debugger Report H1 에서 증명된 계약을 미래 회귀로부터 보호.
 final class UserDefaultsPersistenceStoreTests: XCTestCase {
 
-    private static let testSuiteName = "com.imurmkj.LockinFocus.tests"
+    private static let testSuiteName = "com.moonkj.LockinFocus.tests"
 
     private var defaults: UserDefaults!
     private var store: UserDefaultsPersistenceStore!

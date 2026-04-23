@@ -39,6 +39,13 @@ struct SettingsView: View {
                         } label: {
                             row(title: "스케줄", trailing: scheduleLabel)
                         }
+
+                        Button(role: .destructive) {
+                            emergencyUnlock()
+                        } label: {
+                            Text("모든 차단 즉시 해제")
+                                .foregroundStyle(AppColors.error)
+                        }
                     }
 
                     Section("앱 정보") {
@@ -107,12 +114,23 @@ struct SettingsView: View {
     private func save() {
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
-        deps.blocking.applyWhitelist(for: selection)
-        do {
-            try deps.monitoring.startSchedule(schedule, name: "block_main")
-        } catch {
-            // MVP 조용히 무시.
+
+        if schedule.isEnabled {
+            deps.blocking.applyWhitelist(for: selection)
+            try? deps.monitoring.startSchedule(schedule, name: "block_main")
+        } else {
+            deps.blocking.clearShield()
+            deps.monitoring.stopMonitoring(name: "block_main")
         }
+    }
+
+    /// 사용자가 앱에 잠겨 다른 앱에 접근 못 할 때를 위한 긴급 탈출.
+    /// shield 전체 해제 + 스케줄 모니터링 중단 + 로컬 스케줄 OFF 로 저장.
+    private func emergencyUnlock() {
+        deps.blocking.clearShield()
+        deps.monitoring.stopMonitoring(name: "block_main")
+        schedule.isEnabled = false
+        deps.persistence.schedule = schedule
     }
 }
 

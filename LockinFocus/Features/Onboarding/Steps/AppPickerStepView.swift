@@ -21,7 +21,7 @@ struct AppPickerStepView: View {
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("고른 앱은 쉬는 시간에도 열립니다.\n나머지는 자동으로 쉬게 돼요.")
+                Text("고른 앱은 집중 시간에도 열립니다.\n카테고리 옆 `>` 를 탭하면 개별 앱을 고를 수 있어요.")
                     .font(.system(size: 15))
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)

@@ -1,13 +1,10 @@
 import Foundation
 
 enum AppGroup {
-    static let identifier = "group.com.imurmkj.LockinFocus"
+    static let identifier = "group.com.moonkj.LockinFocus"
 
     static var sharedDefaults: UserDefaults {
-        guard let defaults = UserDefaults(suiteName: identifier) else {
-            fatalError("App Group '\(identifier)' 이 등록되지 않았습니다. Capabilities 확인 요망.")
-        }
-        return defaults
+        UserDefaults(suiteName: identifier) ?? .standard
     }
 }
 

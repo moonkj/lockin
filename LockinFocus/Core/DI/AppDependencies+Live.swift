@@ -15,7 +15,6 @@ extension AppDependencies {
         #else
         let monitoring = DeviceActivityMonitoringEngine()
         let blocking = ManagedSettingsBlockingEngine()
-        // 순환 주입 회피를 위한 후주입.
         blocking.bind(monitoring: monitoring)
         return AppDependencies(
             persistence: persistence,

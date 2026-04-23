@@ -82,11 +82,13 @@ struct DashboardView: View {
     private func save() {
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
-        deps.blocking.applyWhitelist(for: selection)
-        do {
-            try deps.monitoring.startSchedule(schedule, name: "block_main")
-        } catch {
-            // MVP: 조용히 무시.
+
+        if schedule.isEnabled {
+            deps.blocking.applyWhitelist(for: selection)
+            try? deps.monitoring.startSchedule(schedule, name: "block_main")
+        } else {
+            deps.blocking.clearShield()
+            deps.monitoring.stopMonitoring(name: "block_main")
         }
     }
 }

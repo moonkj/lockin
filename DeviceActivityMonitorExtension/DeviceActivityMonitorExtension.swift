@@ -47,6 +47,16 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     private func applyWhitelistFromStore() {
         let selection = readFamilySelection()
+        // 빈 selection 가드. 메인 앱 BlockingEngine 과 동일 규약으로
+        // `.all(except: [])` 로 번역해서 전체 차단이 되는 사고를 막는다.
+        let hasAnyAllowed =
+            !selection.applicationTokens.isEmpty ||
+            !selection.categoryTokens.isEmpty ||
+            !selection.webDomainTokens.isEmpty
+        guard hasAnyAllowed else {
+            clearShield()
+            return
+        }
         store.shield.applicationCategories =
             .all(except: selection.applicationTokens)
         store.shield.webDomainCategories =
@@ -81,7 +91,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 // 메인 앱 쪽 상수와 반드시 일치시킨다.
 
 private enum ExtensionAppGroup {
-    static let identifier = "group.com.imurmkj.LockinFocus"
+    static let identifier = "group.com.moonkj.LockinFocus"
 }
 
 private enum ExtensionSharedKeys {
@@ -94,5 +104,5 @@ private enum ExtensionActivityName {
 }
 
 private extension ManagedSettingsStore.Name {
-    static let lockinPrimary = Self("com.imurmkj.LockinFocus.primary")
+    static let lockinPrimary = Self("com.moonkj.LockinFocus.primary")
 }

@@ -12,7 +12,7 @@ struct AuthorizationStepView: View {
             Spacer()
 
             VStack(spacing: 16) {
-                Text("마지막 한 단계예요")
+                Text("먼저 권한이 필요해요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
                     .multilineTextAlignment(.center)
