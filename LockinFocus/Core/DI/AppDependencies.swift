@@ -38,14 +38,11 @@ final class PreviewPersistenceStore: PersistenceStore {
     var hasCompletedOnboarding = false
     var isManualFocusActive = false
     var isStrictModeActive = false
-    var detoxSelection = FamilyActivitySelection()
-    var isDetoxActive = false
     var interceptQueue: [InterceptEvent] = []
 
     var earnedBadgeIDs: Set<String> = []
     var totalReturnCount: Int = 0
     var totalStrictSurvived: Int = 0
-    var totalDetoxStarted: Int = 0
 
     func awardBadgeIfNew(_ id: String) -> Bool {
         guard !earnedBadgeIDs.contains(id) else { return false }

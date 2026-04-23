@@ -34,12 +34,6 @@ enum PersistenceKeys {
     /// 엄격 모드 활성 여부. ON 시 해제는 Friction 절차(30초+문장+Face ID) 거쳐야 함.
     static let isStrictModeActive = "isStrictModeActive"
 
-    /// 도파민 디톡스 프리셋 — 더 짧은 "필수만" 허용 세트. Codable 저장.
-    static let detoxSelection = "detoxSelection"
-
-    /// 현재 도파민 디톡스 모드 활성 여부.
-    static let isDetoxActive = "isDetoxActive"
-
     /// 최근 집중 기록(`[DailyFocus]` Codable). 주간 리포트 원천 데이터.
     static let dailyFocusHistory = "dailyFocusHistory"
 
@@ -52,5 +46,4 @@ enum PersistenceKeys {
     /// 누적 집계 (뱃지 판정용).
     static let totalReturnCount = "totalReturnCount"
     static let totalStrictSurvived = "totalStrictSurvived"
-    static let totalDetoxStarted = "totalDetoxStarted"
 }

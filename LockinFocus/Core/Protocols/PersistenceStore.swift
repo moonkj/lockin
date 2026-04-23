@@ -10,10 +10,6 @@ protocol PersistenceStore: AnyObject {
     var hasCompletedOnboarding: Bool { get set }
     var isManualFocusActive: Bool { get set }
     var isStrictModeActive: Bool { get set }
-    /// 도파민 디톡스 전용 허용 세트 (평소 selection 보다 더 짧게 고르는 용도).
-    var detoxSelection: FamilyActivitySelection { get set }
-    /// 도파민 디톡스 현재 활성 여부.
-    var isDetoxActive: Bool { get set }
     var interceptQueue: [InterceptEvent] { get set }
 
     /// Extension 이 쓴 원본 큐 (`[[String: Any]]`) 를 `[InterceptEvent]` 로 디코딩.
@@ -39,7 +35,6 @@ protocol PersistenceStore: AnyObject {
     var earnedBadgeIDs: Set<String> { get set }
     var totalReturnCount: Int { get set }
     var totalStrictSurvived: Int { get set }
-    var totalDetoxStarted: Int { get set }
 
     /// 아직 없는 뱃지면 적재 후 true. 이미 있으면 false.
     func awardBadgeIfNew(_ id: String) -> Bool

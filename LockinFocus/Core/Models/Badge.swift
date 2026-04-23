@@ -17,7 +17,6 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
 
     // 모드 관련
     case strictSurvivor  // 엄격 모드 해제 완료 1회
-    case detoxStarter    // 도파민 디톡스 첫 사용
 
     var id: String { rawValue }
 
@@ -31,7 +30,6 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .streak3Days:    return "3일 연속 집중"
         case .streak7Days:    return "일주일 완주"
         case .strictSurvivor: return "엄격 모드 완주"
-        case .detoxStarter:   return "첫 디톡스"
         }
     }
 
@@ -45,7 +43,6 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .streak3Days:    return "3일 동안 매일 집중 점수를 남겼어요."
         case .streak7Days:    return "7일 연속 집중을 이어갔어요."
         case .strictSurvivor: return "엄격 모드를 끝까지 겪고 해제했어요."
-        case .detoxStarter:   return "도파민 디톡스 모드를 시작해봤어요."
         }
     }
 
@@ -59,7 +56,6 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .streak3Days:    return "flame.fill"
         case .streak7Days:    return "flame.circle.fill"
         case .strictSurvivor: return "lock.shield.fill"
-        case .detoxStarter:   return "bolt.circle.fill"
         }
     }
 
@@ -73,7 +69,6 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .streak3Days:    return Color(red: 0.88, green: 0.40, blue: 0.20)
         case .streak7Days:    return Color(red: 0.80, green: 0.25, blue: 0.18)
         case .strictSurvivor: return Color(red: 0.20, green: 0.25, blue: 0.55)
-        case .detoxStarter:   return Color(red: 0.55, green: 0.30, blue: 0.75)
         }
     }
 }

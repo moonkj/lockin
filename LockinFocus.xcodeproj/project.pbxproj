@@ -39,7 +39,6 @@
 		71D90CAEFBE9D462D47F33BA /* FocusScoreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295A2BDDA79EC295EC174FDD /* FocusScoreCard.swift */; };
 		77ABD5DFA6C9FA330FAA4EE2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749BEF23E0F08587B35F4C60 /* RootView.swift */; };
 		77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C78B4527F59D699D95EA69 /* DashboardView.swift */; };
-		79129CDFCA1515FBDB699BB3 /* DetoxPresetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ABB65102B64A5C2ACBC9C4 /* DetoxPresetCard.swift */; };
 		7CC08E63C5F2B6A0AD54824F /* AppPasscodeSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D72ACAAEBC6DCD9E1E73CAAC /* AppPasscodeSetupView.swift */; };
 		7E615D3F8B44901457020ECF /* InterceptEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */; };
 		7F10E6BA9AFADBCD6910EC68 /* Badge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D3D2E292405631FA8FEEBD /* Badge.swift */; };
@@ -122,7 +121,6 @@
 		0B493A9B4412E6ACEF1DF5CE /* BlockingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingEngine.swift; sourceTree = "<group>"; };
 		11F336E2376512A5A09BAA16 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		12C78B4527F59D699D95EA69 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
-		14ABB65102B64A5C2ACBC9C4 /* DetoxPresetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetoxPresetCard.swift; sourceTree = "<group>"; };
 		1D8C2BF3EB1E5C2A78CA352B /* AppDependencies+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDependencies+Live.swift"; sourceTree = "<group>"; };
 		1E4936E0B80E39EA89ADA6E7 /* StrictModeUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrictModeUnlockView.swift; sourceTree = "<group>"; };
 		1E7B1E5977DDCA3095F43430 /* PersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceStore.swift; sourceTree = "<group>"; };
@@ -254,7 +252,6 @@
 			children = (
 				2EC34718370D9DBDAD5004B5 /* AllowedAppsCard.swift */,
 				12C78B4527F59D699D95EA69 /* DashboardView.swift */,
-				14ABB65102B64A5C2ACBC9C4 /* DetoxPresetCard.swift */,
 				295A2BDDA79EC295EC174FDD /* FocusScoreCard.swift */,
 				77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */,
 			);
@@ -711,7 +708,6 @@
 				C70A9B22099EB5DDB948F0B4 /* BlockingEngine.swift in Sources */,
 				D9E83C497354A68779DD05E6 /* DailyFocus.swift in Sources */,
 				77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */,
-				79129CDFCA1515FBDB699BB3 /* DetoxPresetCard.swift in Sources */,
 				B749D701269FDF99AAC6D22B /* DeviceActivityMonitoringEngine.swift in Sources */,
 				71D90CAEFBE9D462D47F33BA /* FocusScoreCard.swift in Sources */,
 				9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */,

@@ -16,9 +16,6 @@ struct DashboardView: View {
     @State private var showEmptyAllowConfirm: Bool = false
     @State private var showStrictActiveAlert: Bool = false
 
-    @State private var detoxSelection: FamilyActivitySelection = FamilyActivitySelection()
-    @State private var isDetoxActive: Bool = false
-    @State private var showDetoxPicker: Bool = false
     @State private var showWeeklyReport: Bool = false
     @State private var showBadges: Bool = false
 
@@ -56,13 +53,6 @@ struct DashboardView: View {
                             .padding(.horizontal, 4)
                     }
 
-                    DetoxPresetCard(
-                        selection: $detoxSelection,
-                        isActive: isDetoxActive,
-                        onTap: toggleDetox,
-                        onEdit: { showDetoxPicker = true }
-                    )
-
                     Spacer(minLength: 24)
                 }
                 .padding(.horizontal, 20)
@@ -84,12 +74,6 @@ struct DashboardView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
                 .environmentObject(deps)
-        }
-        .sheet(isPresented: $showDetoxPicker) {
-            AppSelectionView(selection: $detoxSelection) {
-                showDetoxPicker = false
-                deps.persistence.detoxSelection = detoxSelection
-            }
         }
         .sheet(isPresented: $showWeeklyReport) {
             WeeklyReportView()
@@ -193,35 +177,6 @@ struct DashboardView: View {
         selection = deps.persistence.selection
         schedule = deps.persistence.schedule
         isManualFocus = deps.persistence.isManualFocusActive
-        detoxSelection = deps.persistence.detoxSelection
-        isDetoxActive = deps.persistence.isDetoxActive
-    }
-
-    /// 도파민 디톡스 토글. 활성 시 Shield 를 디톡스 selection 으로 교체, 종료 시 원 상태 복귀.
-    /// 엄격 모드가 켜져 있으면 종료를 막는다(엄격 모드 해제 흐름을 통해서만 해제 가능).
-    private func toggleDetox() {
-        if isDetoxActive {
-            if deps.persistence.isStrictModeActive {
-                showStrictActiveAlert = true
-                return
-            }
-            // 디톡스 종료 → 평소 selection 으로 복귀 (수동 집중이 켜져있으면 유지)
-            if deps.persistence.isManualFocusActive {
-                deps.blocking.applyWhitelist(for: selection)
-            } else {
-                deps.blocking.clearShield()
-            }
-            deps.persistence.isDetoxActive = false
-            isDetoxActive = false
-        } else {
-            deps.blocking.applyWhitelist(for: detoxSelection)
-            deps.persistence.isDetoxActive = true
-            isDetoxActive = true
-            // 디톡스 중에도 수동 집중 모드로 간주(집중 종료 UI 와 일관).
-            deps.persistence.isManualFocusActive = true
-            isManualFocus = true
-            BadgeEngine.onDetoxStarted(persistence: deps.persistence)
-        }
     }
 
     /// 수동 집중 모드 토글. 스케줄과 독립적이며, 즉시 shield 적용/해제한다.

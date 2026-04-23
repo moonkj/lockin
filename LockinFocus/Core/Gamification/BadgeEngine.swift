@@ -48,16 +48,6 @@ enum BadgeEngine {
         return []
     }
 
-    /// 도파민 디톡스 시작 시 호출.
-    @discardableResult
-    static func onDetoxStarted(persistence: PersistenceStore) -> [Badge] {
-        persistence.totalDetoxStarted += 1
-        if persistence.awardBadgeIfNew(Badge.detoxStarter.id) {
-            return [.detoxStarter]
-        }
-        return []
-    }
-
     // MARK: - Streak
 
     /// 최근 14일 기록에서 "점수>0" 인 날이 오늘부터 뒤로 몇 일 연속 있는지 세어 3/7일 뱃지 체크.
