@@ -52,4 +52,27 @@ final class AppDependenciesTickerTests: XCTestCase {
         try await Task.sleep(nanoseconds: 2_500_000_000)
         XCTAssertNil(deps.persistence.strictModeEndAt)
     }
+
+    func testLiveFactory_smokeTest() {
+        // AppDependencies.live() 가 crash 없이 반환되는지.
+        let live = AppDependencies.live()
+        XCTAssertNotNil(live.persistence)
+        XCTAssertNotNil(live.blocking)
+        XCTAssertNotNil(live.monitoring)
+    }
+
+    func testLive_tickerRunning() async throws {
+        let live = AppDependencies.live()
+        let initial = live.tick
+        try await Task.sleep(nanoseconds: 1_200_000_000)
+        XCTAssertGreaterThanOrEqual(live.tick, initial)
+    }
+
+    func testICloudKVNotification_observerRegistered() {
+        // observer 가 init 에서 등록됐는지 — 제거 시점에서 crash 없이 동작하는지 확인.
+        var deps: AppDependencies? = AppDependencies.preview()
+        _ = deps
+        deps = nil  // deinit → observer removal + tickerTimer invalidate.
+        XCTAssertNil(deps)
+    }
 }

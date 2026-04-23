@@ -149,17 +149,19 @@ private struct WeeklyReport: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            card {
-                Chart(history) { item in
-                    BarMark(
-                        x: .value("요일", item.shortWeekday),
-                        y: .value("점수", item.score)
-                    )
-                    .foregroundStyle(AppColors.primaryText)
-                    .cornerRadius(4)
+            if !history.isEmpty {
+                card {
+                    Chart(history) { item in
+                        BarMark(
+                            x: .value("요일", item.shortWeekday),
+                            y: .value("점수", item.score)
+                        )
+                        .foregroundStyle(AppColors.primaryText)
+                        .cornerRadius(4)
+                    }
+                    .chartYScale(domain: 0...100)
+                    .frame(height: 200)
                 }
-                .chartYScale(domain: 0...100)
-                .frame(height: 200)
             }
 
             card {
@@ -208,24 +210,26 @@ private struct MonthlyReport: View {
                 .frame(maxWidth: .infinity)
             }
 
-            card {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("최근 30일")
-                        .font(.system(size: 12))
-                        .foregroundStyle(AppColors.secondaryText)
-                    Chart(history) { item in
-                        BarMark(
-                            x: .value("날짜", item.displayDate, unit: .day),
-                            y: .value("점수", item.score)
-                        )
-                        .foregroundStyle(AppColors.primaryText)
-                        .cornerRadius(2)
+            if !history.isEmpty {
+                card {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("최근 30일")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppColors.secondaryText)
+                        Chart(history) { item in
+                            BarMark(
+                                x: .value("날짜", item.displayDate, unit: .day),
+                                y: .value("점수", item.score)
+                            )
+                            .foregroundStyle(AppColors.primaryText)
+                            .cornerRadius(2)
+                        }
+                        .chartYScale(domain: 0...100)
+                        .chartXAxis {
+                            AxisMarks(values: .stride(by: .day, count: 7))
+                        }
+                        .frame(height: 180)
                     }
-                    .chartYScale(domain: 0...100)
-                    .chartXAxis {
-                        AxisMarks(values: .stride(by: .day, count: 7))
-                    }
-                    .frame(height: 180)
                 }
             }
         }

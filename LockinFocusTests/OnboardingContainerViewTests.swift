@@ -6,25 +6,60 @@ import ViewInspector
 @MainActor
 final class OnboardingContainerViewTests: XCTestCase {
 
-    func testContainer_renders_firstStep() throws {
-        let deps = AppDependencies.preview()
-        let view = OnboardingContainerView().environmentObject(deps)
-        // Step 0 = ValueStepView — 해당 헤드라인이 존재해야.
-        XCTAssertNoThrow(try view.inspect().find(ViewType.Button.self))
+    private func makeDeps() -> AppDependencies {
+        let d = AppDependencies.preview()
+        d.persistence.hasCompletedOnboarding = false
+        return d
     }
 
-    func testContainer_initialStep_noBackButton() throws {
-        let deps = AppDependencies.preview()
-        let view = OnboardingContainerView().environmentObject(deps)
-        // step == 0 이면 뒤로 버튼이 숨겨져야.
+    func testContainer_step0_rendersValueStep() throws {
+        let view = OnboardingContainerView(initialStep: 0)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(ViewType.Button.self))
+        // 뒤로 버튼은 step 0 에선 숨김.
         XCTAssertThrowsError(try view.inspect().find(text: "뒤로"))
     }
 
-    func testContainer_renders_dotIndicator() throws {
-        let deps = AppDependencies.preview()
-        let view = OnboardingContainerView().environmentObject(deps)
-        // 6 step 인디케이터 존재.
-        let inspected = try view.inspect()
-        XCTAssertNoThrow(inspected)
+    func testContainer_step1_rendersAuthorizationStep() throws {
+        let view = OnboardingContainerView(initialStep: 1)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(text: "먼저 권한이 필요해요"))
+        XCTAssertNoThrow(try view.inspect().find(text: "뒤로"))
+    }
+
+    func testContainer_step2_rendersSystemPresetStep() throws {
+        let view = OnboardingContainerView(initialStep: 2)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(button: "다음"))
+    }
+
+    func testContainer_step3_rendersAppPickerStep() throws {
+        let view = OnboardingContainerView(initialStep: 3)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(text: "허용할 앱을 골라주세요"))
+    }
+
+    func testContainer_step4_rendersScheduleStep() throws {
+        let view = OnboardingContainerView(initialStep: 4)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(text: "집중 시간대를 골라주세요"))
+    }
+
+    func testContainer_step5_rendersPasscodeStep() throws {
+        let view = OnboardingContainerView(initialStep: 5)
+            .environmentObject(makeDeps())
+        XCTAssertNoThrow(try view.inspect().find(text: "앱 비밀번호를 정해주세요"))
+        XCTAssertNoThrow(try view.inspect().find(button: "건너뛰기"))
+    }
+
+    func testContainer_backButton_rendersOnNonZeroSteps() throws {
+        for step in 1...5 {
+            let view = OnboardingContainerView(initialStep: step)
+                .environmentObject(makeDeps())
+            XCTAssertNoThrow(
+                try view.inspect().find(text: "뒤로"),
+                "step \(step) 에서 뒤로 버튼이 렌더되어야"
+            )
+        }
     }
 }

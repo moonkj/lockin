@@ -13,12 +13,16 @@ import FamilyControls
 struct OnboardingContainerView: View {
     @EnvironmentObject var deps: AppDependencies
 
-    @State private var step: Int = 0
+    @State private var step: Int
     @State private var draftSelection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var draftSchedule: Schedule = .weekdayWorkHours
     @State private var authorizationDenied: Bool = false
 
     private let totalSteps = 6
+
+    init(initialStep: Int = 0) {
+        _step = State(initialValue: initialStep)
+    }
 
     var body: some View {
         ZStack {

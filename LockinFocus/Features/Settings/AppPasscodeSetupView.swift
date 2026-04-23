@@ -7,12 +7,28 @@ struct AppPasscodeSetupView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var first: String = ""
-    @State private var second: String = ""
-    @State private var step: Step = .first
+    @State private var first: String
+    @State private var second: String
+    @State private var step: Step
     @State private var errorMessage: String?
 
-    private enum Step { case first, confirm }
+    enum Step { case first, confirm }
+
+    init(onDone: @escaping (Bool) -> Void) {
+        self.onDone = onDone
+        _first = State(initialValue: "")
+        _second = State(initialValue: "")
+        _step = State(initialValue: .first)
+    }
+
+    /// 테스트 전용 init — 초기 step 및 이전 입력값을 주입.
+    init(onDone: @escaping (Bool) -> Void, initialStep: Step, initialFirst: String = "", initialErrorMessage: String? = nil) {
+        self.onDone = onDone
+        _first = State(initialValue: initialFirst)
+        _second = State(initialValue: "")
+        _step = State(initialValue: initialStep)
+        _errorMessage = State(initialValue: initialErrorMessage)
+    }
 
     var body: some View {
         NavigationStack {

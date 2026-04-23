@@ -53,16 +53,32 @@ final class ReportViewTests: XCTestCase {
         XCTAssertEqual(ReportView.Range.monthly.id, "월간")
     }
 
-    func testReportView_instantiateWeekly() {
-        // weekly 탭 기본 생성 경로 — body 가 Charts 까지 들어가지 않는다면 crash 없이 통과.
+    // Weekly/Monthly 탭 body 는 history 가 비어 있으면 Chart 를 렌더하지 않도록
+    // 가드가 추가됐다. PreviewPersistenceStore 의 dailyFocusHistory 는 더미 데이터를
+    // 반환해 실제 시나리오를 재현하므로, 테스트는 onAppear 전의 초기 빈 상태에서
+    // inspect 를 시도한다.
+
+    // WeeklyReport/MonthlyReport 의 history @State 는 onAppear 에서 채워지지만
+    // ViewInspector inspect() 는 onAppear 를 발동하지 않아 history 는 빈 배열로 유지.
+    // Chart 는 history.isEmpty 가드 덕분에 빈 상태에선 렌더되지 않으므로 안전.
+
+    func testReportView_weeklyInitial_rendersAverageCard() throws {
         let view = ReportView(initialRange: .weekly)
             .environmentObject(AppDependencies.preview())
-        _ = view  // 뷰 구조체 생성만 테스트 (body 는 SwiftUI 가 필요할 때 호출)
+        XCTAssertNoThrow(try view.inspect().find(text: "최근 7일 평균"))
     }
 
-    func testReportView_instantiateMonthly() {
+    func testReportView_monthlyInitial_rendersStatsStrip() throws {
         let view = ReportView(initialRange: .monthly)
             .environmentObject(AppDependencies.preview())
-        _ = view
+        XCTAssertNoThrow(try view.inspect().find(text: "기록 일수"))
+        XCTAssertNoThrow(try view.inspect().find(text: "총점"))
+    }
+
+    func testReportView_range_tapSwitchesState() throws {
+        let view = ReportView(initialRange: .daily)
+            .environmentObject(AppDependencies.preview())
+        // 탭 버튼 3개 중 첫 버튼(일간) tap 시 에러 없이 동작.
+        XCTAssertNoThrow(try view.inspect().find(button: "일간").tap())
     }
 }

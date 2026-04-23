@@ -11,9 +11,22 @@ struct DashboardView: View {
     @State private var showScheduleEditor: Bool = false
     @State private var showSettings: Bool = false
 
-    @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
-    @State private var schedule: Schedule = .weekdayWorkHours
-    @State private var isManualFocus: Bool = false
+    @State private var selection: FamilyActivitySelection
+    @State private var schedule: Schedule
+    @State private var isManualFocus: Bool
+
+    init() {
+        _selection = State(initialValue: FamilyActivitySelection())
+        _schedule = State(initialValue: .weekdayWorkHours)
+        _isManualFocus = State(initialValue: false)
+    }
+
+    /// 테스트 전용 init — 초기 isManualFocus 주입해서 버튼 레이블 분기 검증.
+    init(initialIsManualFocus: Bool) {
+        _selection = State(initialValue: FamilyActivitySelection())
+        _schedule = State(initialValue: .weekdayWorkHours)
+        _isManualFocus = State(initialValue: initialIsManualFocus)
+    }
     @State private var showEmptyAllowConfirm: Bool = false
     @State private var showStrictActiveAlert: Bool = false
 

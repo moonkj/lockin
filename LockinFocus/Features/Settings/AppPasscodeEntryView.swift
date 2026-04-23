@@ -7,9 +7,21 @@ struct AppPasscodeEntryView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var input: String = ""
+    @State private var input: String
     @State private var errorMessage: String?
     @State private var attempts: Int = 0
+
+    init(onSuccess: @escaping () -> Void) {
+        self.onSuccess = onSuccess
+        _input = State(initialValue: "")
+    }
+
+    /// 테스트 전용 — 초기 에러 메시지 표시 상태를 주입.
+    init(onSuccess: @escaping () -> Void, initialError: String?) {
+        self.onSuccess = onSuccess
+        _input = State(initialValue: "")
+        _errorMessage = State(initialValue: initialError)
+    }
 
     var body: some View {
         NavigationStack {

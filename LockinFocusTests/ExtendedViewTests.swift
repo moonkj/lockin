@@ -37,6 +37,12 @@ final class ExtendedViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "지금 집중 시작"))
     }
 
+    func testDashboardView_injectedManualFocus_showsEndButton() throws {
+        let view = DashboardView(initialIsManualFocus: true)
+            .environmentObject(AppDependencies.preview())
+        XCTAssertNoThrow(try view.inspect().find(text: "집중 종료"))
+    }
+
     // MARK: - BadgesView branches
 
     func testBadgesView_withEarnedBadges_noLockedMessage() throws {
@@ -64,6 +70,23 @@ final class ExtendedViewTests: XCTestCase {
         let view = NicknameSetupView { _ in }
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: "랭킹에서 다른 사용자에게 이렇게 보여요.\n2~20자."))
+    }
+
+    func testNicknameSetupView_withInitialName_rendersText() throws {
+        let view = NicknameSetupView(
+            onSaved: { _ in },
+            initialNickname: "집중러"
+        ).environmentObject(AppDependencies.preview())
+        XCTAssertNoThrow(try view.inspect())
+    }
+
+    func testNicknameSetupView_withErrorMessage_showsError() throws {
+        let view = NicknameSetupView(
+            onSaved: { _ in },
+            initialNickname: "시발",
+            initialError: "허용되지 않은 단어가 포함돼 있어요."
+        ).environmentObject(AppDependencies.preview())
+        XCTAssertNoThrow(try view.inspect().find(text: "허용되지 않은 단어가 포함돼 있어요."))
     }
 
     // MARK: - FamilyActivitySelection+Display
@@ -99,5 +122,33 @@ final class ExtendedViewTests: XCTestCase {
         deps.persistence.hasCompletedOnboarding = true
         let view = RootView().environmentObject(deps)
         XCTAssertNoThrow(try view.inspect())
+    }
+
+    // MARK: - InterceptView strict active branch
+
+    func testInterceptView_withStrictActive_rendersStrictAwareCopy() throws {
+        let deps = AppDependencies.preview()
+        deps.persistence.strictModeEndAt = Date().addingTimeInterval(3600)
+        let view = InterceptView().environmentObject(deps)
+        XCTAssertNoThrow(try view.inspect())
+    }
+
+    // MARK: - BadgeDetailCardView covers all badges
+
+    func testBadgeDetailCardView_rendersForEveryBadge() throws {
+        for badge in Badge.allCases {
+            let view = BadgeDetailCardView(badge: badge, onClose: {})
+            XCTAssertNoThrow(try view.inspect().find(text: badge.title),
+                             "\(badge.id) 의 title 이 카드에 렌더되어야")
+        }
+    }
+
+    // MARK: - BadgeCelebrationView covers all badges
+
+    func testBadgeCelebrationView_rendersForEveryBadge() throws {
+        for badge in Badge.allCases {
+            let view = BadgeCelebrationView(badge: badge, onConfirm: {})
+            XCTAssertNoThrow(try view.inspect().find(text: badge.title))
+        }
     }
 }

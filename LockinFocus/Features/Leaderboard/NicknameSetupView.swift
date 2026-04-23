@@ -6,8 +6,20 @@ struct NicknameSetupView: View {
     @Environment(\.dismiss) private var dismiss
     let onSaved: (String) -> Void
 
-    @State private var nickname: String = ""
+    @State private var nickname: String
     @State private var errorMessage: String?
+
+    init(onSaved: @escaping (String) -> Void) {
+        self.onSaved = onSaved
+        _nickname = State(initialValue: "")
+    }
+
+    /// 테스트 전용 init — 초기 nickname / error 주입.
+    init(onSaved: @escaping (String) -> Void, initialNickname: String, initialError: String? = nil) {
+        self.onSaved = onSaved
+        _nickname = State(initialValue: initialNickname)
+        _errorMessage = State(initialValue: initialError)
+    }
 
     private var trimmed: String {
         nickname.trimmingCharacters(in: .whitespacesAndNewlines)
