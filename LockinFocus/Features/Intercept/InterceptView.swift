@@ -1,0 +1,120 @@
+import SwiftUI
+
+/// 차단 앱 실행 후 Shield → 메인 앱으로 돌아온 사용자에게 10초의 자각 공간을 제공.
+/// 쟁점 3: MVP countdown 1종만. variant 는 Phase 5.
+/// 쟁점 5: "그래도 열기" 는 MVP 단순화로 Shield **전체**를 5분 일시 해제 후 재차단.
+///         원래 UX 는 "해당 앱만" 이지만, Extension 이 `ApplicationToken` 을 App Group 큐에
+///         안정적으로 직렬화하지 못하는 현재 한계에 맞춰 단순화. Tasklist.md 에 기록.
+struct InterceptView: View {
+    @EnvironmentObject var deps: AppDependencies
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var remaining: Int = 10
+    @State private var timer: Timer?
+
+    private var canExit: Bool { remaining == 0 }
+
+    var body: some View {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                timerCircle
+
+                Spacer().frame(height: 40)
+
+                Text("잠깐 기다려봐요")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(AppColors.primaryText)
+
+                Text("이 앱이 지금 꼭 필요한가요?")
+                    .font(.system(size: 15))
+                    .foregroundStyle(AppColors.secondaryText)
+                    .padding(.top, 8)
+
+                Spacer()
+
+                VStack(spacing: 8) {
+                    PrimaryButton("돌아가기", action: handleReturn)
+
+                    SecondaryLinkButton(
+                        canExit ? "그래도 열기" : "10초 뒤에 선택할 수 있어요",
+                        isEnabled: canExit,
+                        action: handleOpenAnyway
+                    )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+            }
+        }
+        .onAppear(perform: startCountdown)
+        .onDisappear { timer?.invalidate() }
+        .interactiveDismissDisabled(true)
+    }
+
+    // MARK: - Circle
+
+    private var timerCircle: some View {
+        ZStack {
+            Circle()
+                .stroke(AppColors.divider, lineWidth: 3)
+                .frame(width: 160, height: 160)
+
+            Circle()
+                .trim(from: 0, to: CGFloat(max(0, remaining)) / 10.0)
+                .stroke(AppColors.primaryText, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .frame(width: 160, height: 160)
+                .rotationEffect(.degrees(-90))
+                .animation(.linear(duration: 0.3), value: remaining)
+
+            Text("\(remaining)")
+                .font(.system(size: 48, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.primaryText)
+                .monospacedDigit()
+        }
+    }
+
+    // MARK: - Countdown
+
+    private func startCountdown() {
+        timer?.invalidate()
+        remaining = 10
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+            if remaining > 0 {
+                remaining -= 1
+            }
+            if remaining == 0 {
+                t.invalidate()
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func handleReturn() {
+        deps.persistence.interceptQueue.append(
+            InterceptEvent(type: .returned, subjectKind: .application)
+        )
+        timer?.invalidate()
+        dismiss()
+    }
+
+    private func handleOpenAnyway() {
+        // 쟁점 5 MVP 단순화: 전체 shield 일시 해제 + 5분 타이머로 재적용.
+        deps.blocking.clearShield()
+        do {
+            try deps.monitoring.startTemporaryAllow(name: "tempAllowAll", duration: 5 * 60)
+        } catch {
+            // MVP 조용히 무시.
+        }
+        timer?.invalidate()
+        dismiss()
+    }
+}
+
+#Preview {
+    InterceptView()
+        .environmentObject(AppDependencies.preview())
+}

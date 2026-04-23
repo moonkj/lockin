@@ -1,0 +1,20 @@
+import Foundation
+
+/// 저장소 키 상수. `AppGroup.swift` 의 `SharedKeys` 와 분리한 이유:
+/// Extension 이 `[[String: Any]]` 원시 포맷으로 쓰는 "interceptQueue" 와
+/// 메인 앱이 Codable 로 보관하는 큐를 **다른 키** 로 분리 저장하여
+/// 디코딩 충돌을 방지한다.
+enum PersistenceKeys {
+    /// Extension 이 쓰는 원시 큐 (key: `interceptQueue`, value: `[[String: Any]]`).
+    /// `ShieldActionExtensionHandler.enqueue` 와 **정확히 일치해야 한다**.
+    static let rawInterceptQueue = "interceptQueue"
+
+    /// 메인 앱이 Codable 로 보관하는 누적 큐 (drain 후 남겨두거나 재소비용).
+    static let codableInterceptQueue = "interceptQueueCodable"
+
+    /// 스케줄 전체 (`Schedule` Codable).
+    static let schedule = "schedule"
+
+    /// 온보딩 완료 플래그.
+    static let hasCompletedOnboarding = "hasCompletedOnboarding"
+}

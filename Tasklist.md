@@ -63,23 +63,30 @@
 ### Phase 3 — MVP 구현 (Coder-A + Coder-B 병렬)
 
 #### Coder-A (Core)
-- [ ] `Core/Persistence/UserDefaultsPersistenceStore.swift` — App Group + Codable
-- [ ] `Core/Persistence/InMemoryPersistenceStore.swift` — 시뮬레이터/테스트용 Fake
-- [ ] `Core/BlockingEngine/ManagedSettingsBlockingEngine.swift` — 역-화이트리스트 `.all(except:)`
-- [ ] `Core/BlockingEngine/NoopBlockingEngine.swift` — 시뮬레이터용
-- [ ] `Core/MonitoringEngine/DeviceActivityMonitoringEngine.swift`
-- [ ] `Core/MonitoringEngine/NoopMonitoringEngine.swift`
-- [ ] DeviceActivityMonitorExtension 보강: `intervalDidStart` 에서 shield 적용
-- [ ] "그래도 열기" 5분 재차단 플로우 (임시 `temp_allow_<token>` interval 종료 시 재추가)
+- [x] `Core/Persistence/UserDefaultsPersistenceStore.swift` — App Group + Codable
+- [x] `Core/Persistence/InMemoryPersistenceStore.swift` — 시뮬레이터/테스트용 Fake
+- [x] `Core/Persistence/PersistenceKeys.swift` — raw / codable 큐 키 분리
+- [x] `Core/BlockingEngine/ManagedSettingsBlockingEngine.swift` — 역-화이트리스트 `.all(except:)`
+- [x] `Core/BlockingEngine/NoopBlockingEngine.swift` — 시뮬레이터용
+- [x] `Core/MonitoringEngine/DeviceActivityMonitoringEngine.swift`
+- [x] `Core/MonitoringEngine/NoopMonitoringEngine.swift`
+- [x] `Core/DI/AppDependencies+Live.swift` — 시뮬/실기기 분기 팩토리
+- [x] DeviceActivityMonitorExtension 보강: `intervalDidStart` 에서 shield 적용, `temp_allow_*` 복원
+- [x] ShieldActionExtension 상수 교체 (`AppGroup.identifier`, `SharedKeys.interceptQueue`)
+- [x] "그래도 열기" — MVP 에선 Shield 전체 5분 해제로 단순화 (토큰 단위 해제는 Phase 5)
+- [x] `xcodegen generate` + `xcodebuild` 빌드 검증 — **BUILD SUCCEEDED** (팀리더)
 
 #### Coder-B (UI)
-- [ ] `Features/Onboarding/` 5 스텝 (Value / SystemPreset / Picker / Schedule / Authorization)
-- [ ] `Features/Dashboard/` 3요소 (집중 점수 / 허용 앱 / 다음 스케줄)
-- [ ] `Features/AppSelection/` FamilyActivityPicker 래퍼
-- [ ] `Features/Schedule/` 3 프리셋 + 커스텀
-- [ ] `Features/Intercept/` countdown 10초
-- [ ] `Features/Settings/` 기본 (재선택/스케줄 편집/정보)
-- [ ] `App/RootView` 수정: 온보딩 여부 분기 + interceptQueue 자동 프레젠테이션
+- [x] `Features/Onboarding/` 5 스텝 (Value / SystemPreset / Picker / Schedule / Authorization)
+- [x] `Features/Dashboard/` 3요소 (집중 점수 / 허용 앱 / 다음 스케줄)
+- [x] `Features/AppSelection/` FamilyActivityPicker 래퍼
+- [x] `Features/Schedule/` 커스텀 편집 (요일 토글 + DatePicker)
+- [x] `Features/Intercept/` countdown 10초 + "그래도 열기"(5분 전체 해제)
+- [x] `Features/Settings/` 기본 (재선택/스케줄 편집/버전)
+- [x] `Features/Shared/` PrimaryButton / SecondaryLinkButton
+- [x] `App/RootView` 수정: 온보딩 여부 분기 + interceptQueue 자동 프레젠테이션
+- [x] `App/LockinFocusApp` → **`AppDependencies.live()` 전환 완료** (팀리더)
+- [x] **xcodegen 재생성 + iphonesimulator 빌드 검증** — BUILD SUCCEEDED
 
 #### 교차 레이어 조정 규약
 - 프로토콜 변경은 "토론/이슈 로그"에 즉시 기록.
@@ -108,4 +115,9 @@
 ## 토론/이슈 로그
 형식: `[YYYY-MM-DD] [담당] [주제]` — 본문
 
-(비어 있음)
+- [2026-04-23] [Coder-A] [Extension 소스 공유 한계] — `ShieldActionExtension`, `DeviceActivityMonitorExtension` 타겟은 `LockinFocus/Core/Shared/AppGroup.swift` 를 공유하지 않는다. 지시대로 인라인 상수를 `AppGroup.identifier` 로 교체하기 위해 Extension 폴더 내부에 동명 enum (`AppGroup`, `SharedKeys`) 을 별도 파일로 추가하였음. 메인 앱 쪽 상수와 **값이 반드시 일치** 해야 하므로 리팩터 시 주의. 장기적으로는 `Core/Shared/AppGroup.swift` 파일을 3개 Extension 타겟 멤버십에도 추가하는 xcodegen 스펙 수정이 정답 (Tasklist의 ShieldActionExtension Info/entitlements 수정 없이 Project.yml 의 ShieldActionExtension.sources 에 `Core/Shared/AppGroup.swift` 를 개별 추가하면 됨).
+- [2026-04-23] [Coder-A] [BlockingEngine.temporarilyAllow 한계] — `ShieldSettings.ActivityCategoryPolicy.all(except:)` 의 associated value 를 런타임에 역추출하는 공식 API 가 없어, 예외 토큰 머지 전략을 currentAllowedApplicationTokens() 에서 빈 셋 폴백으로 구현. 실제 구현에서는 호출부(ViewModel) 가 현재 `selection` 을 주입하거나 BlockingEngine 이 PersistenceStore 를 참조하도록 바꾸는 게 정석. 프로토콜 변경 없이 호환 유지하려면 `temporarilyAllow(token:for:)` 호출 전 `applyWhitelist(for:)` 로 갱신된 selection + 해당 토큰 union 을 먼저 재적용하는 래퍼 패턴을 Coder-B 가 ViewModel 레이어에서 사용할 것을 권장.
+- [2026-04-23] [Coder-B] ["그래도 열기" MVP 단순화] — UX 문서는 "해당 앱만 5분 허용"을 요구하지만, Extension→App 큐에 `ApplicationToken` 을 Codable 로 안정 직렬화할 수 없는 한계 때문에 MVP InterceptView 에서는 `blocking.clearShield()` + `monitoring.startTemporaryAllow("tempAllowAll", 5분)` 으로 전체 Shield 를 5분간 해제 후 재적용한다. 특정 앱 한정 해제는 Phase 5 로 이월. 사용자 영향: "그래도 열기" 1회 누르면 허용 앱 외 모든 차단 앱이 5분간 열린다. UX 재검토 필요 시 "그래도 열기" 버튼 옆에 "5분간 모든 앱 열림" 서브카피 추가를 제안.
+- [2026-04-23] [Coder-B] [live() 미반영] — 현재 `AppDependencies.live()` 가 Coder-A 리포에 아직 추가되지 않아 `LockinFocusApp.swift` 에서 `AppDependencies.preview()` 로 시작하도록 작성. Coder-A 의 `AppDependenciesLive.swift` 병합 후 `preview()` → `live()` 로 한 줄 교체 필요. (교체 포인트 `LockinFocus/App/LockinFocusApp.swift` 의 `@StateObject private var deps = AppDependencies.preview()`)
+- [2026-04-23] [Coder-B] [xcodegen 재생성 필요 + 빌드 검증 불가] — Features/ 디렉토리와 Core/(Protocols|Models|DI|Persistence) 를 포함해 **현재 `project.pbxproj` 에 누락된 신규 Swift 파일 다수**. 본 에이전트는 샌드박스로 `xcodegen` / `xcodebuild` 실행 권한이 없어 재생성·빌드 검증을 수행하지 못했다. 팀리더/Debugger 가 프로젝트 루트에서 `xcodegen` 실행 후 `xcodebuild -project LockinFocus.xcodeproj -scheme LockinFocus -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build` 로 검증 필요. Project.yml 의 `sources: - path: LockinFocus` 재귀 매칭은 이미 올바르므로 추가 편집은 불요.
+- [2026-04-23] [Coder-A] [빌드 검증 미완료] — 샌드박스에서 `xcodegen` / `xcodebuild` 실행이 거부됨. 새 파일이 `LockinFocus.xcodeproj/project.pbxproj` 에 반영되려면 `xcodegen generate` 재실행이 필요. 사용자/팀리더가 수동 실행 후 BUILD SUCCEEDED 확인 필요.

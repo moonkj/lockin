@@ -60,15 +60,15 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
     }
 
     private func enqueue(type: String, subjectKind: String) {
-        guard let defaults = UserDefaults(suiteName: "group.com.imurmkj.LockinFocus") else {
+        guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else {
             return
         }
-        var queue = defaults.array(forKey: "interceptQueue") as? [[String: Any]] ?? []
+        var queue = defaults.array(forKey: SharedKeys.interceptQueue) as? [[String: Any]] ?? []
         queue.append([
             "timestamp": Date().timeIntervalSince1970,
             "type": type,
             "subjectKind": subjectKind
         ])
-        defaults.set(queue, forKey: "interceptQueue")
+        defaults.set(queue, forKey: SharedKeys.interceptQueue)
     }
 }

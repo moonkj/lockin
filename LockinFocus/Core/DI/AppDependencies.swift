@@ -1,0 +1,58 @@
+import Foundation
+import FamilyControls
+import ManagedSettings
+
+@MainActor
+final class AppDependencies: ObservableObject {
+    let persistence: PersistenceStore
+    let blocking: BlockingEngine
+    let monitoring: MonitoringEngine
+
+    init(
+        persistence: PersistenceStore,
+        blocking: BlockingEngine,
+        monitoring: MonitoringEngine
+    ) {
+        self.persistence = persistence
+        self.blocking = blocking
+        self.monitoring = monitoring
+    }
+
+    /// Preview / 시뮬레이터 / Coder-A 실구현 미완 상태에서 빌드를 유지하는 Mock 세트.
+    /// Coder-A 가 `live()` 실구현을 별도 파일에 추가한다.
+    static func preview() -> AppDependencies {
+        AppDependencies(
+            persistence: PreviewPersistenceStore(),
+            blocking: PreviewBlockingEngine(),
+            monitoring: PreviewMonitoringEngine()
+        )
+    }
+}
+
+// MARK: - Preview Mocks
+
+final class PreviewPersistenceStore: PersistenceStore {
+    var selection = FamilyActivitySelection()
+    var schedule = Schedule.weekdayWorkHours
+    var focusScoreToday = 42
+    var hasCompletedOnboarding = false
+    var interceptQueue: [InterceptEvent] = []
+
+    func drainInterceptQueue() -> [InterceptEvent] {
+        let q = interceptQueue
+        interceptQueue.removeAll()
+        return q
+    }
+}
+
+final class PreviewBlockingEngine: BlockingEngine {
+    func applyWhitelist(for selection: FamilyActivitySelection) {}
+    func clearShield() {}
+    func temporarilyAllow(token: ApplicationToken, for duration: TimeInterval) {}
+}
+
+final class PreviewMonitoringEngine: MonitoringEngine {
+    func startSchedule(_ schedule: Schedule, name: String) throws {}
+    func stopMonitoring(name: String) {}
+    func startTemporaryAllow(name: String, duration: TimeInterval) throws {}
+}

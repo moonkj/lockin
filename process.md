@@ -66,5 +66,33 @@
 - Coder-B 에이전트: UI 전체 (온보딩 5스텝 / 대시보드 3요소 / 앱선택 / 스케줄 / Intercept 10초 / 설정) 백그라운드 진행.
 - 파일 영역 완전 분리 (Core ↔ Features) + 프로토콜 고정 → 병렬 충돌 없음.
 
-### 다음
-- 두 Coder 완료 시 팀리더가 통합 빌드 검증 → Debugger → Test → Reviewer 사이클.
+### 2026-04-23 — Phase 3 완료
+
+#### Coder-A 산출 (Core)
+- Persistence: `UserDefaultsPersistenceStore` (App Group + Codable), `InMemoryPersistenceStore`, `PersistenceKeys` (raw / codable 큐 키 분리).
+- Blocking: `ManagedSettingsBlockingEngine` (`.all(except:)`), `NoopBlockingEngine`.
+- Monitoring: `DeviceActivityMonitoringEngine` (`DeviceActivityCenter` 래핑), `NoopMonitoringEngine`.
+- DI: `AppDependencies+Live.swift` 팩토리 (시뮬레이터는 Persistence 실, Shield/Monitor Noop).
+- DeviceActivityMonitorExtension: `block_main` 시작 시 selection 디코딩 → `.all(except:)` 적용, `temp_allow_*` 종료 시 주 shield 복원.
+- ShieldActionExtension: raw 상수 → `AppGroup.identifier`/`SharedKeys.interceptQueue`.
+- 토론 로그 3건 등록 (Extension 소스 공유 리팩터, temporarilyAllow 래핑, 빌드 검증 권한).
+
+#### Coder-B 산출 (UI)
+- 18 파일 — Onboarding 5 step, Dashboard 3 card, AppSelection, Schedule, Intercept(10초 countdown), Settings, Shared 버튼 2종.
+- RootView: 온보딩 분기 + `scenePhase`/`onAppear` 에서 `drainInterceptQueue()` → `InterceptView` sheet 자동 프레젠테이션.
+- 모든 뷰 `#Preview` 포함, AppColors 팔레트만 사용(흰색 기반).
+- "그래도 열기" MVP 단순화: ApplicationToken 직렬화 한계로 **Shield 전체 5분 해제 + 자동 재적용**. 토큰 단위 단일 해제는 Phase 5.
+
+#### 팀리더 통합 검증
+- `xcodegen generate` → 36 Swift 파일 전부 xcodeproj 등록.
+- `xcodebuild ... -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build` → **BUILD SUCCEEDED** (preview/live 양쪽).
+- `LockinFocusApp.swift` `AppDependencies.preview()` → `.live()` 스위치, 재빌드 SUCCEEDED.
+
+#### 보류/후속 이슈 (Tasklist 토론 로그에 모두 등록됨)
+1. Extension 3개가 `Core/Shared/AppGroup.swift` 를 공유하도록 Project.yml sources 확장 (현재는 Extension 별 중복 정의, 값 불일치 리스크) — Phase 5 리팩터.
+2. `BlockingEngine.temporarilyAllow(token:for:)` 의 policy associated value 역추출 한계 → ViewModel 에서 `applyWhitelist + temp allow` 래퍼 패턴 권장.
+3. "그래도 열기" 토큰 단위 단일 해제 → Phase 5.
+4. UX 재확인: "그래도 열기" 서브카피 ("5분간 모든 차단 앱 열림" 고지 필요?), ValueStep 카피 톤 대조.
+
+### 다음 (Phase 4)
+Debugger 에이전트 투입 → Core 로직 점검 (특히 Extension 이벤트 시퀀스·Codable round-trip·ViewModel 래퍼 필요성). 이후 Test Engineer 단위 테스트 작성.
