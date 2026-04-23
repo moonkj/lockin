@@ -1,0 +1,209 @@
+import XCTest
+@testable import LockinFocus
+
+/// LeaderboardViewModel 의 load/submit/rank 계산 로직을 MockService 로 검증.
+@MainActor
+final class LeaderboardViewModelTests: XCTestCase {
+
+    // MARK: - Mock service
+
+    final class MockLeaderboardService: LeaderboardServiceProtocol {
+        var accountAvailableResult: Bool = true
+        var fetchResult: Result<[LeaderboardEntry], Error> = .success([])
+        var submitResult: Result<LeaderboardEntry, Error>!
+        var submittedPayload: (userID: String, nickname: String, d: Int, w: Int, m: Int)?
+        var fetchCallCount = 0
+        var submitCallCount = 0
+
+        func accountAvailable() async -> Bool { accountAvailableResult }
+
+        func submit(
+            userID: String, nickname: String,
+            dailyScore: Int, weeklyTotal: Int, monthlyTotal: Int, now: Date
+        ) async throws -> LeaderboardEntry {
+            submitCallCount += 1
+            submittedPayload = (userID, nickname, dailyScore, weeklyTotal, monthlyTotal)
+            switch submitResult! {
+            case .success(let e): return e
+            case .failure(let err): throw err
+            }
+        }
+
+        func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry] {
+            fetchCallCount += 1
+            switch fetchResult {
+            case .success(let list): return list
+            case .failure(let err): throw err
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func makeEntry(userID: String, daily: Int = 0) -> LeaderboardEntry {
+        LeaderboardEntry(
+            userID: userID, nickname: "N-\(userID)",
+            dailyScore: daily, dailyDate: "2026-04-23",
+            weeklyTotal: 0, weeklyWeek: "",
+            monthlyTotal: 0, monthlyMonth: "",
+            updatedAt: Date()
+        )
+    }
+
+    private func makeVM(
+        service: MockLeaderboardService? = nil,
+        store: InMemoryPersistenceStore? = nil
+    ) -> (LeaderboardViewModel, MockLeaderboardService, InMemoryPersistenceStore) {
+        let svc = service ?? MockLeaderboardService()
+        let s = store ?? InMemoryPersistenceStore()
+        let vm = LeaderboardViewModel(service: svc, persistence: s)
+        return (vm, svc, s)
+    }
+
+    // MARK: - load()
+
+    func testLoad_success_populatesEntries() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchResult = .success([makeEntry(userID: "a"), makeEntry(userID: "b")])
+        await vm.load()
+        XCTAssertEqual(vm.entries.count, 2)
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertFalse(vm.isLoading)
+    }
+
+    func testLoad_accountUnavailable_setsErrorAndEmptyEntries() async {
+        let (vm, svc, _) = makeVM()
+        svc.accountAvailableResult = false
+        svc.fetchResult = .success([makeEntry(userID: "a")])
+        await vm.load()
+        XCTAssertTrue(vm.entries.isEmpty)
+        XCTAssertNotNil(vm.errorMessage)
+        XCTAssertEqual(svc.fetchCallCount, 0, "계정 없으면 fetch 호출도 하지 않아야")
+    }
+
+    func testLoad_fetchThrowsServiceError_setsErrorMessage() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchResult = .failure(CloudKitLeaderboardService.ServiceError.networkFailure)
+        await vm.load()
+        XCTAssertNotNil(vm.errorMessage)
+        XCTAssertTrue(vm.errorMessage!.contains("네트워크"))
+    }
+
+    func testLoad_fetchThrowsGenericError_setsErrorMessage() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchResult = .failure(NSError(
+            domain: "x", code: 1,
+            userInfo: [NSLocalizedDescriptionKey: "boom"]
+        ))
+        await vm.load()
+        XCTAssertEqual(vm.errorMessage, "boom")
+    }
+
+    func testLoad_rankingBadgeHandler_firesForTop1Of100() async {
+        let store = InMemoryPersistenceStore()
+        let svc = MockLeaderboardService()
+        var awardedBadges: [Badge] = []
+        let vm = LeaderboardViewModel(
+            service: svc,
+            persistence: store,
+            badgeAwardHandler: { awardedBadges.append(contentsOf: $0) }
+        )
+        // 100명, 1번이 내 ID.
+        let myID = vm.myUserID
+        var entries: [LeaderboardEntry] = [makeEntry(userID: myID, daily: 100)]
+        for i in 1..<100 {
+            entries.append(makeEntry(userID: "other-\(i)", daily: 100 - i))
+        }
+        svc.fetchResult = .success(entries)
+        await vm.load()
+        XCTAssertTrue(awardedBadges.contains(.rankFirst))
+    }
+
+    // MARK: - submitAndRefresh()
+
+    func testSubmit_noNickname_triggersSetup() async {
+        let (vm, _, store) = makeVM()
+        store.nickname = nil
+        var setupTriggered = false
+        await vm.submitAndRefresh { setupTriggered = true }
+        XCTAssertTrue(setupTriggered)
+    }
+
+    func testSubmit_accountUnavailable_errorMessageSet() async {
+        let (vm, svc, store) = makeVM()
+        store.nickname = "t"
+        svc.accountAvailableResult = false
+        await vm.submitAndRefresh()
+        XCTAssertNotNil(vm.errorMessage)
+    }
+
+    func testSubmit_happyPath_callsServiceWithCorrectPayload() async {
+        let (vm, svc, store) = makeVM()
+        store.nickname = "집중러"
+        store.focusScoreToday = 77
+        svc.submitResult = .success(makeEntry(userID: vm.myUserID))
+        svc.fetchResult = .success([])
+        await vm.submitAndRefresh()
+        XCTAssertNotNil(svc.submittedPayload)
+        XCTAssertEqual(svc.submittedPayload?.nickname, "집중러")
+        XCTAssertEqual(svc.submittedPayload?.d, 77)
+    }
+
+    func testSubmit_failure_errorMessageSet() async {
+        let (vm, svc, store) = makeVM()
+        store.nickname = "t"
+        svc.submitResult = .failure(CloudKitLeaderboardService.ServiceError.iCloudUnavailable)
+        await vm.submitAndRefresh()
+        XCTAssertNotNil(vm.errorMessage)
+    }
+
+    func testSubmit_genericError_errorMessageSet() async {
+        let (vm, svc, store) = makeVM()
+        store.nickname = "t"
+        svc.submitResult = .failure(NSError(
+            domain: "x", code: 1,
+            userInfo: [NSLocalizedDescriptionKey: "bang"]
+        ))
+        await vm.submitAndRefresh()
+        XCTAssertEqual(vm.errorMessage, "bang")
+    }
+
+    // MARK: - Computed properties
+
+    func testMyRank_nilWhenUserNotInEntries() async {
+        let (vm, _, _) = makeVM()
+        vm.entries = [makeEntry(userID: "other")]
+        XCTAssertNil(vm.myRank)
+    }
+
+    func testMyRank_correctWhenPresent() async {
+        let (vm, _, _) = makeVM()
+        vm.entries = [
+            makeEntry(userID: "x"),
+            makeEntry(userID: vm.myUserID),
+            makeEntry(userID: "z")
+        ]
+        XCTAssertEqual(vm.myRank, 2)
+    }
+
+    func testMyEntry_nilWhenNotPresent() async {
+        let (vm, _, _) = makeVM()
+        XCTAssertNil(vm.myEntry)
+    }
+
+    func testMyPercentile_calculatedFromRank() async {
+        let (vm, _, _) = makeVM()
+        var entries: [LeaderboardEntry] = []
+        for i in 0..<100 {
+            entries.append(makeEntry(userID: i == 9 ? vm.myUserID : "o-\(i)"))
+        }
+        vm.entries = entries
+        XCTAssertEqual(vm.myRank, 10)
+        XCTAssertEqual(vm.myPercentile, 10)
+    }
+
+    func testMyPercentile_nilWhenEmpty() async {
+        let (vm, _, _) = makeVM()
+        XCTAssertNil(vm.myPercentile)
+    }
+}
