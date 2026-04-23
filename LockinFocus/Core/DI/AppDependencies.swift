@@ -37,6 +37,7 @@ final class PreviewPersistenceStore: PersistenceStore {
     var focusScoreToday = 42
     var hasCompletedOnboarding = false
     var isManualFocusActive = false
+    var isStrictModeActive = false
     var interceptQueue: [InterceptEvent] = []
 
     func drainInterceptQueue() -> [InterceptEvent] {

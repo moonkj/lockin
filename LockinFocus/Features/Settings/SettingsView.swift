@@ -12,9 +12,11 @@ struct SettingsView: View {
 
     @State private var showAppPicker: Bool = false
     @State private var showScheduleEditor: Bool = false
+    @State private var showStrictUnlock: Bool = false
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
+    @State private var strictMode: Bool = false
 
     private var appVersion: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -41,11 +43,38 @@ struct SettingsView: View {
                         }
 
                         Button(role: .destructive) {
-                            emergencyUnlock()
+                            attemptEmergencyUnlock()
                         } label: {
                             Text("모든 차단 즉시 해제")
                                 .foregroundStyle(AppColors.error)
                         }
+                    }
+
+                    Section {
+                        Toggle(isOn: Binding(
+                            get: { strictMode },
+                            set: { newValue in
+                                if newValue {
+                                    // 즉시 ON — 해제할 때만 friction 적용.
+                                    strictMode = true
+                                    deps.persistence.isStrictModeActive = true
+                                } else {
+                                    // OFF 시도 → StrictModeUnlockView 로 유도.
+                                    // 토글은 성공 전까지 시각적으로 ON 유지.
+                                    showStrictUnlock = true
+                                }
+                            }
+                        )) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("엄격 모드").foregroundStyle(AppColors.primaryText)
+                                Text("해제하려면 30초 + 문장 입력 + 본인 확인이 필요해요.")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                        .tint(AppColors.primaryText)
+                    } header: {
+                        Text("엄격 모드")
                     }
 
                     Section("앱 정보") {
@@ -81,6 +110,13 @@ struct SettingsView: View {
                 save()
             }
         }
+        .sheet(isPresented: $showStrictUnlock) {
+            StrictModeUnlockView {
+                // 해제 3단계 성공 → 엄격 모드 OFF 커밋.
+                strictMode = false
+                deps.persistence.isStrictModeActive = false
+            }
+        }
     }
 
     private func row(title: String, trailing: String) -> some View {
@@ -109,6 +145,16 @@ struct SettingsView: View {
     private func load() {
         selection = deps.persistence.selection
         schedule = deps.persistence.schedule
+        strictMode = deps.persistence.isStrictModeActive
+    }
+
+    /// 엄격 모드가 켜져 있으면 긴급 해제도 Friction 을 거치게 한다.
+    private func attemptEmergencyUnlock() {
+        if strictMode {
+            showStrictUnlock = true
+        } else {
+            emergencyUnlock()
+        }
     }
 
     private func save() {

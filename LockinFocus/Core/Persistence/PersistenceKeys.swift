@@ -30,4 +30,7 @@ enum PersistenceKeys {
 
     /// 집중 점수 리셋용 날짜 키. focusScoreToday 저장 시 함께 기록.
     static let focusScoreDateKey = "focusScoreDate"
+
+    /// 엄격 모드 활성 여부. ON 시 해제는 Friction 절차(30초+문장+Face ID) 거쳐야 함.
+    static let isStrictModeActive = "isStrictModeActive"
 }

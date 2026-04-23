@@ -9,6 +9,7 @@ protocol PersistenceStore: AnyObject {
     var focusScoreToday: Int { get set }
     var hasCompletedOnboarding: Bool { get set }
     var isManualFocusActive: Bool { get set }
+    var isStrictModeActive: Bool { get set }
     var interceptQueue: [InterceptEvent] { get set }
 
     /// Extension 이 쓴 원본 큐 (`[[String: Any]]`) 를 `[InterceptEvent]` 로 디코딩.

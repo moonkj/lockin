@@ -88,6 +88,11 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.isManualFocusActive) }
     }
 
+    var isStrictModeActive: Bool {
+        get { defaults.bool(forKey: PersistenceKeys.isStrictModeActive) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.isStrictModeActive) }
+    }
+
     // MARK: - Progressive unlock delay
 
     func currentUnlockDelaySeconds() -> Int {
