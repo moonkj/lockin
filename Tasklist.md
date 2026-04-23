@@ -34,7 +34,7 @@
 - [x] Family Controls + App Group entitlement 파일 (3개 타깃 모두)
 - [x] **iOS Simulator BUILD SUCCEEDED** (서명 없이 컴파일 검증 통과)
 - [x] Git 초기화 + .gitignore + 첫 커밋
-- [ ] GitHub 원격 연결 (보류)
+- [x] GitHub 원격 연결 (`origin → https://github.com/moonkj/lockin.git`) + `main` push
 
 ### Phase 1 — UX 설계 (UX Designer) ✅
 - [x] 유저 시나리오 6개 (첫 실행·평시·차단 트리거·해제·주간 리포트·도파민 디톡스)

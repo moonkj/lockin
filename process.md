@@ -42,5 +42,29 @@
 - `git init`, 브랜치 `main`, `.gitignore` 추가.
 - 첫 커밋 생성.
 
-### 다음 (Phase 2 대기 중)
-- Architect 에이전트 실행 중. 산출물 `docs/03_Architecture.md` 완료 시 팀리더가 UX ↔ Architect 과학적 토론으로 충돌 해결 → Phase 3 코더 단계 진입.
+### 2026-04-23 — Phase 2+2.5 완료
+
+#### Architect 산출물
+- `docs/03_Architecture.md` (860줄, WWDC21/22 근거).
+- 역-화이트리스트 (`.all(except:)`), Shield 를 1차 인터셉트로, ShieldAction 경유 딥링크 경로.
+- UX 에 11개 조율 요청.
+
+#### 팀리더 통합 결론
+- `docs/04_Integration_Resolution.md`: UX 10개 + Architect 11개 → 16개 쟁점 정리, 중복 제거.
+- MVP In Scope 10개, Out Scope(Phase 5) 8개 확정.
+- **ShieldActionExtension 타깃 신규 추가** (Project.yml 갱신, 4 타깃 빌드 통과).
+- 공유 프로토콜/모델: `Schedule`, `InterceptEvent`, `PersistenceStore`, `BlockingEngine`, `MonitoringEngine`.
+- DI 컨테이너: `AppDependencies` + `preview()` Mock (Coder-B가 Coder-A 완료를 기다리지 않고 병렬 빌드 가능하도록).
+- 커밋 `f448fb6`.
+
+#### GitHub 연동
+- 원격 `origin → https://github.com/moonkj/lockin.git` 연결.
+- `main` 브랜치 push 완료 (커밋 7a6b738, f448fb6).
+
+### Phase 3 개시 (현재)
+- Coder-A 에이전트: Core 실구현 (Persistence/Blocking/Monitoring + Extension 보강 + live() 팩토리) 백그라운드 진행.
+- Coder-B 에이전트: UI 전체 (온보딩 5스텝 / 대시보드 3요소 / 앱선택 / 스케줄 / Intercept 10초 / 설정) 백그라운드 진행.
+- 파일 영역 완전 분리 (Core ↔ Features) + 프로토콜 고정 → 병렬 충돌 없음.
+
+### 다음
+- 두 Coder 완료 시 팀리더가 통합 빌드 검증 → Debugger → Test → Reviewer 사이클.
