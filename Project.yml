@@ -7,6 +7,11 @@ options:
   generateEmptyDirectories: true
   xcodeVersion: "15.0"
 
+packages:
+  ViewInspector:
+    url: https://github.com/nalexn/ViewInspector
+    from: 0.10.0
+
 settings:
   base:
     DEVELOPMENT_TEAM: "QN975MTM7H"
@@ -107,6 +112,9 @@ targets:
       - path: LockinFocusTests
     dependencies:
       - target: LockinFocus
+      - package: ViewInspector
+    configFiles:
+      Debug: Build.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.moonkj.LockinFocusTests

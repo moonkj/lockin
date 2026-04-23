@@ -13,7 +13,11 @@ struct ReportView: View {
         var id: String { rawValue }
     }
 
-    @State private var range: Range = .weekly
+    @State private var range: Range
+
+    init(initialRange: Range = .weekly) {
+        _range = State(initialValue: initialRange)
+    }
 
     var body: some View {
         NavigationStack {
