@@ -8,6 +8,15 @@ final class AppDependencies: ObservableObject {
     let blocking: BlockingEngine
     let monitoring: MonitoringEngine
 
+    /// 위젯 탭 같은 외부 deep link 가 열렸을 때 갱신된다.
+    /// 일회성 값으로 취급 — 소비 후 nil 로 리셋.
+    @Published var pendingRoute: Route?
+
+    enum Route: String {
+        case weeklyReport
+        case quotes
+    }
+
     init(
         persistence: PersistenceStore,
         blocking: BlockingEngine,

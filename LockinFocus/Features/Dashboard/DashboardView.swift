@@ -19,6 +19,7 @@ struct DashboardView: View {
     @State private var showWeeklyReport: Bool = false
     @State private var showBadges: Bool = false
     @State private var showFocusEndConfirm: Bool = false
+    @State private var showQuoteList: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -54,7 +55,7 @@ struct DashboardView: View {
                             .padding(.horizontal, 4)
                     }
 
-                    DailyQuoteCard()
+                    DailyQuoteCard(onTap: { showQuoteList = true })
 
                     Spacer(minLength: 24)
                 }
@@ -88,6 +89,19 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showFocusEndConfirm) {
             FocusEndConfirmView(onConfirm: endManualFocus)
+        }
+        .sheet(isPresented: $showQuoteList) {
+            QuoteListView()
+        }
+        .onChange(of: deps.pendingRoute) { route in
+            guard let route else { return }
+            switch route {
+            case .weeklyReport:
+                showWeeklyReport = true
+            case .quotes:
+                showQuoteList = true
+            }
+            deps.pendingRoute = nil
         }
     }
 

@@ -1,6 +1,8 @@
 import SwiftUI
 import WidgetKit
 
+/// 집중 점수 위젯 뷰. 시스템 primary/secondary 컬러로 다크모드 자동 지원.
+/// 나무 아이콘 색은 브랜드 accentColor (TreeStage) 유지.
 struct FocusScoreWidgetView: View {
     let entry: FocusScoreEntry
     @Environment(\.widgetFamily) private var family
@@ -24,12 +26,12 @@ struct FocusScoreWidgetView: View {
 
             Text(entry.score == 0 ? "—" : "\(entry.score)")
                 .font(.system(size: 30, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.primaryText)
+                .foregroundStyle(.primary)
                 .monospacedDigit()
 
             Text(entry.score == 0 ? "오늘이 시작이에요" : stage.label)
                 .font(.system(size: 11))
-                .foregroundStyle(AppColors.secondaryText)
+                .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
@@ -43,23 +45,23 @@ struct FocusScoreWidgetView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("오늘의 집중")
                     .font(.system(size: 12))
-                    .foregroundStyle(AppColors.secondaryText)
+                    .foregroundStyle(.secondary)
 
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(entry.score == 0 ? "—" : "\(entry.score)")
                         .font(.system(size: 36, weight: .semibold, design: .rounded))
-                        .foregroundStyle(AppColors.primaryText)
+                        .foregroundStyle(.primary)
                         .monospacedDigit()
                     if entry.score > 0 {
                         Text("/ 100")
                             .font(.system(size: 14))
-                            .foregroundStyle(AppColors.secondaryText)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
                 Text(entry.score == 0 ? "오늘이 시작이에요" : stage.label)
                     .font(.system(size: 12))
-                    .foregroundStyle(AppColors.secondaryText)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)
@@ -71,7 +73,7 @@ struct FocusScoreWidgetView: View {
     private func treeIcon(size: CGFloat, bgSize: CGFloat) -> some View {
         ZStack {
             Circle()
-                .fill(stage.accentColor.opacity(0.14))
+                .fill(stage.accentColor.opacity(0.18))
                 .frame(width: bgSize, height: bgSize)
             Image(systemName: stage.symbolName)
                 .font(.system(size: size))
