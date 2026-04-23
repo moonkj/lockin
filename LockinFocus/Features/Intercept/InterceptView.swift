@@ -98,6 +98,8 @@ struct InterceptView: View {
     // MARK: - Actions
 
     private func handleReturn() {
+        // 좋은 행동 보상: 집중 점수 +10 (하루 최대 100, 자정 자동 리셋).
+        deps.persistence.addFocusPoints(10)
         deps.persistence.interceptQueue.append(
             InterceptEvent(type: .returned, subjectKind: .application)
         )

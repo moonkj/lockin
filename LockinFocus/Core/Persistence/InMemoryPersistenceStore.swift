@@ -62,6 +62,18 @@ final class InMemoryPersistenceStore: PersistenceStore {
         }
     }
 
+    // Focus score helpers (in-memory).
+    private var focusScoreDate: String = ""
+
+    func addFocusPoints(_ points: Int) {
+        let today = Self.todayString()
+        if focusScoreDate != today {
+            focusScoreToday = 0
+            focusScoreDate = today
+        }
+        focusScoreToday = max(0, min(100, focusScoreToday + points))
+    }
+
     private static func todayString() -> String {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .gregorian)

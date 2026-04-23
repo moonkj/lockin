@@ -37,6 +37,7 @@
 		77ABD5DFA6C9FA330FAA4EE2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749BEF23E0F08587B35F4C60 /* RootView.swift */; };
 		77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C78B4527F59D699D95EA69 /* DashboardView.swift */; };
 		7E615D3F8B44901457020ECF /* InterceptEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */; };
+		84D4E46A88EDB0ADCF8BD53D /* TreeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8571C205A09CDE7A9D133FB9 /* TreeStage.swift */; };
 		8CB2A2D1AF3CE2C3C928B5B9 /* ShieldConfigurationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9132B7BD9976599A5BCDF218 /* SecondaryLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602472ED29E475EA09BB034D /* SecondaryLinkButton.swift */; };
 		9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6E9C83DAEDDF5985FF50AC /* InMemoryPersistenceStore.swift */; };
@@ -137,6 +138,7 @@
 		77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextScheduleCard.swift; sourceTree = "<group>"; };
 		7A724848C91AC020F13069A2 /* PreviewEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewEngineTests.swift; sourceTree = "<group>"; };
 		818F5F39328805D4299B7C0A /* ShieldConfigurationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationProvider.swift; sourceTree = "<group>"; };
+		8571C205A09CDE7A9D133FB9 /* TreeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeStage.swift; sourceTree = "<group>"; };
 		8EAE4332564C20753A82C570 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		95A9034FD1C0FEA5AED3C09E /* InMemoryPersistenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPersistenceStoreTests.swift; sourceTree = "<group>"; };
 		999147B975E461182ABFC26D /* UserDefaultsPersistenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPersistenceStoreTests.swift; sourceTree = "<group>"; };
@@ -306,6 +308,7 @@
 			children = (
 				D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */,
 				CD37ADA464FC5C7889B973DC /* Schedule.swift */,
+				8571C205A09CDE7A9D133FB9 /* TreeStage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -658,6 +661,7 @@
 				9132B7BD9976599A5BCDF218 /* SecondaryLinkButton.swift in Sources */,
 				284EC66ED4379A53492ABFBD /* SettingsView.swift in Sources */,
 				C97D75BF6A1801E6E1601913 /* SystemPresetStepView.swift in Sources */,
+				84D4E46A88EDB0ADCF8BD53D /* TreeStage.swift in Sources */,
 				2C23D02DF5918E02867EC485 /* UserDefaultsPersistenceStore.swift in Sources */,
 				46D1B9D0F3B3804A178B1379 /* ValueStepView.swift in Sources */,
 			);

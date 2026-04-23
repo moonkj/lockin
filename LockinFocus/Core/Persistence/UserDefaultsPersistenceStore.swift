@@ -50,8 +50,32 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
     // MARK: - Scalars
 
     var focusScoreToday: Int {
-        get { defaults.integer(forKey: SharedKeys.focusScoreToday) }
-        set { defaults.set(newValue, forKey: SharedKeys.focusScoreToday) }
+        get {
+            rolloverFocusScoreIfNewDay()
+            return defaults.integer(forKey: SharedKeys.focusScoreToday)
+        }
+        set {
+            let clamped = max(0, min(100, newValue))
+            defaults.set(clamped, forKey: SharedKeys.focusScoreToday)
+            defaults.set(Self.todayString(), forKey: PersistenceKeys.focusScoreDateKey)
+        }
+    }
+
+    func addFocusPoints(_ points: Int) {
+        rolloverFocusScoreIfNewDay()
+        let current = defaults.integer(forKey: SharedKeys.focusScoreToday)
+        let next = max(0, min(100, current + points))
+        defaults.set(next, forKey: SharedKeys.focusScoreToday)
+        defaults.set(Self.todayString(), forKey: PersistenceKeys.focusScoreDateKey)
+    }
+
+    private func rolloverFocusScoreIfNewDay() {
+        let today = Self.todayString()
+        let stored = defaults.string(forKey: PersistenceKeys.focusScoreDateKey)
+        if stored != today {
+            defaults.set(0, forKey: SharedKeys.focusScoreToday)
+            defaults.set(today, forKey: PersistenceKeys.focusScoreDateKey)
+        }
     }
 
     var hasCompletedOnboarding: Bool {

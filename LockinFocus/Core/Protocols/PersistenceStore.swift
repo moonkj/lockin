@@ -21,4 +21,9 @@ protocol PersistenceStore: AnyObject {
 
     /// "그래도 열기" 확정 시 호출. 오늘 카운트 +1.
     func recordManualUnlock()
+
+    /// 게이미피케이션: 오늘 집중 점수에 정해진 값 더하기 (최대 100 고정).
+    /// Intercept 에서 "돌아가기" 를 누르는 것 같은 좋은 행동을 보상하는 데 쓴다.
+    /// 자정 리셋 로직은 구현체가 담당.
+    func addFocusPoints(_ points: Int)
 }

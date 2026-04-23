@@ -27,4 +27,7 @@ enum PersistenceKeys {
 
     /// 지연 해제 점증: 마지막 기록 날짜(`yyyy-MM-dd`). 날짜가 바뀌면 count 를 리셋.
     static let todayUnlockDateKey = "todayUnlockDate"
+
+    /// 집중 점수 리셋용 날짜 키. focusScoreToday 저장 시 함께 기록.
+    static let focusScoreDateKey = "focusScoreDate"
 }

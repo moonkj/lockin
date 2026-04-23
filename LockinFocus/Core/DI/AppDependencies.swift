@@ -48,6 +48,9 @@ final class PreviewPersistenceStore: PersistenceStore {
     // Preview: 고정 10초 반환, unlock 누적은 하지 않음.
     func currentUnlockDelaySeconds() -> Int { 10 }
     func recordManualUnlock() {}
+    func addFocusPoints(_ points: Int) {
+        focusScoreToday = max(0, min(100, focusScoreToday + points))
+    }
 }
 
 final class PreviewBlockingEngine: BlockingEngine {
