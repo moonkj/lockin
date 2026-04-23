@@ -1,12 +1,13 @@
 import SwiftUI
 import FamilyControls
 
-/// 온보딩 5 스텝 컨테이너.
+/// 온보딩 6 스텝 컨테이너.
 /// 1) 가치 제안
 /// 2) 권한 요청 (Family Controls) — Picker 가 권한 전에는 앱 리스트를 보여주지 않으므로 먼저 수행
 /// 3) 시스템 기본 허용 (프리셋)
 /// 4) 허용 앱 선택 (FamilyActivityPicker)
 /// 5) 스케줄
+/// 6) 앱 비밀번호 (건너뛰기 가능)
 ///
 /// 흰색 배경, 단계 점 인디케이터 하단 고정.
 struct OnboardingContainerView: View {
@@ -17,7 +18,7 @@ struct OnboardingContainerView: View {
     @State private var draftSchedule: Schedule = .weekdayWorkHours
     @State private var authorizationDenied: Bool = false
 
-    private let totalSteps = 5
+    private let totalSteps = 6
 
     var body: some View {
         ZStack {
@@ -78,6 +79,8 @@ struct OnboardingContainerView: View {
             AppPickerStepView(selection: $draftSelection, onNext: goNext)
         case 4:
             ScheduleStepView(schedule: $draftSchedule, onNext: goNext)
+        case 5:
+            PasscodeStepView(onNext: goNext)
         default:
             EmptyView()
         }
@@ -127,15 +130,24 @@ struct OnboardingContainerView: View {
     }
 
     private func finishOnboarding() {
+        // 앱 비번이 없으면 "지금부터" 같은 즉시-잠금 스케줄을 켜둘 수 없다 —
+        // 하루 첫 해제 때 비번 입력이 필수라서 풀 방법이 없어지기 때문.
+        // 스케줄은 저장하되 비활성 상태로 내려두고, 사용자는 나중에 설정에서
+        // 비번 등록 후 스케줄을 다시 켜면 된다.
+        var scheduleToSave = draftSchedule
+        if scheduleToSave.isEnabled && !AppPasscodeStore.isSet {
+            scheduleToSave.isEnabled = false
+        }
+
         deps.persistence.selection = draftSelection
-        deps.persistence.schedule = draftSchedule
+        deps.persistence.schedule = scheduleToSave
         deps.persistence.hasCompletedOnboarding = true
 
         // 스케줄이 꺼진 상태로 온보딩을 끝내면 shield 를 적용하지 않는다.
         // 허용 앱 0개인 경우에도 BlockingEngine 이 내부적으로 clearShield 로 폴백.
-        if draftSchedule.isEnabled {
+        if scheduleToSave.isEnabled {
             deps.blocking.applyWhitelist(for: draftSelection)
-            try? deps.monitoring.startSchedule(draftSchedule, name: "block_main")
+            try? deps.monitoring.startSchedule(scheduleToSave, name: "block_main")
         } else {
             deps.blocking.clearShield()
             deps.monitoring.stopMonitoring(name: "block_main")

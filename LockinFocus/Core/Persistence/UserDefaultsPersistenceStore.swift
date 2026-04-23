@@ -80,6 +80,10 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
             }
             defaults.set(0, forKey: SharedKeys.focusScoreToday)
             defaults.set(today, forKey: PersistenceKeys.focusScoreDateKey)
+            // 돌아가기 점수 규칙 B: 하루 한도(40)와 쿨다운도 날짜와 함께 리셋해야
+            // 자정을 넘겨도 오늘 새로 40점까지 적립할 수 있다.
+            defaults.set(0, forKey: PersistenceKeys.todayReturnPoints)
+            defaults.removeObject(forKey: PersistenceKeys.lastReturnAt)
         }
     }
 
@@ -187,9 +191,10 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
 
     func awardSessionCompletionIfEligible(now: Date) -> Bool {
         guard let start = manualFocusStartedAt else { return false }
-        manualFocusStartedAt = nil
         let elapsed = now.timeIntervalSince(start)
         guard elapsed >= Self.sessionMinSeconds else { return false }
+        // 15분 이상 확정된 뒤에만 start 를 비운다 — 짧은 세션에 잘못 리셋되지 않도록.
+        manualFocusStartedAt = nil
         rolloverFocusScoreIfNewDay()
         focusScoreToday = min(100, focusScoreToday + Self.sessionBonus)
         return true
@@ -209,6 +214,45 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         if let data = try? encoder.encode(entries) {
             defaults.set(data, forKey: PersistenceKeys.dailyFocusHistory)
         }
+    }
+
+    // MARK: - Leaderboard
+
+    /// iCloud KV → 로컬 cache → 없음 순서로 조회. 쓰기는 양쪽에.
+    /// 같은 Apple ID 로 로그인된 기기 간 값이 자동 공유된다.
+    var nickname: String? {
+        get {
+            if let remote = ICloudKeyValueStore.string(for: ICloudKeyValueStore.Keys.nickname) {
+                // iCloud 값이 앞서면 로컬도 맞춰 둔다.
+                defaults.set(remote, forKey: PersistenceKeys.nickname)
+                return remote
+            }
+            let v = defaults.string(forKey: PersistenceKeys.nickname)
+            return (v?.isEmpty ?? true) ? nil : v
+        }
+        set {
+            defaults.set(newValue, forKey: PersistenceKeys.nickname)
+            ICloudKeyValueStore.set(newValue, for: ICloudKeyValueStore.Keys.nickname)
+        }
+    }
+
+    /// iCloud KV → 로컬 → 신규 생성. 신규 생성 시 양쪽 모두에 기록해
+    /// 이후 다른 기기에서도 같은 ID 를 재사용하도록 한다.
+    var leaderboardUserID: String {
+        if let remote = ICloudKeyValueStore.string(for: ICloudKeyValueStore.Keys.leaderboardUserID) {
+            defaults.set(remote, forKey: PersistenceKeys.leaderboardUserID)
+            return remote
+        }
+        if let local = defaults.string(forKey: PersistenceKeys.leaderboardUserID),
+           !local.isEmpty {
+            // 이 기기에서 먼저 생성됐던 ID — iCloud 로 올려 다른 기기와 공유.
+            ICloudKeyValueStore.set(local, for: ICloudKeyValueStore.Keys.leaderboardUserID)
+            return local
+        }
+        let fresh = UUID().uuidString
+        defaults.set(fresh, forKey: PersistenceKeys.leaderboardUserID)
+        ICloudKeyValueStore.set(fresh, for: ICloudKeyValueStore.Keys.leaderboardUserID)
+        return fresh
     }
 
     private func appendHistory(_ entry: DailyFocus) {
@@ -234,9 +278,39 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.isManualFocusActive) }
     }
 
-    var isStrictModeActive: Bool {
-        get { defaults.bool(forKey: PersistenceKeys.isStrictModeActive) }
-        set { defaults.set(newValue, forKey: PersistenceKeys.isStrictModeActive) }
+    var strictModeEndAt: Date? {
+        get {
+            let v = defaults.double(forKey: PersistenceKeys.strictModeEndAt)
+            return v > 0 ? Date(timeIntervalSince1970: v) : nil
+        }
+        set {
+            if let date = newValue {
+                defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.strictModeEndAt)
+            } else {
+                defaults.removeObject(forKey: PersistenceKeys.strictModeEndAt)
+            }
+        }
+    }
+
+    var focusEndCountToday: Int {
+        rolloverFocusEndCountIfNewDay()
+        return defaults.integer(forKey: PersistenceKeys.focusEndCountToday)
+    }
+
+    func recordManualFocusEnd() {
+        rolloverFocusEndCountIfNewDay()
+        let count = defaults.integer(forKey: PersistenceKeys.focusEndCountToday)
+        defaults.set(count + 1, forKey: PersistenceKeys.focusEndCountToday)
+        defaults.set(Self.todayString(), forKey: PersistenceKeys.focusEndCountDateKey)
+    }
+
+    private func rolloverFocusEndCountIfNewDay() {
+        let today = Self.todayString()
+        let stored = defaults.string(forKey: PersistenceKeys.focusEndCountDateKey)
+        if stored != today {
+            defaults.set(0, forKey: PersistenceKeys.focusEndCountToday)
+            defaults.set(today, forKey: PersistenceKeys.focusEndCountDateKey)
+        }
     }
 
     // MARK: - Progressive unlock delay

@@ -75,7 +75,9 @@ enum BadgeEngine {
         elapsed: TimeInterval,
         persistence: PersistenceStore
     ) -> [Badge] {
-        guard elapsed > 0 else { return [] }
+        // 뱃지 파밍 방지: 1분 미만 세션은 누적에 넣지 않는다.
+        // 세션 보너스(+15) 는 별도로 15분 기준을 따로 판정한다.
+        guard elapsed >= 60 else { return [] }
         persistence.totalFocusSeconds += Int(elapsed)
         let minutes = persistence.totalFocusSeconds / 60
 
@@ -92,6 +94,58 @@ enum BadgeEngine {
         if minutes >= 3000, persistence.awardBadgeIfNew(Badge.focusHour50.id) {
             unlocked.append(.focusHour50)
         }
+        if minutes >= 6000, persistence.awardBadgeIfNew(Badge.focusHour100.id) {
+            unlocked.append(.focusHour100)
+        }
+        return unlocked
+    }
+
+    // MARK: - Ranking
+
+    /// 랭킹 로드 직후 호출. 참가자 100명 이상일 때만 순위 뱃지를 판정한다.
+    /// 상위 50/30/10/5/1%, 3/2/1등은 누적형 — rank 1이면 Third/Second/First 모두 획득.
+    @discardableResult
+    static func onRankingFetched(
+        entries: [LeaderboardEntry],
+        userID: String,
+        persistence: PersistenceStore
+    ) -> [Badge] {
+        guard entries.count >= 100 else { return [] }
+        guard let idx = entries.firstIndex(where: { $0.userID == userID }) else { return [] }
+        let rank = idx + 1
+        let count = entries.count
+
+        var unlocked: [Badge] = []
+
+        // 절대 순위 — 누적형.
+        if rank <= 3, persistence.awardBadgeIfNew(Badge.rankThird.id) {
+            unlocked.append(.rankThird)
+        }
+        if rank <= 2, persistence.awardBadgeIfNew(Badge.rankSecond.id) {
+            unlocked.append(.rankSecond)
+        }
+        if rank == 1, persistence.awardBadgeIfNew(Badge.rankFirst.id) {
+            unlocked.append(.rankFirst)
+        }
+
+        // 상위 X% — rank*100 <= count*X 를 만족하면 해당 구간 안.
+        func inTop(_ pct: Int) -> Bool { rank * 100 <= count * pct }
+        if inTop(50), persistence.awardBadgeIfNew(Badge.rankTop50.id) {
+            unlocked.append(.rankTop50)
+        }
+        if inTop(30), persistence.awardBadgeIfNew(Badge.rankTop30.id) {
+            unlocked.append(.rankTop30)
+        }
+        if inTop(10), persistence.awardBadgeIfNew(Badge.rankTop10.id) {
+            unlocked.append(.rankTop10)
+        }
+        if inTop(5), persistence.awardBadgeIfNew(Badge.rankTop5.id) {
+            unlocked.append(.rankTop5)
+        }
+        if inTop(1), persistence.awardBadgeIfNew(Badge.rankTop1.id) {
+            unlocked.append(.rankTop1)
+        }
+
         return unlocked
     }
 
@@ -125,6 +179,9 @@ enum BadgeEngine {
         }
         if avg >= 80, persistence.awardBadgeIfNew(Badge.weekAverage80.id) {
             unlocked.append(.weekAverage80)
+        }
+        if avg >= 100, persistence.awardBadgeIfNew(Badge.weekAverage100.id) {
+            unlocked.append(.weekAverage100)
         }
         return unlocked
     }

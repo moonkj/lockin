@@ -29,6 +29,18 @@ struct RootView: View {
             InterceptView()
                 .environmentObject(deps)
         }
+        .fullScreenCover(item: Binding(
+            get: { deps.currentCelebratedBadge },
+            set: { newValue in
+                // SwiftUI 가 자체적으로 nil 을 set 할 때만 큐를 당긴다.
+                // "확인" 버튼 경로는 onConfirm 에서 이미 dismissCelebratedBadge 를 호출.
+                if newValue == nil { deps.dismissCelebratedBadge() }
+            }
+        )) { badge in
+            BadgeCelebrationView(badge: badge) {
+                deps.dismissCelebratedBadge()
+            }
+        }
     }
 
     private func drainQueue() {

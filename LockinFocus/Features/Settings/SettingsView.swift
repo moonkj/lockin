@@ -12,9 +12,11 @@ struct SettingsView: View {
 
     @State private var showAppPicker: Bool = false
     @State private var showScheduleEditor: Bool = false
-    @State private var showStrictUnlock: Bool = false
     @State private var showPasscodeSetup: Bool = false
+    @State private var showStrictDurationPicker: Bool = false
+    @State private var showNicknameSetup: Bool = false
     @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
+    @State private var nickname: String? = nil
 
     #if ADMIN_TOOLS_ENABLED
     @State private var versionTaps: Int = 0
@@ -24,7 +26,32 @@ struct SettingsView: View {
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
-    @State private var strictMode: Bool = false
+    private var strictEndAt: Date? { deps.persistence.strictModeEndAt }
+
+    private var strictActive: Bool {
+        deps.persistence.isStrictModeActive
+    }
+
+    private var strictRemainingText: String {
+        let now = deps.tick
+        guard let end = strictEndAt, end > now else { return "" }
+        let total = Int(end.timeIntervalSince(now))
+        let h = total / 3600
+        let m = (total % 3600) / 60
+        let s = total % 60
+        if h > 0 { return String(format: "%d시간 %d분", h, m) }
+        if m > 0 { return String(format: "%d분 %d초", m, s) }
+        return String(format: "%d초", s)
+    }
+
+    /// 엄격 모드 프리셋 (라벨, 지속 시간 초).
+    private let strictPresets: [(label: String, seconds: TimeInterval)] = [
+        ("30분", 30 * 60),
+        ("1시간", 60 * 60),
+        ("2시간", 2 * 60 * 60),
+        ("4시간", 4 * 60 * 60),
+        ("8시간", 8 * 60 * 60)
+    ]
 
     private var appVersion: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -57,34 +84,43 @@ struct SettingsView: View {
                     }
 
                     Section {
-                        Toggle(isOn: Binding(
-                            get: { strictMode },
-                            set: { newValue in
-                                if newValue {
-                                    // 앱 비번 필수. 없으면 토글을 거부하고 비번 설정으로 유도.
-                                    guard passcodeIsSet else {
-                                        showPasscodeSetup = true
-                                        return
-                                    }
-                                    enableStrictMode()
-                                } else {
-                                    // OFF 시도 → StrictModeUnlockView 로 유도.
-                                    showStrictUnlock = true
+                        if strictActive {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text("활성 중")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(AppColors.primaryText)
+                                    Spacer()
+                                    Text(strictRemainingText)
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(AppColors.accent)
+                                        .monospacedDigit()
                                 }
-                            }
-                        )) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("엄격 모드")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(AppColors.primaryText)
-                                Text("켜면 즉시 차단이 시작되고, 해제는 30초 + 문장 입력 + 앱 비밀번호가 필요해요.")
+                                Text("설정한 시간이 끝나기 전에는 어떤 방법으로도 해제할 수 없어요.")
                                     .font(.system(size: 12))
                                     .foregroundStyle(AppColors.secondaryText)
                             }
+                            .listRowBackground(AppColors.surface)
+                        } else {
+                            Button {
+                                guard passcodeIsSet else {
+                                    showPasscodeSetup = true
+                                    return
+                                }
+                                showStrictDurationPicker = true
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("엄격 모드 시작")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(AppColors.primaryText)
+                                    Text("설정한 시간 동안은 어떤 방법으로도 해제할 수 없어요.")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(AppColors.secondaryText)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .listRowBackground(AppColors.surface)
                         }
-                        .tint(AppColors.accent)
-                        .disabled(!passcodeIsSet && !strictMode)
-                        .listRowBackground(AppColors.surface)
 
                         Button {
                             showPasscodeSetup = true
@@ -105,8 +141,32 @@ struct SettingsView: View {
                         sectionHeader("엄격 모드")
                     } footer: {
                         Text(passcodeIsSet
-                             ? "해제할 때 이 앱 비밀번호를 입력하면 됩니다. (Face ID 는 사용하지 않아요.)"
-                             : "엄격 모드를 켜려면 먼저 앱 비밀번호를 설정해야 해요.")
+                             ? "앱 비밀번호는 일반 모드의 하루 첫 해제 때 쓰여요."
+                             : "엄격 모드를 쓰려면 먼저 앱 비밀번호를 설정해야 해요.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+
+                    Section {
+                        Button {
+                            showNicknameSetup = true
+                        } label: {
+                            HStack {
+                                Text("닉네임").foregroundStyle(AppColors.primaryText)
+                                Spacer()
+                                Text(nickname ?? "미설정")
+                                    .foregroundStyle(nickname == nil ? AppColors.warning : AppColors.secondaryText)
+                                    .lineLimit(1)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                        .listRowBackground(AppColors.surface)
+                    } header: {
+                        sectionHeader("랭킹")
+                    } footer: {
+                        Text("랭킹에서 다른 사용자에게 보이는 이름이에요. 욕설·성적 단어는 차단돼요.")
                             .font(.system(size: 12))
                             .foregroundStyle(AppColors.secondaryText)
                     }
@@ -157,21 +217,21 @@ struct SettingsView: View {
                 save()
             }
         }
-        .sheet(isPresented: $showStrictUnlock) {
-            StrictModeUnlockView {
-                // 해제 3단계 성공 → 엄격 모드 OFF + shield 해제 동시 수행.
-                strictMode = false
-                deps.persistence.isStrictModeActive = false
-                deps.blocking.clearShield()
-                deps.persistence.isManualFocusActive = false
-                deps.monitoring.stopMonitoring(name: "block_main")
-                BadgeEngine.onStrictSurvived(persistence: deps.persistence)
+        .sheet(isPresented: $showStrictDurationPicker) {
+            StrictDurationPickerView(presets: strictPresets) { seconds in
+                startStrict(duration: seconds)
             }
         }
         .sheet(isPresented: $showPasscodeSetup) {
             AppPasscodeSetupView { saved in
                 if saved { passcodeIsSet = true }
             }
+        }
+        .sheet(isPresented: $showNicknameSetup) {
+            NicknameSetupView { saved in
+                nickname = saved
+            }
+            .environmentObject(deps)
         }
         #if ADMIN_TOOLS_ENABLED
         .sheet(isPresented: $showAdminEntry) {
@@ -217,16 +277,17 @@ struct SettingsView: View {
     private func load() {
         selection = deps.persistence.selection
         schedule = deps.persistence.schedule
-        strictMode = deps.persistence.isStrictModeActive
         passcodeIsSet = AppPasscodeStore.isSet
+        nickname = deps.persistence.nickname
     }
 
-    /// 엄격 모드 활성화: 상태 저장 + 즉시 shield 적용 + 수동 집중 모드 강제 ON.
-    /// 이로써 Dashboard 집중 종료 버튼이 눌리더라도 StrictModeUnlockView 없이는 풀 수 없다.
-    private func enableStrictMode() {
-        strictMode = true
-        deps.persistence.isStrictModeActive = true
+    /// 엄격 모드 시작: 종료 시각을 설정하고 즉시 shield 적용 + 수동 집중 ON.
+    /// 그 시간까지 Dashboard 종료 버튼을 포함한 모든 해제 경로가 차단된다.
+    private func startStrict(duration: TimeInterval) {
+        let end = Date().addingTimeInterval(duration)
+        deps.persistence.strictModeEndAt = end
         deps.persistence.isManualFocusActive = true
+        deps.persistence.manualFocusStartedAt = Date()
         deps.blocking.applyWhitelist(for: selection)
         if schedule.isEnabled {
             try? deps.monitoring.startSchedule(schedule, name: "block_main")

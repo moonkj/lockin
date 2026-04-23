@@ -107,9 +107,11 @@ struct InterceptView: View {
         deps.persistence.interceptQueue.append(
             InterceptEvent(type: .returned, subjectKind: .application)
         )
-        // 뱃지 판정.
-        BadgeEngine.onReturn(persistence: deps.persistence)
-        BadgeEngine.onScoreChanged(persistence: deps.persistence)
+        // 뱃지 판정 + 축하 모달 큐잉.
+        var unlocked: [Badge] = []
+        unlocked.append(contentsOf: BadgeEngine.onReturn(persistence: deps.persistence))
+        unlocked.append(contentsOf: BadgeEngine.onScoreChanged(persistence: deps.persistence))
+        deps.celebrate(unlocked)
         // 위젯도 즉시 새로고침 (iOS 는 hint 로 처리).
         WidgetCenter.shared.reloadTimelines(ofKind: "LockinFocusScoreWidget")
         timer?.invalidate()

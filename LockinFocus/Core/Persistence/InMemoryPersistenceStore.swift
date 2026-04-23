@@ -10,8 +10,30 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var focusScoreToday: Int
     var hasCompletedOnboarding: Bool
     var isManualFocusActive: Bool
-    var isStrictModeActive: Bool
+    var strictModeEndAt: Date?
     var interceptQueue: [InterceptEvent]
+
+    private var focusEndCount: Int = 0
+    private var focusEndCountDate: String = ""
+
+    var focusEndCountToday: Int {
+        rolloverFocusEndCountIfNewDay()
+        return focusEndCount
+    }
+
+    func recordManualFocusEnd() {
+        rolloverFocusEndCountIfNewDay()
+        focusEndCount += 1
+        focusEndCountDate = Self.todayString()
+    }
+
+    private func rolloverFocusEndCountIfNewDay() {
+        let today = Self.todayString()
+        if focusEndCountDate != today {
+            focusEndCount = 0
+            focusEndCountDate = today
+        }
+    }
 
     var earnedBadgeIDs: Set<String> = []
     var totalReturnCount: Int = 0
@@ -31,7 +53,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
         focusScoreToday: Int = 0,
         hasCompletedOnboarding: Bool = false,
         isManualFocusActive: Bool = false,
-        isStrictModeActive: Bool = false,
+        strictModeEndAt: Date? = nil,
         interceptQueue: [InterceptEvent] = []
     ) {
         self.selection = selection
@@ -39,7 +61,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
         self.focusScoreToday = focusScoreToday
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.isManualFocusActive = isManualFocusActive
-        self.isStrictModeActive = isStrictModeActive
+        self.strictModeEndAt = strictModeEndAt
         self.interceptQueue = interceptQueue
     }
 
@@ -137,8 +159,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
 
     func awardSessionCompletionIfEligible(now: Date) -> Bool {
         guard let start = manualFocusStartedAt else { return false }
-        manualFocusStartedAt = nil
         guard now.timeIntervalSince(start) >= 15 * 60 else { return false }
+        manualFocusStartedAt = nil
         rolloverIfScoreDayChanged()
         focusScoreToday = min(100, focusScoreToday + 15)
         return true
@@ -156,6 +178,11 @@ final class InMemoryPersistenceStore: PersistenceStore {
     func debugSetDailyFocusHistory(_ entries: [DailyFocus]) {
         history = entries
     }
+
+    // Leaderboard (in-memory)
+    var nickname: String?
+    private var _leaderboardUserID: String = UUID().uuidString
+    var leaderboardUserID: String { _leaderboardUserID }
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

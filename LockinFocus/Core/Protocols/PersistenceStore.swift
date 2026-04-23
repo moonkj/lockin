@@ -9,7 +9,17 @@ protocol PersistenceStore: AnyObject {
     var focusScoreToday: Int { get set }
     var hasCompletedOnboarding: Bool { get set }
     var isManualFocusActive: Bool { get set }
-    var isStrictModeActive: Bool { get set }
+
+    /// 엄격 모드가 자동 해제되는 시각. nil 이면 엄격 모드 꺼짐.
+    /// 이 시각 전까지는 수단을 막론하고 집중을 풀 수 없다.
+    var strictModeEndAt: Date? { get set }
+
+    /// 오늘 수동 집중 종료한 횟수 (1회차 이후 사용: 10s → 30s → 60s 대기).
+    var focusEndCountToday: Int { get }
+
+    /// 수동 집중 종료를 1회 기록. 오늘 첫 기록이면 내일 자정까지 0 유지.
+    func recordManualFocusEnd()
+
     var interceptQueue: [InterceptEvent] { get set }
 
     /// Extension 이 쓴 원본 큐 (`[[String: Any]]`) 를 `[InterceptEvent]` 로 디코딩.
@@ -62,4 +72,26 @@ protocol PersistenceStore: AnyObject {
 
     /// 관리자 전용: 주간 리포트 원천 기록을 통째로 덮어쓴다.
     func debugSetDailyFocusHistory(_ entries: [DailyFocus])
+
+    // MARK: - Leaderboard
+
+    /// 사용자가 설정한 닉네임. nil 이면 아직 미설정.
+    var nickname: String? { get set }
+
+    /// CloudKit record 식별자. 첫 접근 시 자동 생성되도록 구현.
+    var leaderboardUserID: String { get }
+}
+
+extension PersistenceStore {
+    /// 엄격 모드 종료 시각이 현재보다 뒤면 활성.
+    var isStrictModeActive: Bool {
+        guard let end = strictModeEndAt else { return false }
+        return end > Date()
+    }
+
+    /// 남은 엄격 모드 시간 (초). 비활성이면 0.
+    var strictModeRemainingSeconds: TimeInterval {
+        guard let end = strictModeEndAt else { return 0 }
+        return max(0, end.timeIntervalSinceNow)
+    }
 }

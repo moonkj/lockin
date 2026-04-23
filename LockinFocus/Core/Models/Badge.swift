@@ -25,10 +25,22 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
     case focusHour5
     case focusHour20
     case focusHour50
+    case focusHour100
 
     // 주간 평균
     case weekAverage60
     case weekAverage80
+    case weekAverage100
+
+    // 순위 — 참가자 100명 이상일 때만 판정.
+    case rankTop50
+    case rankTop30
+    case rankTop10
+    case rankTop5
+    case rankTop1
+    case rankThird
+    case rankSecond
+    case rankFirst
 
     var id: String { rawValue }
 
@@ -48,8 +60,18 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .focusHour5:        return "5시간 집중"
         case .focusHour20:       return "20시간 집중"
         case .focusHour50:       return "50시간 집중"
+        case .focusHour100:      return "100시간 집중"
         case .weekAverage60:     return "주 평균 60점"
         case .weekAverage80:     return "주 평균 80점"
+        case .weekAverage100:    return "주 평균 100점"
+        case .rankTop50:         return "상위 50%"
+        case .rankTop30:         return "상위 30%"
+        case .rankTop10:         return "상위 10%"
+        case .rankTop5:          return "상위 5%"
+        case .rankTop1:          return "상위 1%"
+        case .rankThird:         return "3등"
+        case .rankSecond:        return "2등"
+        case .rankFirst:         return "1등"
         }
     }
 
@@ -69,8 +91,18 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .focusHour5:        return "누적 집중 시간이 5시간을 넘었어요."
         case .focusHour20:       return "누적 집중 시간이 20시간을 넘었어요."
         case .focusHour50:       return "누적 집중 시간이 50시간을 넘었어요."
+        case .focusHour100:      return "누적 집중 시간이 100시간을 넘었어요."
         case .weekAverage60:     return "최근 7일 평균 점수가 60을 넘었어요."
         case .weekAverage80:     return "최근 7일 평균 점수가 80을 넘었어요."
+        case .weekAverage100:    return "최근 7일 내내 100점을 유지했어요."
+        case .rankTop50:         return "랭킹에서 상위 50% 안에 들었어요."
+        case .rankTop30:         return "랭킹에서 상위 30% 안에 들었어요."
+        case .rankTop10:         return "랭킹에서 상위 10% 안에 들었어요."
+        case .rankTop5:          return "랭킹에서 상위 5% 안에 들었어요."
+        case .rankTop1:          return "랭킹에서 상위 1% 안에 들었어요."
+        case .rankThird:         return "랭킹 3등에 올랐어요."
+        case .rankSecond:        return "랭킹 2등에 올랐어요."
+        case .rankFirst:         return "랭킹 1등에 올랐어요."
         }
     }
 
@@ -90,8 +122,18 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .focusHour5:        return "hourglass.tophalf.filled"
         case .focusHour20:       return "hourglass.bottomhalf.filled"
         case .focusHour50:       return "clock.arrow.circlepath"
+        case .focusHour100:      return "infinity.circle.fill"
         case .weekAverage60:     return "star.leadinghalf.filled"
         case .weekAverage80:     return "star.fill"
+        case .weekAverage100:    return "sparkles"
+        case .rankTop50:         return "percent"
+        case .rankTop30:         return "chart.line.uptrend.xyaxis"
+        case .rankTop10:         return "bolt.fill"
+        case .rankTop5:          return "flame.fill"
+        case .rankTop1:          return "star.circle.fill"
+        case .rankThird:         return "medal.fill"
+        case .rankSecond:        return "trophy.fill"
+        case .rankFirst:         return "crown.fill"
         }
     }
 
@@ -111,8 +153,18 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
         case .focusHour5:        return Color(red: 0.25, green: 0.50, blue: 0.80)
         case .focusHour20:       return Color(red: 0.18, green: 0.42, blue: 0.78)
         case .focusHour50:       return Color(red: 0.60, green: 0.45, blue: 0.85)
+        case .focusHour100:      return Color(red: 0.45, green: 0.30, blue: 0.75)
         case .weekAverage60:     return Color(red: 0.80, green: 0.60, blue: 0.20)
         case .weekAverage80:     return Color(red: 0.90, green: 0.55, blue: 0.10)
+        case .weekAverage100:    return Color(red: 0.95, green: 0.45, blue: 0.05)
+        case .rankTop50:         return Color(red: 0.25, green: 0.60, blue: 0.65)
+        case .rankTop30:         return Color(red: 0.20, green: 0.55, blue: 0.72)
+        case .rankTop10:         return Color(red: 0.95, green: 0.60, blue: 0.15)
+        case .rankTop5:          return Color(red: 0.90, green: 0.40, blue: 0.15)
+        case .rankTop1:          return Color(red: 0.88, green: 0.20, blue: 0.35)
+        case .rankThird:         return Color(red: 0.80, green: 0.52, blue: 0.28) // bronze
+        case .rankSecond:        return Color(red: 0.68, green: 0.70, blue: 0.74) // silver
+        case .rankFirst:         return Color(red: 0.95, green: 0.70, blue: 0.20) // gold
         }
     }
 }

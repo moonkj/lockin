@@ -21,12 +21,29 @@ struct ReportView: View {
                 AppColors.background.ignoresSafeArea()
 
                 VStack(spacing: 16) {
-                    Picker("기간", selection: $range) {
+                    HStack(spacing: 8) {
                         ForEach(Range.allCases) { r in
-                            Text(r.rawValue).tag(r)
+                            let isSelected = range == r
+                            Button {
+                                range = r
+                            } label: {
+                                Text(r.rawValue)
+                                    .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                                    .foregroundStyle(isSelected ? Color.white : AppColors.secondaryText)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 36)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(isSelected ? AppColors.primaryText : AppColors.surface)
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .stroke(isSelected ? Color.clear : AppColors.divider, lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .pickerStyle(.segmented)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
 

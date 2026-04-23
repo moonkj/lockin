@@ -31,8 +31,13 @@ enum PersistenceKeys {
     /// 집중 점수 리셋용 날짜 키. focusScoreToday 저장 시 함께 기록.
     static let focusScoreDateKey = "focusScoreDate"
 
-    /// 엄격 모드 활성 여부. ON 시 해제는 Friction 절차(30초+문장+Face ID) 거쳐야 함.
-    static let isStrictModeActive = "isStrictModeActive"
+    /// 엄격 모드 종료 시각 (TimeInterval, 없으면 비활성).
+    /// 이 시각이 지나기 전까지는 어떤 수단으로도 해제 불가.
+    static let strictModeEndAt = "strictModeEndAt"
+
+    /// 오늘 수동 집중을 종료한 횟수. 1회차는 더 강한 마찰(문장+비번), 2회차 30초, 3회차+ 60초 대기.
+    static let focusEndCountToday = "focusEndCountToday"
+    static let focusEndCountDateKey = "focusEndCountDate"
 
     /// 최근 집중 기록(`[DailyFocus]` Codable). 주간 리포트 원천 데이터.
     static let dailyFocusHistory = "dailyFocusHistory"
@@ -54,4 +59,8 @@ enum PersistenceKeys {
     static let todayReturnPoints = "todayReturnPoints"     // Int, 자정 리셋
     static let manualFocusStartedAt = "manualFocusStartedAt" // TimeInterval?
     static let lastDailyLoginDate = "lastDailyLoginDate"   // yyyy-MM-dd
+
+    /// CloudKit 랭킹용.
+    static let nickname = "nickname"
+    static let leaderboardUserID = "leaderboardUserID"
 }

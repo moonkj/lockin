@@ -21,6 +21,9 @@ struct DashboardView: View {
     @State private var showBadges: Bool = false
     @State private var showFocusEndConfirm: Bool = false
     @State private var showQuoteDetail: Bool = false
+    @State private var showLeaderboard: Bool = false
+    @State private var showPasscodeSetup: Bool = false
+    @State private var toastMessage: String? = nil
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -76,7 +79,7 @@ struct DashboardView: View {
                 save()
             }
         }
-        .sheet(isPresented: $showSettings) {
+        .sheet(isPresented: $showSettings, onDismiss: load) {
             SettingsView()
                 .environmentObject(deps)
         }
@@ -89,11 +92,21 @@ struct DashboardView: View {
                 .environmentObject(deps)
         }
         .sheet(isPresented: $showFocusEndConfirm) {
-            FocusEndConfirmView(onConfirm: endManualFocus)
+            FocusEndConfirmView(
+                ordinal: deps.persistence.focusEndCountToday + 1,
+                onConfirm: endManualFocus
+            )
         }
         .sheet(isPresented: $showQuoteDetail) {
             QuoteDetailSheet()
         }
+        .sheet(isPresented: $showLeaderboard) {
+            LeaderboardView().environmentObject(deps)
+        }
+        .sheet(isPresented: $showPasscodeSetup) {
+            AppPasscodeSetupView { _ in }
+        }
+        .toast(message: $toastMessage)
         .onChange(of: deps.pendingRoute) { route in
             guard let route else { return }
             switch route {
@@ -117,6 +130,9 @@ struct DashboardView: View {
                     // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
                     showFocusEndConfirm = true
                 }
+            } else if !AppPasscodeStore.isSet {
+                // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정이기 때문.
+                toastMessage = "앱 비밀번호를 먼저 설정해주세요. 설정에서 등록할 수 있어요."
             } else if allowedCount == 0 {
                 showEmptyAllowConfirm = true
             } else {
@@ -154,8 +170,19 @@ struct DashboardView: View {
         .alert("엄격 모드 활성화 중", isPresented: $showStrictActiveAlert) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text("엄격 모드가 켜져 있어 집중을 끌 수 없어요. 설정에서 엄격 모드를 해제하면 종료할 수 있어요.")
+            Text(strictRemainingMessage)
         }
+    }
+
+    private var strictRemainingMessage: String {
+        let remain = deps.persistence.strictModeRemainingSeconds
+        guard remain > 0 else { return "엄격 모드가 켜져 있어요." }
+        let total = Int(remain)
+        let h = total / 3600
+        let m = (total % 3600) / 60
+        if h > 0 { return "엄격 모드가 끝나려면 \(h)시간 \(m)분 남았어요. 그 전에는 풀 수 없어요." }
+        if m > 0 { return "엄격 모드가 끝나려면 \(m)분 남았어요. 그 전에는 풀 수 없어요." }
+        return "엄격 모드가 끝나려면 \(total)초 남았어요."
     }
 
     private var header: some View {
@@ -165,6 +192,15 @@ struct DashboardView: View {
                 .foregroundStyle(AppColors.primaryText)
 
             Spacer()
+
+            Button {
+                showLeaderboard = true
+            } label: {
+                Image(systemName: "trophy")
+                    .font(.system(size: 20))
+                    .foregroundStyle(AppColors.primaryText)
+            }
+            .buttonStyle(.plain)
 
             Button {
                 showBadges = true
@@ -207,7 +243,7 @@ struct DashboardView: View {
         deps.blocking.applyWhitelist(for: selection)
         deps.persistence.isManualFocusActive = true
         deps.persistence.manualFocusStartedAt = Date()
-        BadgeEngine.onManualFocusStarted(persistence: deps.persistence)
+        deps.celebrate(BadgeEngine.onManualFocusStarted(persistence: deps.persistence))
         isManualFocus = true
     }
 
@@ -218,14 +254,17 @@ struct DashboardView: View {
         let now = Date()
         deps.blocking.clearShield()
         deps.persistence.isManualFocusActive = false
+        deps.persistence.recordManualFocusEnd()
         deps.persistence.awardSessionCompletionIfEligible(now: now)
+        var unlocked: [Badge] = []
         if let start {
-            BadgeEngine.onManualFocusEnded(
+            unlocked.append(contentsOf: BadgeEngine.onManualFocusEnded(
                 elapsed: now.timeIntervalSince(start),
                 persistence: deps.persistence
-            )
+            ))
         }
-        BadgeEngine.onScoreChanged(persistence: deps.persistence)
+        unlocked.append(contentsOf: BadgeEngine.onScoreChanged(persistence: deps.persistence))
+        deps.celebrate(unlocked)
         WidgetCenter.shared.reloadTimelines(ofKind: "LockinFocusScoreWidget")
         isManualFocus = false
     }

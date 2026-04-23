@@ -14,6 +14,8 @@ struct BadgesView: View {
     private var earned: Set<String> { deps.persistence.earnedBadgeIDs }
     private var all: [Badge] { Badge.allCases }
 
+    @State private var selectedBadge: Badge?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -28,9 +30,27 @@ struct BadgesView: View {
                             }
                         }
 
+                        Text("순위 뱃지는 참가자 100명 이상인 랭킹에서만 획득할 수 있어요.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppColors.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 8)
+                            .padding(.horizontal, 8)
+
                         Spacer(minLength: 12)
                     }
                     .padding(20)
+                }
+
+                if let selectedBadge {
+                    BadgeDetailCardView(badge: selectedBadge) {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            self.selectedBadge = nil
+                        }
+                    }
+                    .transition(.opacity)
+                    .zIndex(1)
                 }
             }
             .navigationTitle("뱃지")
@@ -59,7 +79,7 @@ struct BadgesView: View {
 
     @ViewBuilder
     private func cell(for badge: Badge, unlocked: Bool) -> some View {
-        VStack(spacing: 8) {
+        let cellBody = VStack(spacing: 8) {
             ZStack {
                 Circle()
                     .fill((unlocked ? badge.accentColor : AppColors.divider).opacity(unlocked ? 0.14 : 0.4))
@@ -89,6 +109,19 @@ struct BadgesView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(AppColors.surface)
         )
+
+        if unlocked {
+            Button {
+                withAnimation(.easeIn(duration: 0.15)) {
+                    selectedBadge = badge
+                }
+            } label: {
+                cellBody
+            }
+            .buttonStyle(.plain)
+        } else {
+            cellBody
+        }
     }
 }
 

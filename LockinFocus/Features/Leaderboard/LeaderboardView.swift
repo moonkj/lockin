@@ -1,0 +1,424 @@
+import SwiftUI
+
+/// CloudKit 기반 랭킹 — 일간/주간/월간 탭 + Top 3 메달 + 4~30위 리스트 + 내 순위.
+struct LeaderboardView: View {
+    @EnvironmentObject var deps: AppDependencies
+    @Environment(\.dismiss) private var dismiss
+
+    @StateObject private var service = CloudKitLeaderboardService.shared
+
+    @State private var period: LeaderboardPeriod = .daily
+    @State private var entries: [LeaderboardEntry] = []
+    @State private var isLoading: Bool = false
+    @State private var isSubmitting: Bool = false
+    @State private var errorMessage: String?
+    @State private var showNicknameSetup: Bool = false
+
+    /// iCloud KV 조회가 동기라서 매 프레임 수십 번 부르면 UI 가 느려진다 —
+    /// 뷰 등장 시 한 번 캐시한 뒤 재사용.
+    @State private var myUserID: String = ""
+    private var myNickname: String? { deps.persistence.nickname }
+
+    private var myRank: Int? {
+        entries.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
+    }
+
+    private var myEntry: LeaderboardEntry? {
+        entries.first { $0.userID == myUserID }
+    }
+
+    private var myPercentile: Int? {
+        guard let rank = myRank, !entries.isEmpty else { return nil }
+        let ratio = Double(rank) / Double(entries.count)
+        return max(1, min(100, Int(ceil(ratio * 100))))
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppColors.background.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        periodPicker
+                        topThreeSection
+                        summaryStrip
+                        rankingList
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 40)
+                }
+
+                if isLoading && entries.isEmpty {
+                    ProgressView().scaleEffect(1.2)
+                }
+            }
+            .navigationTitle("전체 랭킹")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("닫기") { dismiss() }
+                        .foregroundStyle(AppColors.secondaryText)
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        Task { await submitAndRefresh() }
+                    } label: {
+                        Image(systemName: "arrow.up.circle")
+                            .foregroundStyle(AppColors.primaryText)
+                    }
+                    .disabled(isSubmitting)
+                }
+            }
+            .sheet(isPresented: $showNicknameSetup) {
+                NicknameSetupView { _ in
+                    Task { await submitAndRefresh() }
+                }
+                .environmentObject(deps)
+            }
+            .task {
+                // 뷰 첫 등장 시 iCloud KV 에서 userID 를 한 번만 조회해 캐시.
+                if myUserID.isEmpty {
+                    myUserID = deps.persistence.leaderboardUserID
+                }
+                await load()
+            }
+            .onChange(of: period) { _ in
+                Task { await load() }
+            }
+        }
+    }
+
+    // MARK: - Sections
+
+    private var periodPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(LeaderboardPeriod.allCases) { p in
+                let isSelected = period == p
+                Button {
+                    period = p
+                } label: {
+                    Text(p.label)
+                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? Color.white : AppColors.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(isSelected ? AppColors.primaryText : AppColors.surface)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(isSelected ? Color.clear : AppColors.divider, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private var topThreeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("\(period.label) Top 3")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(AppColors.primaryText)
+
+            HStack(alignment: .bottom, spacing: 20) {
+                if entries.indices.contains(1) {
+                    medalCell(rank: 2, entry: entries[1])
+                } else {
+                    placeholderMedal(rank: 2)
+                }
+                if entries.indices.contains(0) {
+                    medalCell(rank: 1, entry: entries[0])
+                } else {
+                    placeholderMedal(rank: 1)
+                }
+                if entries.indices.contains(2) {
+                    medalCell(rank: 3, entry: entries[2])
+                } else {
+                    placeholderMedal(rank: 3)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(AppColors.surface)
+        )
+    }
+
+    private var summaryStrip: some View {
+        HStack(spacing: 20) {
+            summaryStat(label: "참여자", value: "\(entries.count)명")
+            Divider().frame(height: 28)
+            summaryStat(
+                label: "내 등수",
+                value: myRank.map { "\($0)등" } ?? "미등록"
+            )
+            Divider().frame(height: 28)
+            summaryStat(
+                label: "상위",
+                value: myPercentile.map { "\($0)%" } ?? "—"
+            )
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppColors.surface)
+        )
+    }
+
+    private func summaryStat(label: String, value: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AppColors.primaryText)
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(AppColors.secondaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var rankingList: some View {
+        VStack(spacing: 8) {
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppColors.error)
+                    .padding(.vertical, 4)
+            }
+
+            if entries.count <= 3 {
+                Text("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(AppColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(Array(entries.prefix(30).enumerated()), id: \.element.id) { index, entry in
+                    if index >= 3 {
+                        rankRow(rank: index + 1, entry: entry)
+                    }
+                }
+            }
+
+            // 내 순위가 30위 밖이면 하단에 따로.
+            if let rank = myRank, rank > 30, let me = myEntry {
+                Divider().padding(.vertical, 6)
+                Text("내 순위")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColors.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                rankRow(rank: rank, entry: me)
+            }
+        }
+    }
+
+    // MARK: - Components
+
+    private func medalCell(rank: Int, entry: LeaderboardEntry) -> some View {
+        let size: CGFloat = rank == 1 ? 64 : 54
+        return VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(medalGradient(for: rank))
+                    .frame(width: size, height: size)
+                    .shadow(color: medalColor(for: rank).opacity(0.35), radius: 6, x: 0, y: 3)
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: rank == 1 ? 26 : 22, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+
+            Text("\(rank)등")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(medalColor(for: rank))
+
+            Text(entry.nickname)
+                .font(.system(size: 12, weight: rank == 1 ? .semibold : .medium))
+                .foregroundStyle(AppColors.primaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Text("\(entry.score(for: period))점")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(AppColors.secondaryText)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func placeholderMedal(rank: Int) -> some View {
+        let size: CGFloat = rank == 1 ? 64 : 54
+        return VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.divider)
+                    .frame(width: size, height: size)
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: rank == 1 ? 26 : 22, weight: .semibold))
+                    .foregroundStyle(AppColors.secondaryText.opacity(0.5))
+            }
+            Text("\(rank)등")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(AppColors.secondaryText)
+            Text("—")
+                .font(.system(size: 12))
+                .foregroundStyle(AppColors.secondaryText)
+            Text(" ")
+                .font(.system(size: 11))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func rankRow(rank: Int, entry: LeaderboardEntry) -> some View {
+        let isMe = entry.userID == myUserID
+        let score = entry.score(for: period)
+        let maxScore = Double(entries.first?.score(for: period) ?? 1)
+        let ratio: Double = maxScore > 0 ? Double(score) / maxScore : 0
+
+        return VStack(spacing: 6) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .stroke(medalColor(for: rank), lineWidth: 1.5)
+                        .frame(width: 28, height: 28)
+                    Text("\(rank)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(medalColor(for: rank))
+                }
+
+                Text(entry.nickname)
+                    .font(.system(size: 15, weight: isMe ? .semibold : .regular))
+                    .foregroundStyle(AppColors.primaryText)
+                    .lineLimit(1)
+
+                if isMe {
+                    Text("나")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(AppColors.primaryText))
+                }
+
+                Spacer()
+
+                Text("\(score)점")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(medalColor(for: rank))
+                    .monospacedDigit()
+            }
+
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColors.divider)
+                        .frame(height: 4)
+                    Capsule()
+                        .fill(medalColor(for: rank))
+                        .frame(width: max(6, proxy.size.width * ratio), height: 4)
+                }
+            }
+            .frame(height: 4)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isMe ? AppColors.surface : Color.clear)
+        )
+    }
+
+    // MARK: - Medal palette
+
+    private func medalColor(for rank: Int) -> Color {
+        switch rank {
+        case 1: return Color(red: 0.95, green: 0.70, blue: 0.20) // gold
+        case 2: return Color(red: 0.68, green: 0.70, blue: 0.74) // silver
+        case 3: return Color(red: 0.80, green: 0.52, blue: 0.28) // bronze
+        default: return Color(red: 0.93, green: 0.55, blue: 0.15) // orange tint for ranks 4+
+        }
+    }
+
+    private func medalGradient(for rank: Int) -> LinearGradient {
+        let base = medalColor(for: rank)
+        return LinearGradient(
+            colors: [base.opacity(0.9), base],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    // MARK: - Actions
+
+    @MainActor
+    private func load() async {
+        isLoading = true
+        errorMessage = nil
+        // 조회도 로그인된 iCloud 계정이 필요하다 — 로그아웃 상태면 조용히 빈 리스트가
+        // 뜨는 대신 명확한 에러 카피를 보여준다.
+        if !(await service.accountAvailable()) {
+            errorMessage = "iCloud 에 로그인해주세요. 설정 → Apple ID → iCloud."
+            entries = []
+            isLoading = false
+            return
+        }
+        do {
+            entries = try await service.fetchRanking(period: period)
+            // 랭킹 로드 직후 순위 뱃지 판정 — 참가자 100명 이상이면 해당 구간·등수 뱃지 부여.
+            let unlocked = BadgeEngine.onRankingFetched(
+                entries: entries,
+                userID: myUserID,
+                persistence: deps.persistence
+            )
+            deps.celebrate(unlocked)
+        } catch let error as CloudKitLeaderboardService.ServiceError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    @MainActor
+    private func submitAndRefresh() async {
+        guard let nickname = myNickname else {
+            showNicknameSetup = true
+            return
+        }
+        guard await service.accountAvailable() else {
+            errorMessage = "iCloud 에 로그인되어 있어야 랭킹에 참여할 수 있어요."
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+
+        let dailyScore = deps.persistence.focusScoreToday
+        let recent7 = deps.persistence.dailyFocusHistory(lastDays: 7)
+        let weeklyTotal = recent7.reduce(0) { $0 + $1.score }
+        let recent30 = deps.persistence.dailyFocusHistory(lastDays: 30)
+        let monthlyTotal = recent30.reduce(0) { $0 + $1.score }
+
+        do {
+            _ = try await service.submit(
+                userID: deps.persistence.leaderboardUserID,
+                nickname: nickname,
+                dailyScore: dailyScore,
+                weeklyTotal: weeklyTotal,
+                monthlyTotal: monthlyTotal
+            )
+            await load()
+        } catch let error as CloudKitLeaderboardService.ServiceError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isSubmitting = false
+    }
+}
