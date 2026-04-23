@@ -25,6 +25,7 @@ targets:
     dependencies:
       - target: DeviceActivityMonitorExtension
       - target: ShieldConfigurationExtension
+      - target: ShieldActionExtension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocus
@@ -60,4 +61,17 @@ targets:
         PRODUCT_NAME: ShieldConfigurationExtension
         CODE_SIGN_ENTITLEMENTS: ShieldConfigurationExtension/ShieldConfigurationExtension.entitlements
         INFOPLIST_FILE: ShieldConfigurationExtension/Info.plist
+        SKIP_INSTALL: "YES"
+
+  ShieldActionExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldActionExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocus.ShieldActionExtension
+        PRODUCT_NAME: ShieldActionExtension
+        CODE_SIGN_ENTITLEMENTS: ShieldActionExtension/ShieldActionExtension.entitlements
+        INFOPLIST_FILE: ShieldActionExtension/Info.plist
         SKIP_INSTALL: "YES"

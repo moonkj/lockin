@@ -45,21 +45,45 @@
 - [x] Architect 확인 요청 10개 항목 기재
 - [x] 산출물: `docs/02_UX_Design.md` (824줄)
 
-### Phase 2 — Architect 설계
-- [ ] iOS Screen Time API 제약 조사 (Shield UX 한계, entitlement 신청, 카테고리 자동분류)
-- [ ] "중간 인터셉트 UI" 삽입 전략 현실적 경로
-- [ ] 모듈/타깃 구조 확정 (이미 xcodegen으로 3타깃 스캐폴드됨 — 검증/보완)
-- [ ] 상태 관리 전략 (AppStorage / UserDefaults(App Group) / SwiftData / CoreData)
-- [ ] 설계 요약 산출물: `docs/03_Architecture.md`
-- [ ] **UX Designer 10개 질문에 답변 + 과학적 토론 결과 포함**
+### Phase 2 — Architect 설계 ✅
+- [x] iOS Screen Time API 제약 조사 (WWDC21/22 근거, JS 렌더 문서는 경험적 표기)
+- [x] 인터셉트 경로 현실적 결론: Shield → ShieldAction → 메인 앱 딥링크
+- [x] 모듈/타깃 구조: **3 Extension 필요 판정** → ShieldActionExtension 누락 식별
+- [x] 상태 관리: App Group `UserDefaults` + Codable (MVP), SwiftData 는 확장
+- [x] 산출물: `docs/03_Architecture.md` (860줄)
+- [x] UX Designer에 11개 조율 요청 기재
 
-### Phase 3 — MVP 구현 (Coder)
-- [ ] 3.1 앱 선택 화면 (FamilyControls `FamilyActivityPicker`)
-- [ ] 3.2 차단 적용 (ManagedSettingsStore)
-- [ ] 3.3 스케줄 (DeviceActivityCenter / DeviceActivityMonitor Extension)
-- [ ] 3.4 10초 지연 개입 UI (중간 인터셉트 화면)
-- [ ] 3.5 온보딩/권한 요청 플로우
-- [ ] 3.6 홈 대시보드 (오늘 집중 점수, 간단 통계)
+### Phase 2.5 — 팀리더 통합 결론 ✅
+- [x] 16개 쟁점 해결 (UX 10개 + Architect 11개 중복 제거)
+- [x] MVP In/Out Scope 확정 (10개 In, 8개 Out → Phase 5)
+- [x] ShieldActionExtension 타깃 추가 + 재빌드 BUILD SUCCEEDED
+- [x] 공유 프로토콜/모델 스켈레톤: `Schedule`, `InterceptEvent`, `PersistenceStore`, `BlockingEngine`, `MonitoringEngine`
+- [x] 산출물: `docs/04_Integration_Resolution.md`
+
+### Phase 3 — MVP 구현 (Coder-A + Coder-B 병렬)
+
+#### Coder-A (Core)
+- [ ] `Core/Persistence/UserDefaultsPersistenceStore.swift` — App Group + Codable
+- [ ] `Core/Persistence/InMemoryPersistenceStore.swift` — 시뮬레이터/테스트용 Fake
+- [ ] `Core/BlockingEngine/ManagedSettingsBlockingEngine.swift` — 역-화이트리스트 `.all(except:)`
+- [ ] `Core/BlockingEngine/NoopBlockingEngine.swift` — 시뮬레이터용
+- [ ] `Core/MonitoringEngine/DeviceActivityMonitoringEngine.swift`
+- [ ] `Core/MonitoringEngine/NoopMonitoringEngine.swift`
+- [ ] DeviceActivityMonitorExtension 보강: `intervalDidStart` 에서 shield 적용
+- [ ] "그래도 열기" 5분 재차단 플로우 (임시 `temp_allow_<token>` interval 종료 시 재추가)
+
+#### Coder-B (UI)
+- [ ] `Features/Onboarding/` 5 스텝 (Value / SystemPreset / Picker / Schedule / Authorization)
+- [ ] `Features/Dashboard/` 3요소 (집중 점수 / 허용 앱 / 다음 스케줄)
+- [ ] `Features/AppSelection/` FamilyActivityPicker 래퍼
+- [ ] `Features/Schedule/` 3 프리셋 + 커스텀
+- [ ] `Features/Intercept/` countdown 10초
+- [ ] `Features/Settings/` 기본 (재선택/스케줄 편집/정보)
+- [ ] `App/RootView` 수정: 온보딩 여부 분기 + interceptQueue 자동 프레젠테이션
+
+#### 교차 레이어 조정 규약
+- 프로토콜 변경은 "토론/이슈 로그"에 즉시 기록.
+- 공유 타입은 `Core/Models/`, `Core/Protocols/` 에만 추가.
 
 ### Phase 4 — Debugger → Test → Reviewer 사이클
 - [ ] Debugger 1차 점검 (MVP 구현 이후)
