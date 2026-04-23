@@ -10,14 +10,15 @@ struct FocusEndConfirmView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    private enum Step {
+    /// 내부 상태 머신. 테스트에서 초기 step/remaining 을 주입하기 위해 internal.
+    enum Step {
         case wave
         case sentence
         case passcode
     }
 
-    @State private var step: Step = .wave
-    @State private var remaining: Int = 10
+    @State private var step: Step
+    @State private var remaining: Int
     @State private var timer: Timer?
 
     @State private var typed: String = ""
@@ -37,6 +38,35 @@ struct FocusEndConfirmView: View {
         case 2:    return 30
         default:   return 60
         }
+    }
+
+    /// 기본 사용자 경로 — 카운트다운 시작점.
+    init(ordinal: Int, onConfirm: @escaping () -> Void) {
+        self.ordinal = ordinal
+        self.onConfirm = onConfirm
+        _step = State(initialValue: .wave)
+        let initial: Int
+        switch ordinal {
+        case ...1: initial = 10
+        case 2:    initial = 30
+        default:   initial = 60
+        }
+        _remaining = State(initialValue: initial)
+    }
+
+    /// 테스트 전용 — 초기 step, remaining, typed 값을 직접 제어.
+    init(
+        ordinal: Int,
+        initialStep: Step,
+        initialRemaining: Int = 0,
+        initialTyped: String = "",
+        onConfirm: @escaping () -> Void
+    ) {
+        self.ordinal = ordinal
+        self.onConfirm = onConfirm
+        _step = State(initialValue: initialStep)
+        _remaining = State(initialValue: initialRemaining)
+        _typed = State(initialValue: initialTyped)
     }
 
     private var canConfirmWave: Bool { remaining == 0 }
@@ -230,8 +260,10 @@ struct FocusEndConfirmView: View {
     // MARK: - Countdown
 
     private func startCountdown() {
+        // 테스트에서 step 을 바로 sentence/passcode 로 주입한 경우엔
+        // 카운트다운이 초기화돼선 안 된다 (remaining 을 0 으로 유지).
+        guard step == .wave else { return }
         timer?.invalidate()
-        remaining = waitSeconds
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if remaining > 0 { remaining -= 1 }
             if remaining == 0 { t.invalidate() }

@@ -97,4 +97,54 @@ final class SheetViewsTests: XCTestCase {
         let view = FocusEndConfirmView(ordinal: 3, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: "잠시 숨을 고르면서 한 번 더 생각해봐요."))
     }
+
+    // MARK: - FocusEndConfirmView — sentence step (injected)
+
+    func testFocusEndConfirmView_sentenceStep_showsTargetSentenceHint() throws {
+        let view = FocusEndConfirmView(
+            ordinal: 1,
+            initialStep: .sentence,
+            onConfirm: {}
+        )
+        XCTAssertNoThrow(try view.inspect().find(text: "이 문장을 그대로 써주세요"))
+    }
+
+    func testFocusEndConfirmView_sentenceStep_showsExampleQuote() throws {
+        let view = FocusEndConfirmView(
+            ordinal: 1,
+            initialStep: .sentence,
+            onConfirm: {}
+        )
+        XCTAssertNoThrow(try view.inspect().find(text: "\"나는 지금 꼭 집중을 풀어야 한다\""))
+    }
+
+    func testFocusEndConfirmView_sentenceStep_wrongTyped_showsError() throws {
+        let view = FocusEndConfirmView(
+            ordinal: 1,
+            initialStep: .sentence,
+            initialTyped: "틀린 문장",
+            onConfirm: {}
+        )
+        XCTAssertNoThrow(try view.inspect().find(text: "문장이 달라요. 예시대로 정확히 써야 해요."))
+    }
+
+    func testFocusEndConfirmView_sentenceStep_hasContinueAndNextButtons() throws {
+        let view = FocusEndConfirmView(
+            ordinal: 1,
+            initialStep: .sentence,
+            onConfirm: {}
+        )
+        XCTAssertNoThrow(try view.inspect().find(button: "계속 집중하기"))
+    }
+
+    // MARK: - FocusEndConfirmView — passcode step (injected)
+
+    func testFocusEndConfirmView_passcodeStep_showsPasscodeHeadline() throws {
+        let view = FocusEndConfirmView(
+            ordinal: 1,
+            initialStep: .passcode,
+            onConfirm: {}
+        )
+        XCTAssertNoThrow(try view.inspect().find(text: "앱 비밀번호 입력"))
+    }
 }

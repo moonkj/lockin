@@ -7,8 +7,8 @@ struct LeaderboardView: View {
 
     @StateObject private var service = CloudKitLeaderboardService.shared
 
-    @State private var period: LeaderboardPeriod = .daily
-    @State private var entries: [LeaderboardEntry] = []
+    @State private var period: LeaderboardPeriod
+    @State private var entries: [LeaderboardEntry]
     @State private var isLoading: Bool = false
     @State private var isSubmitting: Bool = false
     @State private var errorMessage: String?
@@ -16,7 +16,25 @@ struct LeaderboardView: View {
 
     /// iCloud KV 조회가 동기라서 매 프레임 수십 번 부르면 UI 가 느려진다 —
     /// 뷰 등장 시 한 번 캐시한 뒤 재사용.
-    @State private var myUserID: String = ""
+    @State private var myUserID: String
+
+    /// 기본 init — 런타임 사용 경로.
+    init() {
+        _period = State(initialValue: .daily)
+        _entries = State(initialValue: [])
+        _myUserID = State(initialValue: "")
+    }
+
+    /// 테스트 전용 init — 초기 entries/period/userID 주입해 medal/rankRow 렌더 분기 검증.
+    init(
+        initialPeriod: LeaderboardPeriod,
+        initialEntries: [LeaderboardEntry],
+        initialMyUserID: String = ""
+    ) {
+        _period = State(initialValue: initialPeriod)
+        _entries = State(initialValue: initialEntries)
+        _myUserID = State(initialValue: initialMyUserID)
+    }
     private var myNickname: String? { deps.persistence.nickname }
 
     private var myRank: Int? {

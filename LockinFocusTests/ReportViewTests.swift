@@ -46,4 +46,23 @@ final class ReportViewTests: XCTestCase {
         XCTAssertEqual(ReportView.Range.weekly.rawValue, "주간")
         XCTAssertEqual(ReportView.Range.monthly.rawValue, "월간")
     }
+
+    func testReportView_range_id() {
+        XCTAssertEqual(ReportView.Range.daily.id, "일간")
+        XCTAssertEqual(ReportView.Range.weekly.id, "주간")
+        XCTAssertEqual(ReportView.Range.monthly.id, "월간")
+    }
+
+    func testReportView_instantiateWeekly() {
+        // weekly 탭 기본 생성 경로 — body 가 Charts 까지 들어가지 않는다면 crash 없이 통과.
+        let view = ReportView(initialRange: .weekly)
+            .environmentObject(AppDependencies.preview())
+        _ = view  // 뷰 구조체 생성만 테스트 (body 는 SwiftUI 가 필요할 때 호출)
+    }
+
+    func testReportView_instantiateMonthly() {
+        let view = ReportView(initialRange: .monthly)
+            .environmentObject(AppDependencies.preview())
+        _ = view
+    }
 }
