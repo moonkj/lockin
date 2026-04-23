@@ -109,7 +109,7 @@
 
 ### Phase 6 — 성능 최적화 + 최종 문서화
 - [ ] Performance Engineer 점검 (배터리, DeviceActivity 이벤트 효율, 리스트 렌더링)
-- [ ] Doc Writer 최종 README + 기술 문서
+- [x] Doc Writer 최종 README + 기술 문서 — `README.md`, `docs/08_Architecture_Map.md`, `docs/09_Release_Checklist.md` 생성
 
 ---
 
@@ -135,3 +135,14 @@
 - [2026-04-23] [팀리더] [H2 DEFER → Fix 승격] Debugger 가 DEFER 로 기록한 주 스케줄 activity 이름 불일치를 팀리더가 즉시 처리. 메인 앱 `Features/Dashboard/DashboardView.swift:87`, `Features/Settings/SettingsView.swift:112`, `Features/Onboarding/OnboardingContainerView.swift:139` 세 곳의 `name: "primary"` 를 `name: "block_main"` 으로 통일. Extension 의 prefix 규약과 일치하여 평일 17:00 종료 시 shield 자동 해제 경로가 복원됨. BUILD SUCCEEDED.
 - [2026-04-23] [Test Engineer] [Phase 4 단위 테스트] `LockinFocusTests` 타깃 추가 + 5 파일 / 21 케이스 작성. **H1 회귀 방지 핵심**: `UserDefaultsPersistenceStoreTests.testDrainInterceptQueue_decodesExtensionRawFormat` 가 ShieldActionExtension 이 쓰는 `[[String: Any]]` raw 포맷(키 `interceptQueue`, 필드 timestamp/type/subjectKind, enum rawValue) 을 코드로 고정. `InterceptEventTests` 가 enum rawValue 문자열(`"returned"`, `"interceptRequested"`, `"application"`, `"category"`, `"webDomain"`) 변경을 즉시 감지. `UserDefaultsPersistenceStore.init(defaults:)` 주입 이니셜라이저 기존 존재 확인, Coder-A 복귀 불필요. 샌드박스로 `xcodegen` / `xcodebuild test` 실행 차단 — 팀리더 수동 실행 필요.
 - [2026-04-23] [Reviewer] [Phase 4 후반부 최종 리뷰 — 초회] `docs/07_Review_Report.md`. A 가독성 4.5 / B 유지보수성 4.0 / C 확장성 4.0 / D 테스트 가치 4.5 / E UX 준수 4.5 / F 안전성 4.0 / G 문서 4.5. Critical/High 잔존 없음. 개선 7개 중 `[R2 필수]` 0건. 결론: **최종 완료 — Phase 5 진입 권고**. 배포 전 선결 잔여 위험 = 실기기 수동 QA 7 항목(docs/05 §실기기 추가 검증). R2 복귀 불요.
+- [2026-04-23] [Doc Writer] [최종 문서화] `README.md` (프로젝트 한 화면 요약 + 빠른 시작 + 실기기 QA 체크리스트 7 항목 + 핵심 설계 결정 4 건 + 팀 파이프라인 링크), `docs/08_Architecture_Map.md` (Core 책임 테이블 + 데이터 플로우 ASCII + activity 이름 규약 + App Group 키 + 교차 레이어 경고 7 건 + grep 레시피), `docs/09_Release_Checklist.md` (Entitlement / 빌드 / 실기기 QA / UX / 에셋 / Privacy / TestFlight / App Store 심사 / Phase 5 이월 / 배포 후 모니터링 10 섹션) 생성. README/08 은 전체 한국어, 코드·명령은 원문. 새로운 기능 제안 없음.
+
+---
+
+## 배포 전 남은 일 (요약)
+
+1. **실기기 수동 QA 7 항목** (`docs/09_Release_Checklist.md §3`, `docs/05_Debugger_Report.md §실기기 추가 검증`) — 주 스케줄 경계 자동 해제, ShieldAction 포그라운드화, Codable round-trip, 시스템 앱 차단 영향, 온보딩 전환, Timer 복귀, `.all(except:)` 영향 확인. 3–5 대 디바이스.
+2. **Family Controls distribution entitlement 신청 + 승인** (수 일~수 주 소요. 지금 신청 시작 권고).
+3. **에셋 교체 + App Store Connect 메타데이터** (AppIcon 교체, 스크린샷 5 해상도, 프라이버시 매니페스트 `PrivacyInfo.xcprivacy` 추가, 개인정보 처리방침 URL).
+4. **TestFlight 베타 1 주** (외부 5–10 인, crash-free 99%+ 확인).
+5. 위 4 가지가 그린 라이트가 되면 App Store 심사 제출.
