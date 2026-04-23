@@ -14,4 +14,11 @@ protocol PersistenceStore: AnyObject {
     /// Extension 이 쓴 원본 큐 (`[[String: Any]]`) 를 `[InterceptEvent]` 로 디코딩.
     /// 처리 후 큐를 비운다.
     func drainInterceptQueue() -> [InterceptEvent]
+
+    /// 지연 해제 점증: 다음 intercept 에서 사용할 카운트다운 초.
+    /// 1회차 10초, 2회차 30초, 3회 이상 60초. 자정에 리셋.
+    func currentUnlockDelaySeconds() -> Int
+
+    /// "그래도 열기" 확정 시 호출. 오늘 카운트 +1.
+    func recordManualUnlock()
 }

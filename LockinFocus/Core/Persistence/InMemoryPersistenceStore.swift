@@ -33,4 +33,40 @@ final class InMemoryPersistenceStore: PersistenceStore {
         interceptQueue.removeAll()
         return q
     }
+
+    // Progressive unlock delay (in-memory, same rule as live store).
+    private var unlockCount: Int = 0
+    /// 초기값은 빈 문자열. 첫 접근 시 rolloverIfNewDay 가 오늘 날짜로 세팅.
+    private var unlockDate: String = ""
+
+    func currentUnlockDelaySeconds() -> Int {
+        rolloverIfNewDay()
+        switch unlockCount {
+        case 0: return 10
+        case 1: return 30
+        default: return 60
+        }
+    }
+
+    func recordManualUnlock() {
+        rolloverIfNewDay()
+        unlockCount += 1
+        unlockDate = Self.todayString()
+    }
+
+    private func rolloverIfNewDay() {
+        let today = Self.todayString()
+        if unlockDate != today {
+            unlockCount = 0
+            unlockDate = today
+        }
+    }
+
+    private static func todayString() -> String {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: Date())
+    }
 }

@@ -64,6 +64,42 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.isManualFocusActive) }
     }
 
+    // MARK: - Progressive unlock delay
+
+    func currentUnlockDelaySeconds() -> Int {
+        rolloverUnlockCountIfNewDay()
+        let count = defaults.integer(forKey: PersistenceKeys.todayUnlockCount)
+        switch count {
+        case 0: return 10
+        case 1: return 30
+        default: return 60
+        }
+    }
+
+    func recordManualUnlock() {
+        rolloverUnlockCountIfNewDay()
+        let count = defaults.integer(forKey: PersistenceKeys.todayUnlockCount)
+        defaults.set(count + 1, forKey: PersistenceKeys.todayUnlockCount)
+        defaults.set(Self.todayString(), forKey: PersistenceKeys.todayUnlockDateKey)
+    }
+
+    private func rolloverUnlockCountIfNewDay() {
+        let today = Self.todayString()
+        let stored = defaults.string(forKey: PersistenceKeys.todayUnlockDateKey)
+        if stored != today {
+            defaults.set(0, forKey: PersistenceKeys.todayUnlockCount)
+            defaults.set(today, forKey: PersistenceKeys.todayUnlockDateKey)
+        }
+    }
+
+    private static func todayString() -> String {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: Date())
+    }
+
     // MARK: - InterceptQueue (Codable 보관)
 
     var interceptQueue: [InterceptEvent] {

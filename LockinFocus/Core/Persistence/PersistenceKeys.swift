@@ -21,4 +21,10 @@ enum PersistenceKeys {
     /// 사용자가 수동으로 활성화한 "지금 집중 중" 플래그.
     /// 스케줄과 독립적으로 동작한다 — 둘 중 하나만 true 여도 shield 가 유지되도록 UI 에서 해석.
     static let isManualFocusActive = "isManualFocusActive"
+
+    /// 지연 해제 점증: 오늘 "그래도 열기" 누른 횟수. 자정에 리셋.
+    static let todayUnlockCount = "todayUnlockCount"
+
+    /// 지연 해제 점증: 마지막 기록 날짜(`yyyy-MM-dd`). 날짜가 바뀌면 count 를 리셋.
+    static let todayUnlockDateKey = "todayUnlockDate"
 }

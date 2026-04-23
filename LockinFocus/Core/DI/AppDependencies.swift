@@ -44,6 +44,10 @@ final class PreviewPersistenceStore: PersistenceStore {
         interceptQueue.removeAll()
         return q
     }
+
+    // Preview: 고정 10초 반환, unlock 누적은 하지 않음.
+    func currentUnlockDelaySeconds() -> Int { 10 }
+    func recordManualUnlock() {}
 }
 
 final class PreviewBlockingEngine: BlockingEngine {

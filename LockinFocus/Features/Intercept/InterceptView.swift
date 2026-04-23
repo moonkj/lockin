@@ -9,6 +9,7 @@ struct InterceptView: View {
     @EnvironmentObject var deps: AppDependencies
     @Environment(\.dismiss) private var dismiss
 
+    @State private var totalSeconds: Int = 10
     @State private var remaining: Int = 10
     @State private var timer: Timer?
 
@@ -40,7 +41,7 @@ struct InterceptView: View {
                     PrimaryButton("돌아가기", action: handleReturn)
 
                     SecondaryLinkButton(
-                        canExit ? "그래도 열기" : "10초 뒤에 선택할 수 있어요",
+                        canExit ? "그래도 열기" : "\(totalSeconds)초 뒤에 선택할 수 있어요",
                         isEnabled: canExit,
                         action: handleOpenAnyway
                     )
@@ -63,7 +64,7 @@ struct InterceptView: View {
                 .frame(width: 160, height: 160)
 
             Circle()
-                .trim(from: 0, to: CGFloat(max(0, remaining)) / 10.0)
+                .trim(from: 0, to: CGFloat(max(0, remaining)) / CGFloat(max(1, totalSeconds)))
                 .stroke(AppColors.primaryText, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .frame(width: 160, height: 160)
                 .rotationEffect(.degrees(-90))
@@ -80,7 +81,10 @@ struct InterceptView: View {
 
     private func startCountdown() {
         timer?.invalidate()
-        remaining = 10
+        // 지연 해제 점증: 오늘 "그래도 열기" 누른 횟수에 따라 10/30/60 초로 증가.
+        let seconds = deps.persistence.currentUnlockDelaySeconds()
+        totalSeconds = seconds
+        remaining = seconds
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if remaining > 0 {
                 remaining -= 1
@@ -102,6 +106,9 @@ struct InterceptView: View {
     }
 
     private func handleOpenAnyway() {
+        // 지연 해제 점증: 오늘 해제 요청 카운트 +1 → 다음 intercept 는 더 오래 기다림.
+        deps.persistence.recordManualUnlock()
+
         // 쟁점 5 MVP 단순화: 전체 shield 일시 해제 + 5분 타이머로 재적용.
         deps.blocking.clearShield()
         do {
