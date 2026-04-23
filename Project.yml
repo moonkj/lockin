@@ -26,6 +26,7 @@ targets:
       - target: DeviceActivityMonitorExtension
       - target: ShieldConfigurationExtension
       - target: ShieldActionExtension
+      - target: LockinFocusWidgets
     configFiles:
       Debug: Build.xcconfig
     settings:
@@ -76,6 +77,26 @@ targets:
         PRODUCT_NAME: ShieldActionExtension
         CODE_SIGN_ENTITLEMENTS: ShieldActionExtension/ShieldActionExtension.entitlements
         INFOPLIST_FILE: ShieldActionExtension/Info.plist
+        SKIP_INSTALL: "YES"
+
+  LockinFocusWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: LockinFocusWidgets
+      - path: LockinFocus/Core/Models/TreeStage.swift
+      - path: LockinFocus/Core/Models/DailyQuote.swift
+      - path: LockinFocus/Core/Theme/AppColors.swift
+      - path: LockinFocus/Core/Resources/QuoteProvider.swift
+      - path: LockinFocus/Core/Shared/AppGroup.swift
+      - path: LockinFocus/Core/Persistence/PersistenceKeys.swift
+      - path: LockinFocus/Resources/Quotes
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.moonkj.LockinFocus.LockinFocusWidgets
+        PRODUCT_NAME: LockinFocusWidgets
+        CODE_SIGN_ENTITLEMENTS: LockinFocusWidgets/LockinFocusWidgets.entitlements
+        INFOPLIST_FILE: LockinFocusWidgets/Info.plist
         SKIP_INSTALL: "YES"
 
   LockinFocusTests:
