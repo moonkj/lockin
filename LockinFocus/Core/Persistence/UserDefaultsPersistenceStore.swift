@@ -59,6 +59,11 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.hasCompletedOnboarding) }
     }
 
+    var isManualFocusActive: Bool {
+        get { defaults.bool(forKey: PersistenceKeys.isManualFocusActive) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.isManualFocusActive) }
+    }
+
     // MARK: - InterceptQueue (Codable 보관)
 
     var interceptQueue: [InterceptEvent] {

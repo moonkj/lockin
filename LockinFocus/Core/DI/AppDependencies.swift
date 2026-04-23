@@ -36,6 +36,7 @@ final class PreviewPersistenceStore: PersistenceStore {
     var schedule = Schedule.weekdayWorkHours
     var focusScoreToday = 42
     var hasCompletedOnboarding = false
+    var isManualFocusActive = false
     var interceptQueue: [InterceptEvent] = []
 
     func drainInterceptQueue() -> [InterceptEvent] {

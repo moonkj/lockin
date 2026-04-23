@@ -9,6 +9,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var schedule: Schedule
     var focusScoreToday: Int
     var hasCompletedOnboarding: Bool
+    var isManualFocusActive: Bool
     var interceptQueue: [InterceptEvent]
 
     init(
@@ -16,12 +17,14 @@ final class InMemoryPersistenceStore: PersistenceStore {
         schedule: Schedule = .weekdayWorkHours,
         focusScoreToday: Int = 0,
         hasCompletedOnboarding: Bool = false,
+        isManualFocusActive: Bool = false,
         interceptQueue: [InterceptEvent] = []
     ) {
         self.selection = selection
         self.schedule = schedule
         self.focusScoreToday = focusScoreToday
         self.hasCompletedOnboarding = hasCompletedOnboarding
+        self.isManualFocusActive = isManualFocusActive
         self.interceptQueue = interceptQueue
     }
 

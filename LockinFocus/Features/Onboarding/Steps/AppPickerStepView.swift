@@ -51,9 +51,11 @@ struct AppPickerStepView: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("현재 선택: \(selectedCount)개")
+                Text(selectedCount == 0
+                     ? "허용 앱을 1개 이상 고르면 나머지가 집중 시간에 잠겨요."
+                     : "현재 선택: \(selectedCount)개")
                     .font(.system(size: 14))
-                    .foregroundStyle(AppColors.secondaryText)
+                    .foregroundStyle(selectedCount == 0 ? AppColors.warning : AppColors.secondaryText)
             }
             .padding(.horizontal, 24)
 
@@ -62,6 +64,8 @@ struct AppPickerStepView: View {
             PrimaryButton("다음", action: onNext)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
+                .disabled(selectedCount == 0)
+                .opacity(selectedCount == 0 ? 0.5 : 1.0)
         }
         .familyActivityPicker(isPresented: $showPicker, selection: $selection)
     }

@@ -17,4 +17,8 @@ enum PersistenceKeys {
 
     /// 온보딩 완료 플래그.
     static let hasCompletedOnboarding = "hasCompletedOnboarding"
+
+    /// 사용자가 수동으로 활성화한 "지금 집중 중" 플래그.
+    /// 스케줄과 독립적으로 동작한다 — 둘 중 하나만 true 여도 shield 가 유지되도록 UI 에서 해석.
+    static let isManualFocusActive = "isManualFocusActive"
 }
