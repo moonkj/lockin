@@ -35,6 +35,11 @@ enum PersistenceKeys {
     /// 이 시각이 지나기 전까지는 어떤 수단으로도 해제 불가.
     static let strictModeEndAt = "strictModeEndAt"
 
+    /// 엄격 모드 시작 시점에 기록된 "시작 시각" — 사용자가 시스템 시간을
+    /// 과거로 돌려 강제 만료를 회피하려는 시도를 탐지하는 기준점.
+    /// 현재 시각이 start 보다 이전이면 시간이 조작됐다고 판정하고 end 를 그대로 유지.
+    static let strictModeStartAt = "strictModeStartAt"
+
     /// 오늘 수동 집중을 종료한 횟수. 1회차는 더 강한 마찰(문장+비번), 2회차 30초, 3회차+ 60초 대기.
     static let focusEndCountToday = "focusEndCountToday"
     static let focusEndCountDateKey = "focusEndCountDate"
@@ -59,6 +64,10 @@ enum PersistenceKeys {
     static let todayReturnPoints = "todayReturnPoints"     // Int, 자정 리셋
     static let manualFocusStartedAt = "manualFocusStartedAt" // TimeInterval?
     static let lastDailyLoginDate = "lastDailyLoginDate"   // yyyy-MM-dd
+
+    /// 세션 보너스를 가장 최근에 지급한 날짜(`yyyy-MM-dd`). 같은 날 중복 지급 방지.
+    /// 또한 앱 force-quit 후 오래된 startedAt 이 살아남아 재기동 시 보너스를 가로채는 exploit 방어.
+    static let lastSessionBonusDate = "lastSessionBonusDate"
 
     /// CloudKit 랭킹용.
     static let nickname = "nickname"

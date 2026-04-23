@@ -51,6 +51,19 @@ final class CloudKitLeaderboardService: ObservableObject {
         monthlyTotal: Int,
         now: Date = Date()
     ) async throws -> LeaderboardEntry {
+        // 클라이언트 측 sanity clamp — 서버 측 검증이 없는 현 구조에서 최소한의 장벽.
+        // 서버 보안은 별도 Phase 에서 CloudKit security rules 또는 App Attest 로 해결.
+        let daily = max(0, min(100, dailyScore))
+        let weekly = max(0, min(700, weeklyTotal))
+        let monthly = max(0, min(3100, monthlyTotal))
+        // 닉네임 재검증 — UI 를 거치지 않은 직접 호출 경로도 가드.
+        let cleanNickname: String
+        if case .success(let valid) = NicknameValidator.validate(nickname) {
+            cleanNickname = valid
+        } else {
+            // 검증 실패 시 원본을 그대로 쓰지 않고 알 수 없는 사용자 처리.
+            cleanNickname = "익명"
+        }
         let recordID = CKRecord.ID(recordName: userID)
         let record: CKRecord
         do {
@@ -61,12 +74,12 @@ final class CloudKitLeaderboardService: ObservableObject {
             throw mapError(error)
         }
 
-        record["nickname"] = nickname as CKRecordValue
-        record["dailyScore"] = dailyScore as CKRecordValue
+        record["nickname"] = cleanNickname as CKRecordValue
+        record["dailyScore"] = daily as CKRecordValue
         record["dailyDate"] = LeaderboardPeriodID.daily(now) as CKRecordValue
-        record["weeklyTotal"] = weeklyTotal as CKRecordValue
+        record["weeklyTotal"] = weekly as CKRecordValue
         record["weeklyWeek"] = LeaderboardPeriodID.weekly(now) as CKRecordValue
-        record["monthlyTotal"] = monthlyTotal as CKRecordValue
+        record["monthlyTotal"] = monthly as CKRecordValue
         record["monthlyMonth"] = LeaderboardPeriodID.monthly(now) as CKRecordValue
         record["updatedAt"] = now as CKRecordValue
 
@@ -74,12 +87,12 @@ final class CloudKitLeaderboardService: ObservableObject {
             let saved = try await database.save(record)
             return LeaderboardEntry(record: saved) ?? LeaderboardEntry(
                 userID: userID,
-                nickname: nickname,
-                dailyScore: dailyScore,
+                nickname: cleanNickname,
+                dailyScore: daily,
                 dailyDate: LeaderboardPeriodID.daily(now),
-                weeklyTotal: weeklyTotal,
+                weeklyTotal: weekly,
                 weeklyWeek: LeaderboardPeriodID.weekly(now),
-                monthlyTotal: monthlyTotal,
+                monthlyTotal: monthly,
                 monthlyMonth: LeaderboardPeriodID.monthly(now),
                 updatedAt: now
             )

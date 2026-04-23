@@ -14,6 +14,10 @@ protocol PersistenceStore: AnyObject {
     /// 이 시각 전까지는 수단을 막론하고 집중을 풀 수 없다.
     var strictModeEndAt: Date? { get set }
 
+    /// 엄격 모드 시작 시점의 wall clock. 현재 시각이 여기보다 이전이면
+    /// 사용자가 시스템 시계를 되돌린 것 — 엄격 모드를 활성 상태로 유지해야 한다.
+    var strictModeStartAt: Date? { get set }
+
     /// 오늘 수동 집중 종료한 횟수 (1회차 이후 사용: 10s → 30s → 60s 대기).
     var focusEndCountToday: Int { get }
 
@@ -84,14 +88,25 @@ protocol PersistenceStore: AnyObject {
 
 extension PersistenceStore {
     /// 엄격 모드 종료 시각이 현재보다 뒤면 활성.
+    /// 추가로 "시계 조작 감지": 현재 시각이 start 이전이면 활성 상태 유지.
     var isStrictModeActive: Bool {
         guard let end = strictModeEndAt else { return false }
-        return end > Date()
+        let now = Date()
+        if let start = strictModeStartAt, now < start {
+            // 사용자가 시계를 start 이전으로 되돌렸다. 엄격 모드는 여전히 활성.
+            return true
+        }
+        return end > now
     }
 
     /// 남은 엄격 모드 시간 (초). 비활성이면 0.
     var strictModeRemainingSeconds: TimeInterval {
         guard let end = strictModeEndAt else { return 0 }
+        let now = Date()
+        if let start = strictModeStartAt, now < start {
+            // 시계 조작 상태 — end - start 가 원래 설정한 총 시간이므로 이를 남은 시간으로 취급.
+            return max(0, end.timeIntervalSince(start))
+        }
         return max(0, end.timeIntervalSinceNow)
     }
 }

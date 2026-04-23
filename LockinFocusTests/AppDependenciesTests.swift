@@ -70,10 +70,14 @@ final class AppDependenciesTests: XCTestCase {
         XCTAssertFalse(deps.persistence.isStrictModeActive)
     }
 
-    func testTick_updatesOverTime() async throws {
+    func testTick_updatesWhenStrictActive() async throws {
         let deps = AppDependencies.preview()
+        // 엄격 모드 활성 — 초 단위 tick 업데이트가 보장됨.
+        deps.persistence.strictModeEndAt = Date().addingTimeInterval(300)
         let initial = deps.tick
-        try await Task.sleep(nanoseconds: 1_200_000_000)
+        try await Task.sleep(nanoseconds: 1_500_000_000)
         XCTAssertGreaterThan(deps.tick, initial)
+        // cleanup
+        deps.persistence.strictModeEndAt = nil
     }
 }

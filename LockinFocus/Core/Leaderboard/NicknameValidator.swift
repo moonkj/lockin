@@ -19,16 +19,26 @@ enum NicknameValidator {
     }
 
     static func validate(_ raw: String) -> Result<String, ValidationError> {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 0-width 문자 제거 + Unicode NFC 정규화로 조합형/완성형 일관성 확보.
+        let stripped = raw.unicodeScalars.filter {
+            // ZWJ, ZWNJ, ZWSP, word joiner, BOM 등 조작용 문자 제거.
+            ![0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF].contains($0.value)
+        }
+        let normalized = String(String.UnicodeScalarView(stripped)).precomposedStringWithCanonicalMapping
+        let trimmed = normalized.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count < 2 { return .failure(.tooShort) }
         if trimmed.count > 20 { return .failure(.tooLong) }
+        // 바이트 길이도 60 이하로 제한 (CloudKit 필드 부담 완화 + 이모지 플러드 방지).
+        if trimmed.utf8.count > 60 { return .failure(.tooLong) }
         if containsBanned(trimmed) { return .failure(.containsBannedWord) }
         return .success(trimmed)
     }
 
-    /// 내부 금칙어 판정. 대소문자 무시, 공백 제거 후 부분 일치.
+    /// 내부 금칙어 판정. 대소문자 무시, 공백·0-width 제거 + NFC 정규화 후 부분 일치.
     private static func containsBanned(_ input: String) -> Bool {
-        let normalized = input.lowercased()
+        let normalized = input
+            .precomposedStringWithCanonicalMapping
+            .lowercased()
             .replacingOccurrences(of: " ", with: "")
         for word in bannedWords {
             if normalized.contains(word) { return true }

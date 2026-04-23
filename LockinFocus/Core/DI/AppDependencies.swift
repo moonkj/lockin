@@ -77,9 +77,9 @@ final class AppDependencies: ObservableObject {
         }
     }
 
-    /// 1초마다 tick 을 갱신하면서 시간 기반 상태도 청소한다.
-    /// 핵심: 엄격 모드 종료 시각이 지나면 endAt 을 nil 로 내려 모든 화면에서
-    /// isStrictModeActive 가 false 로 읽히도록 한다 (SettingsView 에 머무르지 않아도).
+    /// 전역 타이머 — 엄격 모드 활성 중에만 1초 해상도로 돌고,
+    /// 비활성 중에는 10초 해상도로 낮춰 배터리 부담을 최소화한다.
+    /// publish 는 초 단위가 실제로 바뀌었을 때만 fire 해 SwiftUI 렌더 폭풍 방지.
     private func startGlobalTicker() {
         tickTimer?.invalidate()
         let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -92,8 +92,17 @@ final class AppDependencies: ObservableObject {
 
     private func onTick() {
         let now = Date()
-        tick = now
+        let strictActive = persistence.isStrictModeActive
+        // 엄격 모드가 아니면 tick 을 매 10초에만 갱신 — 대부분 화면에서 재렌더 생략.
+        let secondsSinceLastPublish = now.timeIntervalSince(tick)
+        if strictActive || secondsSinceLastPublish >= 10 {
+            tick = now
+        }
         if let end = persistence.strictModeEndAt, end <= now {
+            // 시계 조작 의심 — start 가 미래면 (사용자가 시간 되돌림) 아직 만료 안 된 것으로 간주.
+            if let start = persistence.strictModeStartAt, now < start {
+                return
+            }
             persistence.strictModeEndAt = nil
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
         }
@@ -137,6 +146,7 @@ final class PreviewPersistenceStore: PersistenceStore {
     var hasCompletedOnboarding = false
     var isManualFocusActive = false
     var strictModeEndAt: Date? = nil
+    var strictModeStartAt: Date? = nil
     var interceptQueue: [InterceptEvent] = []
 
     var focusEndCountToday: Int { 0 }

@@ -86,6 +86,7 @@ struct LeaderboardView: View {
                             .foregroundStyle(AppColors.primaryText)
                     }
                     .disabled(isSubmitting)
+                    .accessibilityLabel("내 점수 랭킹에 등록")
                 }
             }
             .sheet(isPresented: $showNicknameSetup) {

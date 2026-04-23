@@ -169,7 +169,11 @@ enum BadgeEngine {
     }
 
     private static func checkWeekAverage(persistence: PersistenceStore) -> [Badge] {
-        let history = persistence.dailyFocusHistory(lastDays: 7)
+        // DST 전환으로 history 에 같은 날짜가 두 번 들어오거나 8일이 섞일 수 있어
+        // date 문자열 기준으로 dedup + 최대 7개로 절단해 평균 왜곡 방지.
+        let raw = persistence.dailyFocusHistory(lastDays: 7)
+        var seen: Set<String> = []
+        let history = raw.reversed().filter { seen.insert($0.date).inserted }.reversed().prefix(7)
         guard !history.isEmpty else { return [] }
         let avg = history.reduce(0) { $0 + $1.score } / history.count
 

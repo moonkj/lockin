@@ -21,11 +21,19 @@ struct DashboardView: View {
         _isManualFocus = State(initialValue: false)
     }
 
-    /// 테스트 전용 init — 초기 isManualFocus 주입해서 버튼 레이블 분기 검증.
-    init(initialIsManualFocus: Bool) {
+    /// 테스트 전용 init — 초기 isManualFocus + alert/confirm 상태 주입.
+    init(
+        initialIsManualFocus: Bool,
+        initialShowEmptyAllowConfirm: Bool = false,
+        initialShowStrictActiveAlert: Bool = false,
+        initialToast: String? = nil
+    ) {
         _selection = State(initialValue: FamilyActivitySelection())
         _schedule = State(initialValue: .weekdayWorkHours)
         _isManualFocus = State(initialValue: initialIsManualFocus)
+        _showEmptyAllowConfirm = State(initialValue: initialShowEmptyAllowConfirm)
+        _showStrictActiveAlert = State(initialValue: initialShowStrictActiveAlert)
+        _toastMessage = State(initialValue: initialToast)
     }
     @State private var showEmptyAllowConfirm: Bool = false
     @State private var showStrictActiveAlert: Bool = false
@@ -214,6 +222,7 @@ struct DashboardView: View {
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("랭킹 열기")
 
             Button {
                 showBadges = true
@@ -223,6 +232,7 @@ struct DashboardView: View {
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("뱃지 모음 열기")
 
             Button {
                 showWeeklyReport = true
@@ -232,6 +242,7 @@ struct DashboardView: View {
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("리포트 열기")
 
             Button {
                 showSettings = true
@@ -241,6 +252,7 @@ struct DashboardView: View {
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("설정 열기")
         }
     }
 

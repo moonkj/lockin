@@ -193,10 +193,20 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         guard let start = manualFocusStartedAt else { return false }
         let elapsed = now.timeIntervalSince(start)
         guard elapsed >= Self.sessionMinSeconds else { return false }
+
+        // force-quit + 재기동으로 오래된 startedAt 을 재사용해 반복 수령하는 exploit 방어:
+        // 하루 1회만 세션 보너스 지급. 이미 오늘 받았다면 startedAt 만 정리하고 false.
+        let today = Self.todayString()
+        if defaults.string(forKey: PersistenceKeys.lastSessionBonusDate) == today {
+            manualFocusStartedAt = nil
+            return false
+        }
+
         // 15분 이상 확정된 뒤에만 start 를 비운다 — 짧은 세션에 잘못 리셋되지 않도록.
         manualFocusStartedAt = nil
         rolloverFocusScoreIfNewDay()
         focusScoreToday = min(100, focusScoreToday + Self.sessionBonus)
+        defaults.set(today, forKey: PersistenceKeys.lastSessionBonusDate)
         return true
     }
 
@@ -288,6 +298,22 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
                 defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.strictModeEndAt)
             } else {
                 defaults.removeObject(forKey: PersistenceKeys.strictModeEndAt)
+                // end 가 지워지면 start 도 함께 — 시계 조작 탐지 대칭성 유지.
+                defaults.removeObject(forKey: PersistenceKeys.strictModeStartAt)
+            }
+        }
+    }
+
+    var strictModeStartAt: Date? {
+        get {
+            let v = defaults.double(forKey: PersistenceKeys.strictModeStartAt)
+            return v > 0 ? Date(timeIntervalSince1970: v) : nil
+        }
+        set {
+            if let date = newValue {
+                defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.strictModeStartAt)
+            } else {
+                defaults.removeObject(forKey: PersistenceKeys.strictModeStartAt)
             }
         }
     }
@@ -370,8 +396,11 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
     /// Extension 이 기록한 원시 `[[String: Any]]` 큐를 `InterceptEvent` 로 변환 후 비운다.
     /// 원시 키 이름은 `ShieldActionExtensionHandler` 의 `enqueue` 와 동일해야 한다.
     func drainInterceptQueue() -> [InterceptEvent] {
-        let raw = defaults.array(forKey: PersistenceKeys.rawInterceptQueue)
+        let rawAny = defaults.array(forKey: PersistenceKeys.rawInterceptQueue)
             as? [[String: Any]] ?? []
+        // 안전 상한 — Extension 오작동이나 적대적 기록이 OOM 을 유발하지 않도록 10k 엔트리로 캡.
+        let capped = Array(rawAny.prefix(10_000))
+        let raw = capped
 
         let events: [InterceptEvent] = raw.compactMap { entry in
             guard

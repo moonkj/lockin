@@ -16,6 +16,10 @@ struct BadgesView: View {
 
     @State private var selectedBadge: Badge?
 
+    init(initialSelectedBadge: Badge? = nil) {
+        _selectedBadge = State(initialValue: initialSelectedBadge)
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {

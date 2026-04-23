@@ -11,6 +11,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var hasCompletedOnboarding: Bool
     var isManualFocusActive: Bool
     var strictModeEndAt: Date?
+    var strictModeStartAt: Date?
     var interceptQueue: [InterceptEvent]
 
     private var focusEndCount: Int = 0
@@ -160,11 +161,19 @@ final class InMemoryPersistenceStore: PersistenceStore {
     func awardSessionCompletionIfEligible(now: Date) -> Bool {
         guard let start = manualFocusStartedAt else { return false }
         guard now.timeIntervalSince(start) >= 15 * 60 else { return false }
+        let today = Self.todayString()
+        if lastSessionBonusDate == today {
+            manualFocusStartedAt = nil
+            return false
+        }
         manualFocusStartedAt = nil
         rolloverIfScoreDayChanged()
         focusScoreToday = min(100, focusScoreToday + 15)
+        lastSessionBonusDate = today
         return true
     }
+
+    private var lastSessionBonusDate: String = ""
 
     func awardDailyLoginIfNew() -> Bool {
         let today = Self.todayString()

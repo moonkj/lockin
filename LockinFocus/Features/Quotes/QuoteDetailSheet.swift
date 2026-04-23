@@ -8,10 +8,11 @@ struct QuoteDetailSheet: View {
     @State private var quote: DailyQuote = QuoteProvider.today()
 
     private var shareText: String {
+        // 앱 이름 노출 금지 — 명언과 저자만 공유.
         if let author = quote.author {
-            return "\"\(quote.text)\"\n— \(author)\n\n락인 포커스"
+            return "\"\(quote.text)\"\n— \(author)"
         }
-        return "\"\(quote.text)\"\n\n락인 포커스"
+        return "\"\(quote.text)\""
     }
 
     var body: some View {

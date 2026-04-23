@@ -284,10 +284,13 @@ struct SettingsView: View {
     /// 엄격 모드 시작: 종료 시각을 설정하고 즉시 shield 적용 + 수동 집중 ON.
     /// 그 시간까지 Dashboard 종료 버튼을 포함한 모든 해제 경로가 차단된다.
     private func startStrict(duration: TimeInterval) {
-        let end = Date().addingTimeInterval(duration)
+        let now = Date()
+        let end = now.addingTimeInterval(duration)
+        // start 와 end 모두 기록 — 현재 시각이 start 이전이면 시계 조작으로 판정.
+        deps.persistence.strictModeStartAt = now
         deps.persistence.strictModeEndAt = end
         deps.persistence.isManualFocusActive = true
-        deps.persistence.manualFocusStartedAt = Date()
+        deps.persistence.manualFocusStartedAt = now
         deps.blocking.applyWhitelist(for: selection)
         if schedule.isEnabled {
             try? deps.monitoring.startSchedule(schedule, name: "block_main")

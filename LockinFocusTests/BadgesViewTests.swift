@@ -40,4 +40,11 @@ final class BadgesViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "상위 1%"))
         XCTAssertNoThrow(try view.inspect().find(text: "1등"))
     }
+
+    func testBadgesView_initialSelectedBadge_rendersDetailOverlay() throws {
+        let view = BadgesView(initialSelectedBadge: .perfectDay)
+            .environmentObject(AppDependencies.preview())
+        // BadgeDetailCardView 가 overlay 로 올라와 "획득한 뱃지" 라벨이 보여야.
+        XCTAssertNoThrow(try view.inspect().find(text: "획득한 뱃지"))
+    }
 }
