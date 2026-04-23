@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// 오늘의 명언 확대 시트. 하루 하나만 — 전체 목록 진입 없음.
-/// 공유만 제공.
+/// 오늘의 명언 확대 시트. 위젯과 같은 폰트 형식 (큰 `"` glyph + 이탤릭 본문 + 이탤릭 저자).
+/// 하루 하나만 — 전체 목록 진입 없음. 공유만 제공.
 struct QuoteDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -19,30 +19,29 @@ struct QuoteDetailSheet: View {
             ZStack {
                 AppColors.background.ignoresSafeArea()
 
-                VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 20) {
                     Spacer()
 
-                    VStack(spacing: 20) {
-                        Image(systemName: "quote.bubble.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(AppColors.secondaryText)
+                    Text("\u{201C}")
+                        .font(.system(size: 72, weight: .bold, design: .serif))
+                        .foregroundStyle(AppColors.secondaryText.opacity(0.7))
+                        .frame(height: 42, alignment: .top)
 
-                        Text("\"\(quote.text)\"")
-                            .font(.system(size: 22, weight: .regular))
+                    Text(quote.text)
+                        .font(.system(size: 24, weight: .regular))
+                        .italic()
+                        .foregroundStyle(AppColors.primaryText)
+                        .lineSpacing(6)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+
+                    if let author = quote.author {
+                        Text("— \(author)")
+                            .font(.system(size: 16))
                             .italic()
-                            .foregroundStyle(AppColors.primaryText)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(6)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        if let author = quote.author {
-                            Text("— \(author)")
-                                .font(.system(size: 16))
-                                .italic()
-                                .foregroundStyle(AppColors.secondaryText)
-                        }
+                            .foregroundStyle(AppColors.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
-                    .padding(.horizontal, 28)
 
                     Spacer()
 
@@ -60,9 +59,9 @@ struct QuoteDetailSheet: View {
                                 .stroke(AppColors.divider, lineWidth: 1)
                         )
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 16)
                 }
+                .padding(.horizontal, 28)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

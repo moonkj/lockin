@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// 대시보드 하단 "오늘의 명언" 카드. 탭하면 전체 명언 목록 시트가 열린다.
-/// 본문은 이탤릭, 저자는 카드 하단 오른쪽 정렬.
+/// 대시보드 하단 "오늘의 명언" 카드.
+/// 위젯과 동일한 폰트 체계 (큰 `"` glyph + 이탤릭 본문 + 이탤릭 저자) 를 따른다.
+/// 탭하면 확대 시트가 열린다.
 struct DailyQuoteCard: View {
     let onTap: () -> Void
     /// body 재평가마다 Date/Calendar 연산 발생하는 것을 피하기 위해 onAppear 에서 1회 캐시.
@@ -16,7 +17,7 @@ struct DailyQuoteCard: View {
     }
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Image(systemName: "quote.bubble")
                     .font(.system(size: 12, weight: .medium))
@@ -26,8 +27,14 @@ struct DailyQuoteCard: View {
                     .foregroundStyle(AppColors.secondaryText)
             }
 
-            Text("\"\(quote.text)\"")
-                .font(.system(size: 18, weight: .regular))
+            // 큰 opening-quote glyph — 위젯과 동일.
+            Text("\u{201C}")
+                .font(.system(size: 44, weight: .bold, design: .serif))
+                .foregroundStyle(AppColors.secondaryText.opacity(0.7))
+                .frame(height: 28, alignment: .top)
+
+            Text(quote.text)
+                .font(.system(size: 18))
                 .italic()
                 .foregroundStyle(AppColors.primaryText)
                 .lineSpacing(4)
