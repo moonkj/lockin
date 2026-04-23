@@ -11,7 +11,11 @@ struct AppPickerStepView: View {
     @State private var showPicker: Bool = false
 
     private var selectedCount: Int {
-        selection.applicationTokens.count + selection.categoryTokens.count
+        selection.totalItemCount
+    }
+
+    private var selectedSummary: String {
+        selection.displayBreakdown ?? "0개"
     }
 
     var body: some View {
@@ -53,7 +57,7 @@ struct AppPickerStepView: View {
 
                 Text(selectedCount == 0
                      ? "아무것도 안 고르면 시스템 자동 보호 앱 외 모두 잠겨요. 건너뛰어도 돼요."
-                     : "현재 선택: \(selectedCount)개")
+                     : "현재 선택: \(selectedSummary)")
                     .font(.system(size: 14))
                     .foregroundStyle(AppColors.secondaryText)
             }

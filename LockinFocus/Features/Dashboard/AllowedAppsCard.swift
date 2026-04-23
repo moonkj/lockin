@@ -7,8 +7,12 @@ struct AllowedAppsCard: View {
     let selection: FamilyActivitySelection
     let onEdit: () -> Void
 
-    private var count: Int {
-        selection.applicationTokens.count + selection.categoryTokens.count
+    private var headline: String {
+        selection.displayBreakdown ?? "설정된 허용 앱이 없습니다"
+    }
+
+    private var hasCategory: Bool {
+        !selection.categoryTokens.isEmpty
     }
 
     var body: some View {
@@ -19,9 +23,15 @@ struct AllowedAppsCard: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(AppColors.secondaryText)
 
-                    Text(count == 0 ? "설정된 허용 앱이 없습니다" : "\(count)개")
+                    Text(headline)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(AppColors.primaryText)
+
+                    if hasCategory {
+                        Text("카테고리는 안의 모든 앱이 허용돼요.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
                 }
 
                 Spacer()

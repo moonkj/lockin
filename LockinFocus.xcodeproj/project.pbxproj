@@ -45,6 +45,7 @@
 		81A35403AFA1AB39F67CF307 /* BadgeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACC70D6A23846EF463C5D19 /* BadgeEngine.swift */; };
 		84D4E46A88EDB0ADCF8BD53D /* TreeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8571C205A09CDE7A9D133FB9 /* TreeStage.swift */; };
 		858E296A21CF3D69E5A241EB /* AppPasscodeEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FE0FF9C4DA56885BEFE76D /* AppPasscodeEntryView.swift */; };
+		8C5EC33CD2C1E9EE5B1B62DA /* FamilyActivitySelection+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58716FF81A9A60167F2A640F /* FamilyActivitySelection+Display.swift */; };
 		8CB2A2D1AF3CE2C3C928B5B9 /* ShieldConfigurationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9132B7BD9976599A5BCDF218 /* SecondaryLinkButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602472ED29E475EA09BB034D /* SecondaryLinkButton.swift */; };
 		9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6E9C83DAEDDF5985FF50AC /* InMemoryPersistenceStore.swift */; };
@@ -140,6 +141,7 @@
 		47EB10BEBF04307CB751C5E3 /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		4D0CF2E38F552EFDDD527D5B /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
 		4DE4E0646275015609D52C38 /* LockinFocusTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LockinFocusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		58716FF81A9A60167F2A640F /* FamilyActivitySelection+Display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FamilyActivitySelection+Display.swift"; sourceTree = "<group>"; };
 		5D52573B47BF888347673235 /* NoopMonitoringEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopMonitoringEngine.swift; sourceTree = "<group>"; };
 		5E6E9C83DAEDDF5985FF50AC /* InMemoryPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPersistenceStore.swift; sourceTree = "<group>"; };
 		602472ED29E475EA09BB034D /* SecondaryLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryLinkButton.swift; sourceTree = "<group>"; };
@@ -347,6 +349,7 @@
 			children = (
 				C5D3D2E292405631FA8FEEBD /* Badge.swift */,
 				76F985331BBE7292B64A8E3B /* DailyFocus.swift */,
+				58716FF81A9A60167F2A640F /* FamilyActivitySelection+Display.swift */,
 				D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */,
 				CD37ADA464FC5C7889B973DC /* Schedule.swift */,
 				8571C205A09CDE7A9D133FB9 /* TreeStage.swift */,
@@ -709,6 +712,7 @@
 				D9E83C497354A68779DD05E6 /* DailyFocus.swift in Sources */,
 				77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */,
 				B749D701269FDF99AAC6D22B /* DeviceActivityMonitoringEngine.swift in Sources */,
+				8C5EC33CD2C1E9EE5B1B62DA /* FamilyActivitySelection+Display.swift in Sources */,
 				71D90CAEFBE9D462D47F33BA /* FocusScoreCard.swift in Sources */,
 				9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */,
 				7E615D3F8B44901457020ECF /* InterceptEvent.swift in Sources */,

@@ -165,8 +165,7 @@ struct SettingsView: View {
     }
 
     private var allowedCountLabel: String {
-        let c = selection.applicationTokens.count + selection.categoryTokens.count
-        return "\(c)개"
+        selection.displayBreakdown ?? "0"
     }
 
     private var scheduleLabel: String {
