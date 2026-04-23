@@ -32,6 +32,11 @@ struct FocusScoreCard: View {
             Text(score == 0 ? "오늘이 시작이에요" : stage.label)
                 .font(.system(size: 13))
                 .foregroundStyle(AppColors.secondaryText)
+
+            Text("차단 화면에서 ‘돌아가기’마다 +10점")
+                .font(.system(size: 11))
+                .foregroundStyle(AppColors.secondaryText.opacity(0.8))
+                .padding(.top, 2)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)

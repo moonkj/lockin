@@ -19,7 +19,7 @@ struct AllowedAppsCard: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(AppColors.secondaryText)
 
-                    Text(count == 0 ? "아직 고르지 않았어요" : "\(count)개")
+                    Text(count == 0 ? "설정된 허용 앱이 없습니다" : "\(count)개")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(AppColors.primaryText)
                 }
