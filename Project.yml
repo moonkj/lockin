@@ -1,0 +1,63 @@
+name: LockinFocus
+options:
+  bundleIdPrefix: com.imurmkj
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+
+targets:
+  LockinFocus:
+    type: application
+    platform: iOS
+    sources:
+      - path: LockinFocus
+    dependencies:
+      - target: DeviceActivityMonitorExtension
+      - target: ShieldConfigurationExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocus
+        PRODUCT_NAME: LockinFocus
+        CODE_SIGN_ENTITLEMENTS: LockinFocus/LockinFocus.entitlements
+        INFOPLIST_FILE: LockinFocus/Info.plist
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SUPPORTS_MACCATALYST: "NO"
+
+  DeviceActivityMonitorExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: DeviceActivityMonitorExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocus.DeviceActivityMonitorExtension
+        PRODUCT_NAME: DeviceActivityMonitorExtension
+        CODE_SIGN_ENTITLEMENTS: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
+        INFOPLIST_FILE: DeviceActivityMonitorExtension/Info.plist
+        SKIP_INSTALL: "YES"
+
+  ShieldConfigurationExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldConfigurationExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imurmkj.LockinFocus.ShieldConfigurationExtension
+        PRODUCT_NAME: ShieldConfigurationExtension
+        CODE_SIGN_ENTITLEMENTS: ShieldConfigurationExtension/ShieldConfigurationExtension.entitlements
+        INFOPLIST_FILE: ShieldConfigurationExtension/Info.plist
+        SKIP_INSTALL: "YES"
