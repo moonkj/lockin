@@ -38,6 +38,7 @@ struct StrictDurationPickerView: View {
                                         Image(systemName: "checkmark")
                                             .font(.system(size: 14, weight: .semibold))
                                             .foregroundStyle(.white)
+                                            .accessibilityHidden(true)
                                     }
                                 }
                                 .padding(.horizontal, 18)

@@ -22,6 +22,7 @@ struct DailyQuoteCard: View {
                 Image(systemName: "quote.bubble")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppColors.secondaryText)
+                    .accessibilityHidden(true)
                 Text("오늘의 명언")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppColors.secondaryText)

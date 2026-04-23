@@ -19,10 +19,13 @@ enum NicknameValidator {
     }
 
     static func validate(_ raw: String) -> Result<String, ValidationError> {
-        // 0-width 문자 제거 + Unicode NFC 정규화로 조합형/완성형 일관성 확보.
+        // 0-width 문자 + bidi 마커 제거 + Unicode NFC 정규화로 조합형/완성형 일관성 확보.
         let stripped = raw.unicodeScalars.filter {
-            // ZWJ, ZWNJ, ZWSP, word joiner, BOM 등 조작용 문자 제거.
-            ![0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF].contains($0.value)
+            // ZWJ/ZWNJ/ZWSP/word joiner/BOM + LRE/RLE/PDF/LRO/RLO bidi 마커 제거.
+            ![
+                0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF,
+                0x202A, 0x202B, 0x202C, 0x202D, 0x202E
+            ].contains($0.value)
         }
         let normalized = String(String.UnicodeScalarView(stripped)).precomposedStringWithCanonicalMapping
         let trimmed = normalized.trimmingCharacters(in: .whitespacesAndNewlines)

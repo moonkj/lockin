@@ -67,6 +67,32 @@ final class NicknameValidatorTests: XCTestCase {
         )
     }
 
+    func testValidate_zeroWidthChars_stripped() {
+        // U+200B (ZWSP) between chars — should strip and treat as "시발".
+        XCTAssertEqual(
+            NicknameValidator.validate("시\u{200B}발"),
+            .failure(.containsBannedWord)
+        )
+    }
+
+    func testValidate_bidiMarkers_stripped() {
+        // LRE/RLE/PDF bidi 마커가 삽입돼도 banned word 매칭되어야.
+        XCTAssertEqual(
+            NicknameValidator.validate("시\u{202A}발"),
+            .failure(.containsBannedWord)
+        )
+        XCTAssertEqual(
+            NicknameValidator.validate("시\u{202C}\u{202D}발"),
+            .failure(.containsBannedWord)
+        )
+    }
+
+    func testValidate_tooLong_byByteCount() {
+        // 20자지만 UTF-8 60바이트 초과하는 이모지 플래그 — 길이 통과해도 바이트 체크에서 거부.
+        let tenFlags = String(repeating: "🇰🇷", count: 10)
+        XCTAssertEqual(NicknameValidator.validate(tenFlags), .failure(.tooLong))
+    }
+
     func testValidate_bannedWord_sexual() {
         XCTAssertEqual(
             NicknameValidator.validate("sex"),
