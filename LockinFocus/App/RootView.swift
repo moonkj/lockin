@@ -6,12 +6,11 @@ struct RootView: View {
     @EnvironmentObject var deps: AppDependencies
     @Environment(\.scenePhase) private var scenePhase
 
-    @State private var hasOnboarded: Bool = false
     @State private var showIntercept: Bool = false
 
     var body: some View {
         Group {
-            if hasOnboarded {
+            if deps.persistence.hasCompletedOnboarding {
                 DashboardView()
             } else {
                 OnboardingContainerView()
@@ -19,12 +18,10 @@ struct RootView: View {
         }
         .background(AppColors.background.ignoresSafeArea())
         .onAppear {
-            refreshState()
             drainQueue()
         }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
-                refreshState()
                 drainQueue()
             }
         }
@@ -32,10 +29,6 @@ struct RootView: View {
             InterceptView()
                 .environmentObject(deps)
         }
-    }
-
-    private func refreshState() {
-        hasOnboarded = deps.persistence.hasCompletedOnboarding
     }
 
     private func drainQueue() {

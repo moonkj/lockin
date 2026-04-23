@@ -84,7 +84,7 @@ struct DashboardView: View {
         deps.persistence.schedule = schedule
         deps.blocking.applyWhitelist(for: selection)
         do {
-            try deps.monitoring.startSchedule(schedule, name: "primary")
+            try deps.monitoring.startSchedule(schedule, name: "block_main")
         } catch {
             // MVP: 조용히 무시.
         }

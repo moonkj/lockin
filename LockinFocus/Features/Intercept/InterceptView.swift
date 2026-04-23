@@ -105,7 +105,7 @@ struct InterceptView: View {
         // 쟁점 5 MVP 단순화: 전체 shield 일시 해제 + 5분 타이머로 재적용.
         deps.blocking.clearShield()
         do {
-            try deps.monitoring.startTemporaryAllow(name: "tempAllowAll", duration: 5 * 60)
+            try deps.monitoring.startTemporaryAllow(name: "temp_allow_all", duration: 5 * 60)
         } catch {
             // MVP 조용히 무시.
         }

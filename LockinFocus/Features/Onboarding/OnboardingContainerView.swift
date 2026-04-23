@@ -136,10 +136,13 @@ struct OnboardingContainerView: View {
         // 실구현이 들어온 경우에만 동작. Preview mock 은 noop.
         deps.blocking.applyWhitelist(for: draftSelection)
         do {
-            try deps.monitoring.startSchedule(draftSchedule, name: "primary")
+            try deps.monitoring.startSchedule(draftSchedule, name: "block_main")
         } catch {
             // Phase 3: 조용히 무시. 로그는 Debugger 단계에서 추가.
         }
+
+        // RootView 가 deps.persistence.hasCompletedOnboarding 를 다시 읽도록 강제 재렌더.
+        deps.objectWillChange.send()
     }
 }
 

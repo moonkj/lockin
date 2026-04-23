@@ -93,7 +93,8 @@
 - 공유 타입은 `Core/Models/`, `Core/Protocols/` 에만 추가.
 
 ### Phase 4 — Debugger → Test → Reviewer 사이클
-- [ ] Debugger 1차 점검 (MVP 구현 이후)
+- [x] **Debugger 1차 점검 완료** — `docs/05_Debugger_Report.md`. H4 Critical(activity 이름 1글자) + H8 High(온보딩 전환) 직접 Fix. BUILD SUCCEEDED.
+- [x] **팀리더 H2 DEFER 승격 Fix** — Features 3곳 `"primary"` → `"block_main"` 통일. BUILD SUCCEEDED.
 - [ ] Test Engineer 단위/통합 테스트 작성
 - [ ] Reviewer 최종 리뷰 — 개선 필요 시 R2로 Architect 복귀
 
@@ -121,3 +122,14 @@
 - [2026-04-23] [Coder-B] [live() 미반영] — 현재 `AppDependencies.live()` 가 Coder-A 리포에 아직 추가되지 않아 `LockinFocusApp.swift` 에서 `AppDependencies.preview()` 로 시작하도록 작성. Coder-A 의 `AppDependenciesLive.swift` 병합 후 `preview()` → `live()` 로 한 줄 교체 필요. (교체 포인트 `LockinFocus/App/LockinFocusApp.swift` 의 `@StateObject private var deps = AppDependencies.preview()`)
 - [2026-04-23] [Coder-B] [xcodegen 재생성 필요 + 빌드 검증 불가] — Features/ 디렉토리와 Core/(Protocols|Models|DI|Persistence) 를 포함해 **현재 `project.pbxproj` 에 누락된 신규 Swift 파일 다수**. 본 에이전트는 샌드박스로 `xcodegen` / `xcodebuild` 실행 권한이 없어 재생성·빌드 검증을 수행하지 못했다. 팀리더/Debugger 가 프로젝트 루트에서 `xcodegen` 실행 후 `xcodebuild -project LockinFocus.xcodeproj -scheme LockinFocus -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build` 로 검증 필요. Project.yml 의 `sources: - path: LockinFocus` 재귀 매칭은 이미 올바르므로 추가 편집은 불요.
 - [2026-04-23] [Coder-A] [빌드 검증 미완료] — 샌드박스에서 `xcodegen` / `xcodebuild` 실행이 거부됨. 새 파일이 `LockinFocus.xcodeproj/project.pbxproj` 에 반영되려면 `xcodegen generate` 재실행이 필요. 사용자/팀리더가 수동 실행 후 BUILD SUCCEEDED 확인 필요.
+- [2026-04-23] [Debugger] [H1] Shield Extension ↔ 메인 앱 큐 스키마 일치 — 증명 (키 `interceptQueue`, 필드 timestamp/type/subjectKind, enum raw values 모두 일치). 위험 Low. 조치 없음.
+- [2026-04-23] [Debugger] [H2] Extension 인라인 `AppGroup` / `SharedKeys` 값 일치 확인 — 증명. 단 부수 발견: 메인 앱이 `startSchedule(name: "primary")` 를 사용하지만 DeviceActivityMonitorExtension 은 `"block_main"` 만 인식 → 주 스케줄 종료 시 자동 shield 해제 경로 단절. DEFER, 실기기 검증 1순위.
+- [2026-04-23] [Debugger] [H3] `FamilyActivitySelection` Codable round-trip — 불확실 (SDK 의존). 인/디코딩 실패 시 silent 폴백(set 스킵 / 빈 selection 반환) — 로그 부재. Low, Phase 5 os_log 권고.
+- [2026-04-23] [Debugger] [H4] `temporarilyAllow(token:for:)` 는 MVP 플로우에서 호출되지 않아 영향 없음. 단 Critical 발견: `InterceptView.handleOpenAnyway()` 의 activity 이름 `"tempAllowAll"` 이 Extension prefix `"temp_allow_"` 와 불일치 → 5분 후 shield 재적용 미발생. FIXED (`"temp_allow_all"` 로 1글자 수정).
+- [2026-04-23] [Debugger] [H5] InterceptView 10초 타이머 — Timer + onDisappear invalidate 로 메모리 누수 없음. 배경 복귀 시 리셋(팀 결정 일치). Medium, Phase 5 Date 기반 리팩터 권고.
+- [2026-04-23] [Debugger] [H6] RootView drain 이중 트리거 — onAppear + scenePhase.active 가 2회 호출되지만 drain 이 UserDefaults 에서 즉시 비우므로 중복 프레젠테이션 없음. Medium→실질 Low.
+- [2026-04-23] [Debugger] [H7] `AppDependencies.live()` 시뮬레이터 분기 — entitlement 등록 완료로 `UserDefaults(suiteName:)` nil 리스크 낮음. Medium.
+- [2026-04-23] [Debugger] [H8] 온보딩 완료 후 RootView 전환 — High 버그 발견 (`hasOnboarded` @State 가 persistence 변경을 관측 못함). FIXED: RootView 가 `deps.persistence.hasCompletedOnboarding` 직접 참조 + `finishOnboarding()` 에서 `deps.objectWillChange.send()` 호출.
+- [2026-04-23] [Debugger] [H9] ScheduleEditor 저장 경로 — Settings/Dashboard 모두 `save()` 에서 persistence + applyWhitelist + startSchedule 재호출. 정상. H2 의 activity 이름 불일치만 잔여 이슈. Low.
+- [2026-04-23] [Debugger] [H10] 권한 거부 재시도 — `authorizationDenied` 플래그 + 설정 딥링크 + 재요청 버튼. 정상. Low.
+- [2026-04-23] [팀리더] [H2 DEFER → Fix 승격] Debugger 가 DEFER 로 기록한 주 스케줄 activity 이름 불일치를 팀리더가 즉시 처리. 메인 앱 `Features/Dashboard/DashboardView.swift:87`, `Features/Settings/SettingsView.swift:112`, `Features/Onboarding/OnboardingContainerView.swift:139` 세 곳의 `name: "primary"` 를 `name: "block_main"` 으로 통일. Extension 의 prefix 규약과 일치하여 평일 17:00 종료 시 shield 자동 해제 경로가 복원됨. BUILD SUCCEEDED.
