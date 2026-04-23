@@ -93,6 +93,26 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.isStrictModeActive) }
     }
 
+    var detoxSelection: FamilyActivitySelection {
+        get {
+            guard let data = defaults.data(forKey: PersistenceKeys.detoxSelection) else {
+                return FamilyActivitySelection()
+            }
+            return (try? decoder.decode(FamilyActivitySelection.self, from: data))
+                ?? FamilyActivitySelection()
+        }
+        set {
+            if let data = try? encoder.encode(newValue) {
+                defaults.set(data, forKey: PersistenceKeys.detoxSelection)
+            }
+        }
+    }
+
+    var isDetoxActive: Bool {
+        get { defaults.bool(forKey: PersistenceKeys.isDetoxActive) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.isDetoxActive) }
+    }
+
     // MARK: - Progressive unlock delay
 
     func currentUnlockDelaySeconds() -> Int {

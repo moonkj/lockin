@@ -33,4 +33,10 @@ enum PersistenceKeys {
 
     /// 엄격 모드 활성 여부. ON 시 해제는 Friction 절차(30초+문장+Face ID) 거쳐야 함.
     static let isStrictModeActive = "isStrictModeActive"
+
+    /// 도파민 디톡스 프리셋 — 더 짧은 "필수만" 허용 세트. Codable 저장.
+    static let detoxSelection = "detoxSelection"
+
+    /// 현재 도파민 디톡스 모드 활성 여부.
+    static let isDetoxActive = "isDetoxActive"
 }

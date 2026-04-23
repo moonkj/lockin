@@ -38,6 +38,8 @@ final class PreviewPersistenceStore: PersistenceStore {
     var hasCompletedOnboarding = false
     var isManualFocusActive = false
     var isStrictModeActive = false
+    var detoxSelection = FamilyActivitySelection()
+    var isDetoxActive = false
     var interceptQueue: [InterceptEvent] = []
 
     func drainInterceptQueue() -> [InterceptEvent] {

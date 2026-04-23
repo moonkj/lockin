@@ -11,6 +11,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var hasCompletedOnboarding: Bool
     var isManualFocusActive: Bool
     var isStrictModeActive: Bool
+    var detoxSelection: FamilyActivitySelection
+    var isDetoxActive: Bool
     var interceptQueue: [InterceptEvent]
 
     init(
@@ -20,6 +22,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
         hasCompletedOnboarding: Bool = false,
         isManualFocusActive: Bool = false,
         isStrictModeActive: Bool = false,
+        detoxSelection: FamilyActivitySelection = FamilyActivitySelection(),
+        isDetoxActive: Bool = false,
         interceptQueue: [InterceptEvent] = []
     ) {
         self.selection = selection
@@ -28,6 +32,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.isManualFocusActive = isManualFocusActive
         self.isStrictModeActive = isStrictModeActive
+        self.detoxSelection = detoxSelection
+        self.isDetoxActive = isDetoxActive
         self.interceptQueue = interceptQueue
     }
 
