@@ -33,9 +33,11 @@ struct FocusScoreCard: View {
                 .font(.system(size: 13))
                 .foregroundStyle(AppColors.secondaryText)
 
-            Text("차단 화면에서 ‘돌아가기’마다 +10점")
+            Text("돌아가기 +5 (3분 쿨다운) · 집중 15분 완주 +15 · 하루 첫 실행 +5")
                 .font(.system(size: 11))
                 .foregroundStyle(AppColors.secondaryText.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
                 .padding(.top, 2)
         }
         .frame(maxWidth: .infinity)

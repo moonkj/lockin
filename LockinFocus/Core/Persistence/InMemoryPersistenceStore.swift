@@ -16,6 +16,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var earnedBadgeIDs: Set<String> = []
     var totalReturnCount: Int = 0
     var totalStrictSurvived: Int = 0
+    var totalFocusSeconds: Int = 0
+    var totalManualFocusStarts: Int = 0
 
     func awardBadgeIfNew(_ id: String) -> Bool {
         guard !earnedBadgeIDs.contains(id) else { return false }
@@ -112,5 +114,49 @@ final class InMemoryPersistenceStore: PersistenceStore {
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
         return f.string(from: Date())
+    }
+
+    // MARK: - Score rule B (in-memory)
+    var manualFocusStartedAt: Date?
+    private var lastReturnAt: Date?
+    private var todayReturnPoints: Int = 0
+    private var lastDailyLoginDate: String = ""
+
+    func awardReturnPoint() -> Bool {
+        rolloverIfScoreDayChanged()
+        rolloverTodayReturnPointsIfNeeded()
+        let now = Date()
+        if let last = lastReturnAt, now.timeIntervalSince(last) < 180 { return false }
+        guard todayReturnPoints < 40 else { return false }
+        let award = min(5, 40 - todayReturnPoints)
+        focusScoreToday = min(100, focusScoreToday + award)
+        todayReturnPoints += award
+        lastReturnAt = now
+        return true
+    }
+
+    func awardSessionCompletionIfEligible(now: Date) -> Bool {
+        guard let start = manualFocusStartedAt else { return false }
+        manualFocusStartedAt = nil
+        guard now.timeIntervalSince(start) >= 15 * 60 else { return false }
+        rolloverIfScoreDayChanged()
+        focusScoreToday = min(100, focusScoreToday + 15)
+        return true
+    }
+
+    func awardDailyLoginIfNew() -> Bool {
+        let today = Self.todayString()
+        guard lastDailyLoginDate != today else { return false }
+        rolloverIfScoreDayChanged()
+        focusScoreToday = min(100, focusScoreToday + 5)
+        lastDailyLoginDate = today
+        return true
+    }
+
+    private func rolloverTodayReturnPointsIfNeeded() {
+        let today = Self.todayString()
+        if focusScoreDate != today {
+            todayReturnPoints = 0
+        }
     }
 }

@@ -35,7 +35,26 @@ protocol PersistenceStore: AnyObject {
     var earnedBadgeIDs: Set<String> { get set }
     var totalReturnCount: Int { get set }
     var totalStrictSurvived: Int { get set }
+    var totalFocusSeconds: Int { get set }
+    var totalManualFocusStarts: Int { get set }
 
     /// 아직 없는 뱃지면 적재 후 true. 이미 있으면 false.
     func awardBadgeIfNew(_ id: String) -> Bool
+
+    // MARK: - Score rule B
+
+    /// 돌아가기 보상 (3분 쿨다운 + 하루 40점 한도). 실제 적립되면 true.
+    @discardableResult
+    func awardReturnPoint() -> Bool
+
+    /// 수동 집중 세션 시작 시각 기록 (또는 종료 시 nil).
+    var manualFocusStartedAt: Date? { get set }
+
+    /// 수동 집중 종료 시 세션 길이 기반 보너스(15분 이상 → +15점). 실제 적립되면 true.
+    @discardableResult
+    func awardSessionCompletionIfEligible(now: Date) -> Bool
+
+    /// 하루 첫 앱 실행 보상(+5). 실제 적립되면 true.
+    @discardableResult
+    func awardDailyLoginIfNew() -> Bool
 }

@@ -46,4 +46,12 @@ enum PersistenceKeys {
     /// 누적 집계 (뱃지 판정용).
     static let totalReturnCount = "totalReturnCount"
     static let totalStrictSurvived = "totalStrictSurvived"
+    static let totalFocusSeconds = "totalFocusSeconds"
+    static let totalManualFocusStarts = "totalManualFocusStarts"
+
+    /// 점수 규칙 (B) 관련.
+    static let lastReturnAt = "lastReturnAt"               // TimeInterval
+    static let todayReturnPoints = "todayReturnPoints"     // Int, 자정 리셋
+    static let manualFocusStartedAt = "manualFocusStartedAt" // TimeInterval?
+    static let lastDailyLoginDate = "lastDailyLoginDate"   // yyyy-MM-dd
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppColors {
     static let background = Color.white
-    static let surface = Color(red: 0.98, green: 0.98, blue: 0.99)
+    static let surface = Color(red: 0.95, green: 0.95, blue: 0.97)
     static let primaryText = Color(red: 0.07, green: 0.07, blue: 0.09)
     static let secondaryText = Color(red: 0.42, green: 0.42, blue: 0.45)
     static let divider = Color(red: 0.91, green: 0.91, blue: 0.93)

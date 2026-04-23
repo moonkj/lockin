@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var showStrictUnlock: Bool = false
     @State private var showPasscodeSetup: Bool = false
     @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
+    @State private var emergencyUnlockDone: Bool = false
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
@@ -37,12 +38,14 @@ struct SettingsView: View {
                         } label: {
                             row(title: "허용 앱", trailing: allowedCountLabel)
                         }
+                        .listRowBackground(AppColors.surface)
 
                         Button {
                             showScheduleEditor = true
                         } label: {
                             row(title: "스케줄", trailing: scheduleLabel)
                         }
+                        .listRowBackground(AppColors.surface)
 
                         Button(role: .destructive) {
                             attemptEmergencyUnlock()
@@ -50,6 +53,7 @@ struct SettingsView: View {
                             Text("모든 차단 즉시 해제")
                                 .foregroundStyle(AppColors.error)
                         }
+                        .listRowBackground(AppColors.surface)
                     }
 
                     Section {
@@ -78,6 +82,7 @@ struct SettingsView: View {
                         }
                         .tint(AppColors.primaryText)
                         .disabled(!passcodeIsSet && !strictMode)
+                        .listRowBackground(AppColors.surface)
 
                         Button {
                             showPasscodeSetup = true
@@ -93,6 +98,7 @@ struct SettingsView: View {
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
+                        .listRowBackground(AppColors.surface)
                     } header: {
                         Text("엄격 모드")
                     } footer: {
@@ -108,6 +114,7 @@ struct SettingsView: View {
                             Spacer()
                             Text(appVersion).foregroundStyle(AppColors.secondaryText)
                         }
+                        .listRowBackground(AppColors.surface)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -150,6 +157,11 @@ struct SettingsView: View {
             AppPasscodeSetupView { saved in
                 if saved { passcodeIsSet = true }
             }
+        }
+        .alert("차단 해제 완료", isPresented: $emergencyUnlockDone) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("모든 차단이 꺼졌어요. 홈으로 돌아가면 차단됐던 앱이 정상 열립니다.")
         }
     }
 
@@ -217,12 +229,16 @@ struct SettingsView: View {
     }
 
     /// 사용자가 앱에 잠겨 다른 앱에 접근 못 할 때를 위한 긴급 탈출.
-    /// shield 전체 해제 + 스케줄 모니터링 중단 + 로컬 스케줄 OFF 로 저장.
+    /// shield 전체 해제 + 스케줄 모니터링 중단 + 수동 집중 상태 리셋 + 스케줄 OFF.
+    /// 이걸 빠뜨리면 Dashboard 가 "집중 중" 상태를 유지하거나 Extension 이 다시 shield 적용.
     private func emergencyUnlock() {
         deps.blocking.clearShield()
         deps.monitoring.stopMonitoring(name: "block_main")
+        deps.persistence.isManualFocusActive = false
+        deps.persistence.manualFocusStartedAt = nil
         schedule.isEnabled = false
         deps.persistence.schedule = schedule
+        emergencyUnlockDone = true
     }
 }
 

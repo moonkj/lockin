@@ -43,12 +43,20 @@ final class PreviewPersistenceStore: PersistenceStore {
     var earnedBadgeIDs: Set<String> = []
     var totalReturnCount: Int = 0
     var totalStrictSurvived: Int = 0
+    var totalFocusSeconds: Int = 0
+    var totalManualFocusStarts: Int = 0
 
     func awardBadgeIfNew(_ id: String) -> Bool {
         guard !earnedBadgeIDs.contains(id) else { return false }
         earnedBadgeIDs.insert(id)
         return true
     }
+
+    // Preview score-rule stubs
+    var manualFocusStartedAt: Date?
+    func awardReturnPoint() -> Bool { false }
+    func awardSessionCompletionIfEligible(now: Date) -> Bool { false }
+    func awardDailyLoginIfNew() -> Bool { false }
 
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue

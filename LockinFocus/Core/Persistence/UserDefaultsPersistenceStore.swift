@@ -125,11 +125,83 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.totalStrictSurvived) }
     }
 
+    var totalFocusSeconds: Int {
+        get { defaults.integer(forKey: PersistenceKeys.totalFocusSeconds) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.totalFocusSeconds) }
+    }
+
+    var totalManualFocusStarts: Int {
+        get { defaults.integer(forKey: PersistenceKeys.totalManualFocusStarts) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.totalManualFocusStarts) }
+    }
+
     func awardBadgeIfNew(_ id: String) -> Bool {
         var set = earnedBadgeIDs
         guard !set.contains(id) else { return false }
         set.insert(id)
         earnedBadgeIDs = set
+        return true
+    }
+
+    // MARK: - Score rule B
+
+    private static let returnCooldownSeconds: TimeInterval = 3 * 60
+    private static let returnDailyCap: Int = 40
+    private static let returnUnitPoint: Int = 5
+    private static let sessionMinSeconds: TimeInterval = 15 * 60
+    private static let sessionBonus: Int = 15
+    private static let dailyLoginBonus: Int = 5
+
+    func awardReturnPoint() -> Bool {
+        rolloverFocusScoreIfNewDay()
+        let now = Date()
+        // 쿨다운.
+        if let lastTs = defaults.object(forKey: PersistenceKeys.lastReturnAt) as? TimeInterval {
+            let last = Date(timeIntervalSince1970: lastTs)
+            if now.timeIntervalSince(last) < Self.returnCooldownSeconds { return false }
+        }
+        // 하루 상한.
+        let today = defaults.integer(forKey: PersistenceKeys.todayReturnPoints)
+        guard today < Self.returnDailyCap else { return false }
+
+        let awarded = min(Self.returnUnitPoint, Self.returnDailyCap - today)
+        focusScoreToday = min(100, focusScoreToday + awarded)
+        defaults.set(today + awarded, forKey: PersistenceKeys.todayReturnPoints)
+        defaults.set(now.timeIntervalSince1970, forKey: PersistenceKeys.lastReturnAt)
+        return true
+    }
+
+    var manualFocusStartedAt: Date? {
+        get {
+            let v = defaults.double(forKey: PersistenceKeys.manualFocusStartedAt)
+            return v > 0 ? Date(timeIntervalSince1970: v) : nil
+        }
+        set {
+            if let date = newValue {
+                defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.manualFocusStartedAt)
+            } else {
+                defaults.removeObject(forKey: PersistenceKeys.manualFocusStartedAt)
+            }
+        }
+    }
+
+    func awardSessionCompletionIfEligible(now: Date) -> Bool {
+        guard let start = manualFocusStartedAt else { return false }
+        manualFocusStartedAt = nil
+        let elapsed = now.timeIntervalSince(start)
+        guard elapsed >= Self.sessionMinSeconds else { return false }
+        rolloverFocusScoreIfNewDay()
+        focusScoreToday = min(100, focusScoreToday + Self.sessionBonus)
+        return true
+    }
+
+    func awardDailyLoginIfNew() -> Bool {
+        let today = Self.todayString()
+        let stored = defaults.string(forKey: PersistenceKeys.lastDailyLoginDate)
+        guard stored != today else { return false }
+        rolloverFocusScoreIfNewDay()
+        focusScoreToday = min(100, focusScoreToday + Self.dailyLoginBonus)
+        defaults.set(today, forKey: PersistenceKeys.lastDailyLoginDate)
         return true
     }
 

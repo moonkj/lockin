@@ -180,14 +180,29 @@ struct DashboardView: View {
     }
 
     /// 수동 집중 모드 토글. 스케줄과 독립적이며, 즉시 shield 적용/해제한다.
+    /// 종료 시 15분 이상 유지된 세션이라면 보너스 +15점(점수 규칙 B).
     private func toggleManualFocus() {
         if isManualFocus {
+            let start = deps.persistence.manualFocusStartedAt
+            let now = Date()
             deps.blocking.clearShield()
             deps.persistence.isManualFocusActive = false
+            // 점수 규칙 B: 15분 이상 → +15점.
+            deps.persistence.awardSessionCompletionIfEligible(now: now)
+            // 뱃지: 누적 집중 시간 + 점수·스트릭·주간 평균.
+            if let start {
+                BadgeEngine.onManualFocusEnded(
+                    elapsed: now.timeIntervalSince(start),
+                    persistence: deps.persistence
+                )
+            }
+            BadgeEngine.onScoreChanged(persistence: deps.persistence)
             isManualFocus = false
         } else {
             deps.blocking.applyWhitelist(for: selection)
             deps.persistence.isManualFocusActive = true
+            deps.persistence.manualFocusStartedAt = Date()
+            BadgeEngine.onManualFocusStarted(persistence: deps.persistence)
             isManualFocus = true
         }
     }
