@@ -16,11 +16,11 @@ struct AppSelectionView: View {
 
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("쉬게 할 앱")
+                        Text("허용 앱")
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundStyle(AppColors.primaryText)
 
-                        Text("여기서 고른 앱·카테고리만 집중 시간에 쉬어요.\n시스템 앱은 고르지 않으면 자동으로 열립니다.")
+                        Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카테고리 오른쪽 `>` 를 탭해 개별 앱을 체크하세요.")
                             .font(.system(size: 14))
                             .foregroundStyle(AppColors.secondaryText)
                     }

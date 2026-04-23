@@ -13,11 +13,12 @@ struct DashboardView: View {
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
     @State private var isManualFocus: Bool = false
+    @State private var showEmptyAllowConfirm: Bool = false
 
-    private var hasAnyBlocked: Bool {
-        !selection.applicationTokens.isEmpty ||
-        !selection.categoryTokens.isEmpty ||
-        !selection.webDomainTokens.isEmpty
+    private var allowedCount: Int {
+        selection.applicationTokens.count
+        + selection.categoryTokens.count
+        + selection.webDomainTokens.count
     }
 
     var body: some View {
@@ -41,10 +42,10 @@ struct DashboardView: View {
 
                     manualFocusButton
 
-                    if !hasAnyBlocked {
-                        Text("쉬게 할 앱이 아직 없어요. 허용 앱 카드를 탭해서 잠그고 싶은 앱·카테고리를 골라주세요.")
+                    if allowedCount == 0 {
+                        Text("허용 앱이 0개예요. 집중을 시작하면 시스템 자동 보호 앱(전화·메시지·설정) 외 대부분 앱이 잠깁니다.")
                             .font(.system(size: 13))
-                            .foregroundStyle(AppColors.warning)
+                            .foregroundStyle(AppColors.secondaryText)
                             .padding(.horizontal, 4)
                     }
 
@@ -75,7 +76,13 @@ struct DashboardView: View {
     @ViewBuilder
     private var manualFocusButton: some View {
         Button {
-            toggleManualFocus()
+            if isManualFocus {
+                toggleManualFocus()
+            } else if allowedCount == 0 {
+                showEmptyAllowConfirm = true
+            } else {
+                toggleManualFocus()
+            }
         } label: {
             HStack {
                 Image(systemName: isManualFocus ? "pause.circle.fill" : "play.circle.fill")
@@ -89,11 +96,22 @@ struct DashboardView: View {
             .foregroundStyle(Color.white)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(hasAnyBlocked ? AppColors.primaryText : AppColors.primaryText.opacity(0.3))
+                    .fill(AppColors.primaryText)
             )
         }
         .buttonStyle(.plain)
-        .disabled(!hasAnyBlocked)
+        .confirmationDialog(
+            "허용 앱 0개로 집중 시작",
+            isPresented: $showEmptyAllowConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("시스템 앱 외 전부 잠그기", role: .destructive) {
+                toggleManualFocus()
+            }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("전화·메시지·설정은 iOS 가 자동 보호하지만 카메라·지도 등은 보호 보장이 없어요. 허용 앱 카드에서 먼저 필요한 앱을 고를 수도 있어요.")
+        }
     }
 
     private var header: some View {
@@ -128,7 +146,7 @@ struct DashboardView: View {
             deps.persistence.isManualFocusActive = false
             isManualFocus = false
         } else {
-            deps.blocking.applyBlocklist(for: selection)
+            deps.blocking.applyWhitelist(for: selection)
             deps.persistence.isManualFocusActive = true
             isManualFocus = true
         }
@@ -139,7 +157,7 @@ struct DashboardView: View {
         deps.persistence.schedule = schedule
 
         if schedule.isEnabled {
-            deps.blocking.applyBlocklist(for: selection)
+            deps.blocking.applyWhitelist(for: selection)
             try? deps.monitoring.startSchedule(schedule, name: "block_main")
         } else {
             deps.blocking.clearShield()

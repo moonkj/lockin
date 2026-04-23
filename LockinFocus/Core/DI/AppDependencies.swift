@@ -51,7 +51,7 @@ final class PreviewPersistenceStore: PersistenceStore {
 }
 
 final class PreviewBlockingEngine: BlockingEngine {
-    func applyBlocklist(for selection: FamilyActivitySelection) {}
+    func applyWhitelist(for selection: FamilyActivitySelection) {}
     func clearShield() {}
     func temporarilyAllow(token: ApplicationToken, for duration: TimeInterval) {}
 }

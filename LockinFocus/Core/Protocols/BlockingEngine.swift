@@ -4,14 +4,14 @@ import Foundation
 
 /// ManagedSettingsStore 래퍼. 시뮬레이터에서는 Noop 주입으로 동작 스킵.
 ///
-/// 전략: **Blocklist** — 사용자가 Picker 에서 고른 앱/카테고리만 차단, 나머지는 자동 허용.
-/// 이 전략은 Apple API 가 권장하는 패턴이며 시스템 앱(전화/메시지/설정/카메라 등)을
-/// 자동으로 살려둘 수 있다는 장점이 있다. Whitelist(`.all(except:)`) 는 카테고리 토큰을
-/// 예외 처리할 수 없어 시스템 앱 자동 허용이 API 레벨에서 불가능했다.
+/// 전략: **Whitelist (`.all(except:)`)** — 모든 앱을 차단하되 사용자가 "허용 앱"으로 고른
+/// 개별 토큰만 예외. 허용 앱 0개 = 최대 집중 상태 (시스템 자동 보호 앱 제외 전부 잠김).
+/// iOS 가 전화·메시지·설정은 자동 보호하지만 카메라·지도는 보호 보장 안 됨 — 사용자는
+/// 필요한 앱을 Picker 에서 직접 체크할 수 있다.
 protocol BlockingEngine: AnyObject {
-    /// 사용자가 고른 차단 대상(앱 + 카테고리)을 shield 에 적용한다.
-    /// 고르지 않은 앱·카테고리는 자동으로 열린다.
-    func applyBlocklist(for selection: FamilyActivitySelection)
+    /// 사용자의 허용 선택 외 나머지 앱을 전부 shield 에 적용한다.
+    /// 빈 selection 도 유효 — 모든 앱 잠김 (시스템 자동 보호 앱만 예외).
+    func applyWhitelist(for selection: FamilyActivitySelection)
 
     /// 현재 적용된 shield 전체 해제.
     func clearShield()

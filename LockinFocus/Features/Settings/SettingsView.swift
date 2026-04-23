@@ -116,7 +116,7 @@ struct SettingsView: View {
         deps.persistence.schedule = schedule
 
         if schedule.isEnabled {
-            deps.blocking.applyBlocklist(for: selection)
+            deps.blocking.applyWhitelist(for: selection)
             try? deps.monitoring.startSchedule(schedule, name: "block_main")
         } else {
             deps.blocking.clearShield()

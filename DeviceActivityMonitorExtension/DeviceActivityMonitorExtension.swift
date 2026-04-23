@@ -17,7 +17,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.intervalDidStart(for: activity)
 
         if activity.rawValue == ExtensionActivityName.blockMain {
-            applyBlocklistFromStore()
+            applyWhitelistFromStore()
         }
         // temp_allow_* 구간 시작 시점에는 기존 shield 상태를 유지 (메인 앱에서
         // 이미 예외 토큰을 추가한 상태이므로 추가 작업 불필요).
@@ -28,7 +28,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
         if activity.rawValue.hasPrefix(ExtensionActivityName.tempAllowPrefix) {
             // 일시 해제 종료 → 주 shield 복원.
-            applyBlocklistFromStore()
+            applyWhitelistFromStore()
         } else if activity.rawValue == ExtensionActivityName.blockMain {
             // 주 스케줄 종료 → shield 전체 해제.
             clearShield()
@@ -45,24 +45,15 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     // MARK: - Shield ops
 
-    private func applyBlocklistFromStore() {
+    private func applyWhitelistFromStore() {
         let selection = readFamilySelection()
-        // 빈 selection = 차단할 것 없음. shield 전체 해제.
-        let hasAnyBlocked =
-            !selection.applicationTokens.isEmpty ||
-            !selection.categoryTokens.isEmpty ||
-            !selection.webDomainTokens.isEmpty
-        guard hasAnyBlocked else {
-            clearShield()
-            return
-        }
-        store.shield.applications = selection.applicationTokens.isEmpty
-            ? nil : selection.applicationTokens
-        store.shield.applicationCategories = selection.categoryTokens.isEmpty
-            ? nil : .specific(selection.categoryTokens, except: [])
-        store.shield.webDomains = selection.webDomainTokens.isEmpty
-            ? nil : selection.webDomainTokens
-        store.shield.webDomainCategories = nil
+        // 빈 selection 도 유효. `.all(except: [])` = 시스템 자동 보호 앱 제외 전부 잠김.
+        store.shield.applicationCategories =
+            .all(except: selection.applicationTokens)
+        store.shield.webDomainCategories =
+            .all(except: selection.webDomainTokens)
+        store.shield.applications = nil
+        store.shield.webDomains = nil
     }
 
     private func clearShield() {

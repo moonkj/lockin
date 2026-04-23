@@ -134,7 +134,7 @@ struct OnboardingContainerView: View {
         // 스케줄이 꺼진 상태로 온보딩을 끝내면 shield 를 적용하지 않는다.
         // 허용 앱 0개인 경우에도 BlockingEngine 이 내부적으로 clearShield 로 폴백.
         if draftSchedule.isEnabled {
-            deps.blocking.applyBlocklist(for: draftSelection)
+            deps.blocking.applyWhitelist(for: draftSelection)
             try? deps.monitoring.startSchedule(draftSchedule, name: "block_main")
         } else {
             deps.blocking.clearShield()

@@ -17,11 +17,11 @@ struct AppPickerStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("쉬게 할 앱을 골라주세요")
+                Text("허용할 앱을 골라주세요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("여기서 고른 앱·카테고리만 집중 시간에 쉬어요.\n고르지 않은 앱은 그대로 열립니다.")
+                Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카메라·지도·시계도 필요하면 체크하세요.")
                     .font(.system(size: 15))
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
@@ -52,7 +52,7 @@ struct AppPickerStepView: View {
                 .buttonStyle(.plain)
 
                 Text(selectedCount == 0
-                     ? "지금 건너뛰어도 돼요. 나중에 설정에서 추가할 수 있어요."
+                     ? "아무것도 안 고르면 시스템 자동 보호 앱 외 모두 잠겨요. 건너뛰어도 돼요."
                      : "현재 선택: \(selectedCount)개")
                     .font(.system(size: 14))
                     .foregroundStyle(AppColors.secondaryText)

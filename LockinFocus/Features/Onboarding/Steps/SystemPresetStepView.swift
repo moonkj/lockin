@@ -20,25 +20,23 @@ struct SystemPresetStepView: View {
         }
     }
 
-    // Blocklist 로 전환 후에는 모든 시스템 앱이 "고르지 않으면 자동 허용" 이다.
-    // UI 상 구분(iOS 자동 보호 vs 그 외)은 더 이상 필요 없으므로 동일 라벨로 단순화.
     private let items: [PresetItem] = [
         .init(name: "전화", symbol: "phone", kind: .iosProtected),
         .init(name: "메시지", symbol: "message", kind: .iosProtected),
         .init(name: "설정", symbol: "gearshape", kind: .iosProtected),
-        .init(name: "카메라", symbol: "camera", kind: .iosProtected),
-        .init(name: "지도", symbol: "map", kind: .iosProtected),
-        .init(name: "시계", symbol: "clock", kind: .iosProtected),
+        .init(name: "카메라", symbol: "camera", kind: .needsManual),
+        .init(name: "지도", symbol: "map", kind: .needsManual),
+        .init(name: "시계", symbol: "clock", kind: .needsManual),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("시스템 앱은 자동으로 살려둬요")
+                Text("핵심 시스템 앱은 iOS 가 보호해요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("전화·메시지·설정·카메라·지도 같은 기본 앱은 고르지 않으면 자동으로 열려요.\n다음 단계에서는 쉬게 하고 싶은 앱만 고르면 됩니다.")
+                Text("전화·메시지·설정은 아무것도 안 고르셔도 iOS 가 자동 보호합니다.\n카메라·지도처럼 ⚠️ 표시된 앱은 다음 단계에서 꼭 체크해주세요.")
                     .font(.system(size: 15))
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
@@ -89,15 +87,28 @@ struct SystemPresetStepView: View {
 
     @ViewBuilder
     private func labelFor(_ kind: PresetItem.Kind) -> some View {
-        Text("자동 허용")
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(AppColors.success)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(AppColors.success.opacity(0.12))
-            )
+        switch kind {
+        case .iosProtected:
+            Text("iOS 자동 보호")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(AppColors.success)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(AppColors.success.opacity(0.12))
+                )
+        case .needsManual:
+            Text("⚠️ 직접 체크")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(AppColors.warning)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(AppColors.warning.opacity(0.12))
+                )
+        }
     }
 }
 
