@@ -2,10 +2,9 @@ import SwiftUI
 import LocalAuthentication
 
 /// 엄격 모드 해제 Friction.
-/// 1) 30초 카운트다운 (기다림)
+/// 1) 30초 카운트다운
 /// 2) 정해진 문장 정확히 입력
-/// 3) Face ID / Touch ID 재인증
-/// 세 관문을 전부 통과해야 onSuccess 콜백이 불림.
+/// 3) 본인 확인 — 앱 비번 (설정된 경우) 또는 Face ID/암호 중 사용자가 선택
 struct StrictModeUnlockView: View {
     let onSuccess: () -> Void
 
@@ -14,6 +13,9 @@ struct StrictModeUnlockView: View {
     @State private var remaining: Int = 30
     @State private var timer: Timer?
     @State private var phrase: String = ""
+
+    @State private var method: UnlockMethod
+    @State private var showPasscodeEntry: Bool = false
     @State private var isAuthenticating: Bool = false
     @State private var errorMessage: String?
 
@@ -21,7 +23,33 @@ struct StrictModeUnlockView: View {
 
     private var timerExpired: Bool { remaining == 0 }
     private var phraseMatches: Bool { phrase == requiredPhrase }
-    private var canConfirm: Bool { timerExpired && phraseMatches }
+    private var canConfirm: Bool { timerExpired && phraseMatches && !isAuthenticating }
+
+    private enum UnlockMethod: String, CaseIterable, Identifiable {
+        case appPasscode
+        case biometric
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .appPasscode: return "앱 비밀번호"
+            case .biometric: return "Face ID / 암호"
+            }
+        }
+
+        var symbol: String {
+            switch self {
+            case .appPasscode: return "key.fill"
+            case .biometric: return "faceid"
+            }
+        }
+    }
+
+    init(onSuccess: @escaping () -> Void) {
+        self.onSuccess = onSuccess
+        // 기본값: 앱 비번이 설정돼 있으면 앱 비번, 아니면 생체 인증.
+        _method = State(initialValue: AppPasscodeStore.isSet ? .appPasscode : .biometric)
+    }
 
     var body: some View {
         NavigationStack {
@@ -35,7 +63,7 @@ struct StrictModeUnlockView: View {
                                 .font(.system(size: 26, weight: .semibold))
                                 .foregroundStyle(AppColors.primaryText)
 
-                            Text("정말 지금 해제하실 건가요? 세 단계를 모두 거치면 해제됩니다.")
+                            Text("세 단계를 모두 거치면 엄격 모드가 꺼집니다.")
                                 .font(.system(size: 14))
                                 .foregroundStyle(AppColors.secondaryText)
                         }
@@ -75,8 +103,19 @@ struct StrictModeUnlockView: View {
                             number: 3,
                             title: "본인 확인",
                             done: false,
-                            detail: "Face ID 또는 암호로 본인 확인 후 해제됩니다."
-                        )
+                            detail: AppPasscodeStore.isSet
+                                ? "앱 비밀번호 또는 Face ID 중 선택하세요."
+                                : "Face ID 또는 기기 암호로 본인 확인. (앱 비밀번호는 설정 → '앱 비밀번호 설정' 에서 지정할 수 있어요.)"
+                        ) {
+                            Picker("해제 방법", selection: $method) {
+                                ForEach(UnlockMethod.allCases) { m in
+                                    Label(m.label, systemImage: m.symbol).tag(m)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .disabled(!AppPasscodeStore.isSet)
+                            .opacity(AppPasscodeStore.isSet ? 1 : 0.5)
+                        }
 
                         if let errorMessage {
                             Text(errorMessage)
@@ -87,7 +126,7 @@ struct StrictModeUnlockView: View {
                         Spacer(minLength: 12)
 
                         PrimaryButton("해제하기", action: confirm)
-                            .disabled(!canConfirm || isAuthenticating)
+                            .disabled(!canConfirm)
                             .opacity(canConfirm ? 1 : 0.4)
                     }
                     .padding(20)
@@ -100,12 +139,18 @@ struct StrictModeUnlockView: View {
                         .foregroundStyle(AppColors.secondaryText)
                 }
             }
+            .sheet(isPresented: $showPasscodeEntry) {
+                AppPasscodeEntryView {
+                    onSuccess()
+                    dismiss()
+                }
+            }
         }
         .onAppear(perform: startCountdown)
         .onDisappear { timer?.invalidate() }
     }
 
-    // MARK: - Steps UI
+    // MARK: - Step cards
 
     @ViewBuilder
     private func stepCard<Content: View>(
@@ -157,9 +202,17 @@ struct StrictModeUnlockView: View {
     }
 
     private func confirm() {
-        isAuthenticating = true
         errorMessage = nil
+        switch method {
+        case .appPasscode:
+            showPasscodeEntry = true
+        case .biometric:
+            authenticateBiometric()
+        }
+    }
 
+    private func authenticateBiometric() {
+        isAuthenticating = true
         let context = LAContext()
         context.localizedFallbackTitle = "암호로 인증"
 

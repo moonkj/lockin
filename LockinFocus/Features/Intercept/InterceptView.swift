@@ -14,6 +14,7 @@ struct InterceptView: View {
     @State private var timer: Timer?
 
     private var canExit: Bool { remaining == 0 }
+    private var strictActive: Bool { deps.persistence.isStrictModeActive }
 
     var body: some View {
         ZStack {
@@ -41,8 +42,10 @@ struct InterceptView: View {
                     PrimaryButton("돌아가기", action: handleReturn)
 
                     SecondaryLinkButton(
-                        canExit ? "그래도 열기" : "\(totalSeconds)초 뒤에 선택할 수 있어요",
-                        isEnabled: canExit,
+                        strictActive
+                            ? "엄격 모드에서는 열 수 없어요"
+                            : (canExit ? "그래도 열기" : "\(totalSeconds)초 뒤에 선택할 수 있어요"),
+                        isEnabled: canExit && !strictActive,
                         action: handleOpenAnyway
                     )
                 }

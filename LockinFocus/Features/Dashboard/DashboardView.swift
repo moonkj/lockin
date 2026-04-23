@@ -14,6 +14,7 @@ struct DashboardView: View {
     @State private var schedule: Schedule = .weekdayWorkHours
     @State private var isManualFocus: Bool = false
     @State private var showEmptyAllowConfirm: Bool = false
+    @State private var showStrictActiveAlert: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -77,7 +78,12 @@ struct DashboardView: View {
     private var manualFocusButton: some View {
         Button {
             if isManualFocus {
-                toggleManualFocus()
+                // 엄격 모드 활성화 상태에서는 종료 버튼이 경고만 띄운다.
+                if deps.persistence.isStrictModeActive {
+                    showStrictActiveAlert = true
+                } else {
+                    toggleManualFocus()
+                }
             } else if allowedCount == 0 {
                 showEmptyAllowConfirm = true
             } else {
@@ -111,6 +117,11 @@ struct DashboardView: View {
             Button("취소", role: .cancel) {}
         } message: {
             Text("전화·메시지·설정은 iOS 가 자동 보호하지만 카메라·지도 등은 보호 보장이 없어요. 허용 앱 카드에서 먼저 필요한 앱을 고를 수도 있어요.")
+        }
+        .alert("엄격 모드 활성화 중", isPresented: $showStrictActiveAlert) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("엄격 모드가 켜져 있어 집중을 끌 수 없어요. 설정에서 엄격 모드를 해제하면 종료할 수 있어요.")
         }
     }
 

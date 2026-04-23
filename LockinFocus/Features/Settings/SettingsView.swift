@@ -13,6 +13,8 @@ struct SettingsView: View {
     @State private var showAppPicker: Bool = false
     @State private var showScheduleEditor: Bool = false
     @State private var showStrictUnlock: Bool = false
+    @State private var showPasscodeSetup: Bool = false
+    @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
@@ -55,9 +57,7 @@ struct SettingsView: View {
                             get: { strictMode },
                             set: { newValue in
                                 if newValue {
-                                    // 즉시 ON — 해제할 때만 friction 적용.
-                                    strictMode = true
-                                    deps.persistence.isStrictModeActive = true
+                                    enableStrictMode()
                                 } else {
                                     // OFF 시도 → StrictModeUnlockView 로 유도.
                                     // 토글은 성공 전까지 시각적으로 ON 유지.
@@ -67,14 +67,34 @@ struct SettingsView: View {
                         )) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("엄격 모드").foregroundStyle(AppColors.primaryText)
-                                Text("해제하려면 30초 + 문장 입력 + 본인 확인이 필요해요.")
+                                Text("켜면 즉시 차단이 시작되고, 해제는 30초 + 문장 입력 + 본인 확인이 필요해요.")
                                     .font(.system(size: 12))
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
                         .tint(AppColors.primaryText)
+
+                        Button {
+                            showPasscodeSetup = true
+                        } label: {
+                            HStack {
+                                Text("앱 비밀번호 설정")
+                                    .foregroundStyle(AppColors.primaryText)
+                                Spacer()
+                                Text(passcodeIsSet ? "설정됨" : "미설정")
+                                    .foregroundStyle(AppColors.secondaryText)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
                     } header: {
                         Text("엄격 모드")
+                    } footer: {
+                        Text(passcodeIsSet
+                             ? "해제할 때 앱 비밀번호 또는 Face ID 중 선택할 수 있어요."
+                             : "앱 비밀번호를 설정하면 해제 방법을 선택할 수 있어요. (미설정 시 Face ID·기기 암호만 사용)")
+                            .font(.system(size: 11))
                     }
 
                     Section("앱 정보") {
@@ -112,9 +132,17 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showStrictUnlock) {
             StrictModeUnlockView {
-                // 해제 3단계 성공 → 엄격 모드 OFF 커밋.
+                // 해제 3단계 성공 → 엄격 모드 OFF + shield 해제 동시 수행.
                 strictMode = false
                 deps.persistence.isStrictModeActive = false
+                deps.blocking.clearShield()
+                deps.persistence.isManualFocusActive = false
+                deps.monitoring.stopMonitoring(name: "block_main")
+            }
+        }
+        .sheet(isPresented: $showPasscodeSetup) {
+            AppPasscodeSetupView { saved in
+                if saved { passcodeIsSet = true }
             }
         }
     }
@@ -146,6 +174,19 @@ struct SettingsView: View {
         selection = deps.persistence.selection
         schedule = deps.persistence.schedule
         strictMode = deps.persistence.isStrictModeActive
+        passcodeIsSet = AppPasscodeStore.isSet
+    }
+
+    /// 엄격 모드 활성화: 상태 저장 + 즉시 shield 적용 + 수동 집중 모드 강제 ON.
+    /// 이로써 Dashboard 집중 종료 버튼이 눌리더라도 StrictModeUnlockView 없이는 풀 수 없다.
+    private func enableStrictMode() {
+        strictMode = true
+        deps.persistence.isStrictModeActive = true
+        deps.persistence.isManualFocusActive = true
+        deps.blocking.applyWhitelist(for: selection)
+        if schedule.isEnabled {
+            try? deps.monitoring.startSchedule(schedule, name: "block_main")
+        }
     }
 
     /// 엄격 모드가 켜져 있으면 긴급 해제도 Friction 을 거치게 한다.
