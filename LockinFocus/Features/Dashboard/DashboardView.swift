@@ -81,7 +81,7 @@ struct DashboardView: View {
                 .environmentObject(deps)
         }
         .sheet(isPresented: $showWeeklyReport) {
-            WeeklyReportView()
+            ReportView()
                 .environmentObject(deps)
         }
         .sheet(isPresented: $showBadges) {
