@@ -11,7 +11,7 @@ final class PreviewEngineTests: XCTestCase {
     // PreviewBlockingEngine 의 모든 메서드 호출은 무해해야 한다.
     func testPreviewBlockingEngine_doesNotThrow() {
         let engine = PreviewBlockingEngine()
-        engine.applyWhitelist(for: FamilyActivitySelection())
+        engine.applyBlocklist(for: FamilyActivitySelection())
         engine.clearShield()
         // temporarilyAllow 은 opaque token 생성이 불가해 호출만 스킵.
         XCTAssertTrue(true)
@@ -28,7 +28,7 @@ final class PreviewEngineTests: XCTestCase {
     // NoopBlockingEngine / NoopMonitoringEngine 도 동일.
     func testNoopEngines_doNotThrow() {
         let blocking = NoopBlockingEngine()
-        blocking.applyWhitelist(for: FamilyActivitySelection())
+        blocking.applyBlocklist(for: FamilyActivitySelection())
         blocking.clearShield()
 
         let monitoring = NoopMonitoringEngine()

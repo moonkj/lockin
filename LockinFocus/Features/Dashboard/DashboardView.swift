@@ -14,7 +14,7 @@ struct DashboardView: View {
     @State private var schedule: Schedule = .weekdayWorkHours
     @State private var isManualFocus: Bool = false
 
-    private var hasAnyAllowed: Bool {
+    private var hasAnyBlocked: Bool {
         !selection.applicationTokens.isEmpty ||
         !selection.categoryTokens.isEmpty ||
         !selection.webDomainTokens.isEmpty
@@ -41,8 +41,8 @@ struct DashboardView: View {
 
                     manualFocusButton
 
-                    if !hasAnyAllowed {
-                        Text("허용 앱이 아직 없어서 실제 차단은 꺼져 있어요. 먼저 허용 앱을 골라주세요.")
+                    if !hasAnyBlocked {
+                        Text("쉬게 할 앱이 아직 없어요. 허용 앱 카드를 탭해서 잠그고 싶은 앱·카테고리를 골라주세요.")
                             .font(.system(size: 13))
                             .foregroundStyle(AppColors.warning)
                             .padding(.horizontal, 4)
@@ -89,11 +89,11 @@ struct DashboardView: View {
             .foregroundStyle(Color.white)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(hasAnyAllowed ? AppColors.primaryText : AppColors.primaryText.opacity(0.3))
+                    .fill(hasAnyBlocked ? AppColors.primaryText : AppColors.primaryText.opacity(0.3))
             )
         }
         .buttonStyle(.plain)
-        .disabled(!hasAnyAllowed)
+        .disabled(!hasAnyBlocked)
     }
 
     private var header: some View {
@@ -128,7 +128,7 @@ struct DashboardView: View {
             deps.persistence.isManualFocusActive = false
             isManualFocus = false
         } else {
-            deps.blocking.applyWhitelist(for: selection)
+            deps.blocking.applyBlocklist(for: selection)
             deps.persistence.isManualFocusActive = true
             isManualFocus = true
         }
@@ -139,7 +139,7 @@ struct DashboardView: View {
         deps.persistence.schedule = schedule
 
         if schedule.isEnabled {
-            deps.blocking.applyWhitelist(for: selection)
+            deps.blocking.applyBlocklist(for: selection)
             try? deps.monitoring.startSchedule(schedule, name: "block_main")
         } else {
             deps.blocking.clearShield()

@@ -17,11 +17,11 @@ struct AppPickerStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("꼭 필요한 앱만 남겨둬요")
+                Text("쉬게 할 앱을 골라주세요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("고른 앱은 집중 시간에도 열립니다.\n카테고리 옆 `>` 를 탭하면 개별 앱을 고를 수 있어요.")
+                Text("여기서 고른 앱·카테고리만 집중 시간에 쉬어요.\n고르지 않은 앱은 그대로 열립니다.")
                     .font(.system(size: 15))
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
@@ -52,10 +52,10 @@ struct AppPickerStepView: View {
                 .buttonStyle(.plain)
 
                 Text(selectedCount == 0
-                     ? "허용 앱을 1개 이상 고르면 나머지가 집중 시간에 잠겨요."
+                     ? "지금 건너뛰어도 돼요. 나중에 설정에서 추가할 수 있어요."
                      : "현재 선택: \(selectedCount)개")
                     .font(.system(size: 14))
-                    .foregroundStyle(selectedCount == 0 ? AppColors.warning : AppColors.secondaryText)
+                    .foregroundStyle(AppColors.secondaryText)
             }
             .padding(.horizontal, 24)
 
@@ -64,8 +64,6 @@ struct AppPickerStepView: View {
             PrimaryButton("다음", action: onNext)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
-                .disabled(selectedCount == 0)
-                .opacity(selectedCount == 0 ? 0.5 : 1.0)
         }
         .familyActivityPicker(isPresented: $showPicker, selection: $selection)
     }

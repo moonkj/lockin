@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// 온보딩 Step 2 — 시스템 기본 허용 프리셋.
-/// 쟁점 6: 전화 / 메시지 / 설정 은 기본 허용 안내(해제 불가 설명).
-/// 시계 / 지도 / 카메라 는 기본 체크, 해제 가능 (Phase 3 MVP 에선 단순 안내로 표시).
+/// 온보딩 Step 3 — 필수 앱 안내.
+/// iOS 자동 보호 앱(전화/메시지/설정)과 사용자가 다음 단계 Picker 에서 **직접 체크해야**
+/// 보호되는 앱(카메라/지도/시계 등)을 분리해서 정직하게 보여준다.
 struct SystemPresetStepView: View {
     let onNext: () -> Void
 
@@ -10,26 +10,35 @@ struct SystemPresetStepView: View {
         let id = UUID()
         let name: String
         let symbol: String
-        let isRequired: Bool
+        let kind: Kind
+
+        enum Kind {
+            /// iOS Screen Time API 가 자동으로 Shield 에서 제외하는 핵심 시스템 앱.
+            case iosProtected
+            /// Apple API 제약으로 앱이 자동 허용할 수 없는 앱. Picker 에서 사용자가 체크 필요.
+            case needsManual
+        }
     }
 
+    // Blocklist 로 전환 후에는 모든 시스템 앱이 "고르지 않으면 자동 허용" 이다.
+    // UI 상 구분(iOS 자동 보호 vs 그 외)은 더 이상 필요 없으므로 동일 라벨로 단순화.
     private let items: [PresetItem] = [
-        .init(name: "전화", symbol: "phone", isRequired: true),
-        .init(name: "메시지", symbol: "message", isRequired: true),
-        .init(name: "설정", symbol: "gearshape", isRequired: true),
-        .init(name: "시계", symbol: "clock", isRequired: false),
-        .init(name: "지도", symbol: "map", isRequired: false),
-        .init(name: "카메라", symbol: "camera", isRequired: false),
+        .init(name: "전화", symbol: "phone", kind: .iosProtected),
+        .init(name: "메시지", symbol: "message", kind: .iosProtected),
+        .init(name: "설정", symbol: "gearshape", kind: .iosProtected),
+        .init(name: "카메라", symbol: "camera", kind: .iosProtected),
+        .init(name: "지도", symbol: "map", kind: .iosProtected),
+        .init(name: "시계", symbol: "clock", kind: .iosProtected),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("기본 앱은 항상 쓸 수 있어요")
+                Text("시스템 앱은 자동으로 살려둬요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("전화와 메시지, 설정은 차단되지 않아요.\n필요한 시스템 앱을 안전하게 남겨둡니다.")
+                Text("전화·메시지·설정·카메라·지도 같은 기본 앱은 고르지 않으면 자동으로 열려요.\n다음 단계에서는 쉬게 하고 싶은 앱만 고르면 됩니다.")
                     .font(.system(size: 15))
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
@@ -51,9 +60,7 @@ struct SystemPresetStepView: View {
 
                         Spacer()
 
-                        Text(item.isRequired ? "항상 허용" : "기본 허용")
-                            .font(.system(size: 13))
-                            .foregroundStyle(AppColors.secondaryText)
+                        labelFor(item.kind)
                     }
                     .padding(.vertical, 14)
                     .padding(.horizontal, 16)
@@ -78,6 +85,19 @@ struct SystemPresetStepView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
         }
+    }
+
+    @ViewBuilder
+    private func labelFor(_ kind: PresetItem.Kind) -> some View {
+        Text("자동 허용")
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(AppColors.success)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(AppColors.success.opacity(0.12))
+            )
     }
 }
 
