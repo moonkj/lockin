@@ -9,13 +9,20 @@ final class AppDependencies: ObservableObject {
     let monitoring: MonitoringEngine
 
     /// 위젯 탭 같은 외부 deep link 가 열렸을 때 갱신된다.
-    /// 일회성 값으로 취급 — 소비 후 nil 로 리셋.
-    @Published var pendingRoute: Route?
+    /// 일회성 값 — `requestRoute(_:)` 로 쓰고 `consumeRoute()` 로 비운다.
+    @Published private(set) var pendingRoute: Route?
 
-    enum Route: String {
+    /// 네비게이션 타깃. 추후 파라미터가 필요하면 associated value 로 확장.
+    enum Route: String, Equatable {
         case weeklyReport
-        case quotes
+        case quoteDetail
     }
+
+    /// deep link 진입점.
+    func requestRoute(_ route: Route) { pendingRoute = route }
+
+    /// 소비한 쪽이 호출. 다른 뷰의 race 를 방지하기 위한 명시적 API.
+    func consumeRoute() { pendingRoute = nil }
 
     init(
         persistence: PersistenceStore,

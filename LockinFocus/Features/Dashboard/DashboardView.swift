@@ -1,5 +1,6 @@
 import SwiftUI
 import FamilyControls
+import WidgetKit
 
 /// 평시 홈 대시보드. MVP 3요소: 점수 / 허용 앱 / 다음 스케줄.
 /// + "지금 집중 시작/종료" 수동 토글 (스케줄과 독립).
@@ -19,7 +20,7 @@ struct DashboardView: View {
     @State private var showWeeklyReport: Bool = false
     @State private var showBadges: Bool = false
     @State private var showFocusEndConfirm: Bool = false
-    @State private var showQuoteList: Bool = false
+    @State private var showQuoteDetail: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -55,7 +56,7 @@ struct DashboardView: View {
                             .padding(.horizontal, 4)
                     }
 
-                    DailyQuoteCard(onTap: { showQuoteList = true })
+                    DailyQuoteCard(onTap: { showQuoteDetail = true })
 
                     Spacer(minLength: 24)
                 }
@@ -90,18 +91,18 @@ struct DashboardView: View {
         .sheet(isPresented: $showFocusEndConfirm) {
             FocusEndConfirmView(onConfirm: endManualFocus)
         }
-        .sheet(isPresented: $showQuoteList) {
-            QuoteListView()
+        .sheet(isPresented: $showQuoteDetail) {
+            QuoteDetailSheet()
         }
         .onChange(of: deps.pendingRoute) { route in
             guard let route else { return }
             switch route {
             case .weeklyReport:
                 showWeeklyReport = true
-            case .quotes:
-                showQuoteList = true
+            case .quoteDetail:
+                showQuoteDetail = true
             }
-            deps.pendingRoute = nil
+            deps.consumeRoute()
         }
     }
 
@@ -225,6 +226,7 @@ struct DashboardView: View {
             )
         }
         BadgeEngine.onScoreChanged(persistence: deps.persistence)
+        WidgetCenter.shared.reloadTimelines(ofKind: "LockinFocusScoreWidget")
         isManualFocus = false
     }
 

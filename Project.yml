@@ -86,6 +86,7 @@ targets:
       - path: LockinFocusWidgets
       - path: LockinFocus/Core/Models/TreeStage.swift
       - path: LockinFocus/Core/Models/DailyQuote.swift
+      - path: LockinFocus/Core/Models/DailyFocus.swift
       - path: LockinFocus/Core/Theme/AppColors.swift
       - path: LockinFocus/Core/Resources/QuoteProvider.swift
       - path: LockinFocus/Core/Shared/AppGroup.swift

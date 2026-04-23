@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 /// 차단 앱 실행 후 Shield → 메인 앱으로 돌아온 사용자에게 10초의 자각 공간을 제공.
 /// 쟁점 3: MVP countdown 1종만. variant 는 Phase 5.
@@ -109,6 +110,8 @@ struct InterceptView: View {
         // 뱃지 판정.
         BadgeEngine.onReturn(persistence: deps.persistence)
         BadgeEngine.onScoreChanged(persistence: deps.persistence)
+        // 위젯도 즉시 새로고침 (iOS 는 hint 로 처리).
+        WidgetCenter.shared.reloadTimelines(ofKind: "LockinFocusScoreWidget")
         timer?.invalidate()
         dismiss()
     }

@@ -4,13 +4,15 @@ import SwiftUI
 /// 본문은 이탤릭, 저자는 카드 하단 오른쪽 정렬.
 struct DailyQuoteCard: View {
     let onTap: () -> Void
-    private var quote: DailyQuote { QuoteProvider.today() }
+    /// body 재평가마다 Date/Calendar 연산 발생하는 것을 피하기 위해 onAppear 에서 1회 캐시.
+    @State private var quote: DailyQuote = QuoteProvider.today()
 
     var body: some View {
         Button(action: onTap) {
             content
         }
         .buttonStyle(.plain)
+        .onAppear { quote = QuoteProvider.today() }
     }
 
     private var content: some View {

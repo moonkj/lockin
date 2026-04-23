@@ -1,22 +1,24 @@
 import SwiftUI
 import WidgetKit
 
-/// 명언 위젯 뷰. 다크모드 지원을 위해 시스템 primary/secondary 색 사용.
-/// 본문은 이탤릭, 저자는 오른쪽 정렬.
+/// 명언 위젯 뷰. 홈 화면 전용 (Small/Medium/Large). 잠금화면은 UX 권고로 제외.
 struct QuoteWidgetView: View {
     let entry: QuoteEntry
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "quote.bubble")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Text("오늘의 명언")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+        Group {
+            switch family {
+            case .systemLarge: largeView
+            default:           smallMediumView
             }
+        }
+        .lockinWidgetContainer()
+    }
+
+    private var smallMediumView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            header
 
             Text("\"\(entry.quote.text)\"")
                 .font(.system(size: family == .systemSmall ? 13 : 15))
@@ -38,6 +40,44 @@ struct QuoteWidgetView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .lockinWidgetContainer()
+    }
+
+    private var largeView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            header
+                .font(.system(size: 14, weight: .medium))
+
+            Spacer(minLength: 0)
+
+            Text("\"\(entry.quote.text)\"")
+                .font(.system(size: 22))
+                .italic()
+                .foregroundStyle(.primary)
+                .lineSpacing(4)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
+
+            if let author = entry.quote.author {
+                Text("— \(author)")
+                    .font(.system(size: 14))
+                    .italic()
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var header: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "quote.bubble")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+            Text("오늘의 명언")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
     }
 }
