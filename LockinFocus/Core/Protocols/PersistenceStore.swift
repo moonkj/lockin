@@ -34,4 +34,13 @@ protocol PersistenceStore: AnyObject {
 
     /// 주간 리포트용 최근 N일치 집중 기록. 오늘 점수 리셋 시점에 자동 축적된다.
     func dailyFocusHistory(lastDays: Int) -> [DailyFocus]
+
+    // MARK: - Badges
+    var earnedBadgeIDs: Set<String> { get set }
+    var totalReturnCount: Int { get set }
+    var totalStrictSurvived: Int { get set }
+    var totalDetoxStarted: Int { get set }
+
+    /// 아직 없는 뱃지면 적재 후 true. 이미 있으면 false.
+    func awardBadgeIfNew(_ id: String) -> Bool
 }

@@ -103,6 +103,41 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         return (try? decoder.decode([DailyFocus].self, from: data)) ?? []
     }
 
+    // MARK: - Badges
+
+    var earnedBadgeIDs: Set<String> {
+        get {
+            let arr = defaults.stringArray(forKey: PersistenceKeys.earnedBadges) ?? []
+            return Set(arr)
+        }
+        set {
+            defaults.set(Array(newValue), forKey: PersistenceKeys.earnedBadges)
+        }
+    }
+
+    var totalReturnCount: Int {
+        get { defaults.integer(forKey: PersistenceKeys.totalReturnCount) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.totalReturnCount) }
+    }
+
+    var totalStrictSurvived: Int {
+        get { defaults.integer(forKey: PersistenceKeys.totalStrictSurvived) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.totalStrictSurvived) }
+    }
+
+    var totalDetoxStarted: Int {
+        get { defaults.integer(forKey: PersistenceKeys.totalDetoxStarted) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.totalDetoxStarted) }
+    }
+
+    func awardBadgeIfNew(_ id: String) -> Bool {
+        var set = earnedBadgeIDs
+        guard !set.contains(id) else { return false }
+        set.insert(id)
+        earnedBadgeIDs = set
+        return true
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }

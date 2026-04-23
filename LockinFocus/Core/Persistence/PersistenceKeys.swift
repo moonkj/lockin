@@ -45,4 +45,12 @@ enum PersistenceKeys {
 
     /// 주간 리포트 알림 ON/OFF (기본 true).
     static let weeklyReportNotification = "weeklyReportNotification"
+
+    /// 획득한 뱃지 id 목록 (`[String]` 으로 저장, 내부에선 Set 처럼 다룸).
+    static let earnedBadges = "earnedBadges"
+
+    /// 누적 집계 (뱃지 판정용).
+    static let totalReturnCount = "totalReturnCount"
+    static let totalStrictSurvived = "totalStrictSurvived"
+    static let totalDetoxStarted = "totalDetoxStarted"
 }

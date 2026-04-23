@@ -106,6 +106,9 @@ struct InterceptView: View {
         deps.persistence.interceptQueue.append(
             InterceptEvent(type: .returned, subjectKind: .application)
         )
+        // 뱃지 판정.
+        BadgeEngine.onReturn(persistence: deps.persistence)
+        BadgeEngine.onScoreChanged(persistence: deps.persistence)
         timer?.invalidate()
         dismiss()
     }

@@ -15,6 +15,17 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var isDetoxActive: Bool
     var interceptQueue: [InterceptEvent]
 
+    var earnedBadgeIDs: Set<String> = []
+    var totalReturnCount: Int = 0
+    var totalStrictSurvived: Int = 0
+    var totalDetoxStarted: Int = 0
+
+    func awardBadgeIfNew(_ id: String) -> Bool {
+        guard !earnedBadgeIDs.contains(id) else { return false }
+        earnedBadgeIDs.insert(id)
+        return true
+    }
+
     init(
         selection: FamilyActivitySelection = FamilyActivitySelection(),
         schedule: Schedule = .weekdayWorkHours,

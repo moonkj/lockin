@@ -20,6 +20,7 @@ struct DashboardView: View {
     @State private var isDetoxActive: Bool = false
     @State private var showDetoxPicker: Bool = false
     @State private var showWeeklyReport: Bool = false
+    @State private var showBadges: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -94,6 +95,10 @@ struct DashboardView: View {
             WeeklyReportView()
                 .environmentObject(deps)
         }
+        .sheet(isPresented: $showBadges) {
+            BadgesView()
+                .environmentObject(deps)
+        }
     }
 
     @ViewBuilder
@@ -156,6 +161,15 @@ struct DashboardView: View {
             Spacer()
 
             Button {
+                showBadges = true
+            } label: {
+                Image(systemName: "rosette")
+                    .font(.system(size: 20))
+                    .foregroundStyle(AppColors.primaryText)
+            }
+            .buttonStyle(.plain)
+
+            Button {
                 showWeeklyReport = true
             } label: {
                 Image(systemName: "chart.bar")
@@ -206,6 +220,7 @@ struct DashboardView: View {
             // 디톡스 중에도 수동 집중 모드로 간주(집중 종료 UI 와 일관).
             deps.persistence.isManualFocusActive = true
             isManualFocus = true
+            BadgeEngine.onDetoxStarted(persistence: deps.persistence)
         }
     }
 

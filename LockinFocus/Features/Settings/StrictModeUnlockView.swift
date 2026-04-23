@@ -1,10 +1,9 @@
 import SwiftUI
-import LocalAuthentication
 
 /// 엄격 모드 해제 Friction.
 /// 1) 30초 카운트다운
 /// 2) 정해진 문장 정확히 입력
-/// 3) 본인 확인 — 앱 비번 (설정된 경우) 또는 Face ID/암호 중 사용자가 선택
+/// 3) 앱 비밀번호(6자리) 입력 — Face ID 경로는 사용자 요구로 제거됨
 struct StrictModeUnlockView: View {
     let onSuccess: () -> Void
 
@@ -13,43 +12,14 @@ struct StrictModeUnlockView: View {
     @State private var remaining: Int = 30
     @State private var timer: Timer?
     @State private var phrase: String = ""
-
-    @State private var method: UnlockMethod
     @State private var showPasscodeEntry: Bool = false
-    @State private var isAuthenticating: Bool = false
     @State private var errorMessage: String?
 
     private let requiredPhrase = "지금 이 선택을 정말로 원해요"
 
     private var timerExpired: Bool { remaining == 0 }
     private var phraseMatches: Bool { phrase == requiredPhrase }
-    private var canConfirm: Bool { timerExpired && phraseMatches && !isAuthenticating }
-
-    private enum UnlockMethod: String, CaseIterable, Identifiable {
-        case appPasscode
-        case biometric
-        var id: String { rawValue }
-
-        var label: String {
-            switch self {
-            case .appPasscode: return "앱 비밀번호"
-            case .biometric: return "Face ID / 암호"
-            }
-        }
-
-        var symbol: String {
-            switch self {
-            case .appPasscode: return "key.fill"
-            case .biometric: return "faceid"
-            }
-        }
-    }
-
-    init(onSuccess: @escaping () -> Void) {
-        self.onSuccess = onSuccess
-        // 기본값: 앱 비번이 설정돼 있으면 앱 비번, 아니면 생체 인증.
-        _method = State(initialValue: AppPasscodeStore.isSet ? .appPasscode : .biometric)
-    }
+    private var canConfirm: Bool { timerExpired && phraseMatches && AppPasscodeStore.isSet }
 
     var body: some View {
         NavigationStack {
@@ -101,21 +71,12 @@ struct StrictModeUnlockView: View {
 
                         stepCard(
                             number: 3,
-                            title: "본인 확인",
+                            title: "앱 비밀번호 입력",
                             done: false,
                             detail: AppPasscodeStore.isSet
-                                ? "앱 비밀번호 또는 Face ID 중 선택하세요."
-                                : "Face ID 또는 기기 암호로 본인 확인. (앱 비밀번호는 설정 → '앱 비밀번호 설정' 에서 지정할 수 있어요.)"
-                        ) {
-                            Picker("해제 방법", selection: $method) {
-                                ForEach(UnlockMethod.allCases) { m in
-                                    Label(m.label, systemImage: m.symbol).tag(m)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .disabled(!AppPasscodeStore.isSet)
-                            .opacity(AppPasscodeStore.isSet ? 1 : 0.5)
-                        }
+                                ? "설정한 6자리 앱 비밀번호로 본인 확인합니다."
+                                : "앱 비밀번호가 아직 설정되지 않았어요. 설정 → '앱 비밀번호 설정' 에서 먼저 지정하세요."
+                        )
 
                         if let errorMessage {
                             Text(errorMessage)
@@ -192,51 +153,18 @@ struct StrictModeUnlockView: View {
         timer?.invalidate()
         remaining = 30
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
-            if remaining > 0 {
-                remaining -= 1
-            }
-            if remaining == 0 {
-                t.invalidate()
-            }
+            if remaining > 0 { remaining -= 1 }
+            if remaining == 0 { t.invalidate() }
         }
     }
 
     private func confirm() {
         errorMessage = nil
-        switch method {
-        case .appPasscode:
-            showPasscodeEntry = true
-        case .biometric:
-            authenticateBiometric()
-        }
-    }
-
-    private func authenticateBiometric() {
-        isAuthenticating = true
-        let context = LAContext()
-        context.localizedFallbackTitle = "암호로 인증"
-
-        var error: NSError?
-        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            errorMessage = "본인 확인을 사용할 수 없어요."
-            isAuthenticating = false
+        guard AppPasscodeStore.isSet else {
+            errorMessage = "앱 비밀번호가 설정되지 않았어요."
             return
         }
-
-        context.evaluatePolicy(
-            .deviceOwnerAuthentication,
-            localizedReason: "엄격 모드를 해제하려면 본인 확인이 필요해요."
-        ) { success, authError in
-            DispatchQueue.main.async {
-                isAuthenticating = false
-                if success {
-                    onSuccess()
-                    dismiss()
-                } else {
-                    errorMessage = authError?.localizedDescription ?? "본인 확인 실패"
-                }
-            }
-        }
+        showPasscodeEntry = true
     }
 }
 

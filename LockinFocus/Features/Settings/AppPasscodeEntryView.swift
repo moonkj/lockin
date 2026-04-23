@@ -20,11 +20,11 @@ struct AppPasscodeEntryView: View {
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AppColors.primaryText)
 
-                    Text("설정한 4자리 비번을 입력하세요.")
+                    Text("설정한 6자리 비번을 입력하세요.")
                         .font(.system(size: 14))
                         .foregroundStyle(AppColors.secondaryText)
 
-                    SecureField("숫자 4자리", text: $input)
+                    SecureField("숫자 6자리", text: $input)
                         .keyboardType(.numberPad)
                         .font(.system(size: 28, weight: .medium, design: .rounded))
                         .monospacedDigit()
@@ -37,9 +37,9 @@ struct AppPasscodeEntryView: View {
                                 )
                         )
                         .onChange(of: input) { newValue in
-                            let filtered = String(newValue.prefix(4).filter(\.isNumber))
+                            let filtered = String(newValue.prefix(6).filter(\.isNumber))
                             if filtered != input { input = filtered }
-                            if input.count == 4 { verify() }
+                            if input.count == 6 { verify() }
                         }
 
                     if let errorMessage {

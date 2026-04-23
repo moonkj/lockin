@@ -42,6 +42,8 @@
 		79129CDFCA1515FBDB699BB3 /* DetoxPresetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ABB65102B64A5C2ACBC9C4 /* DetoxPresetCard.swift */; };
 		7CC08E63C5F2B6A0AD54824F /* AppPasscodeSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D72ACAAEBC6DCD9E1E73CAAC /* AppPasscodeSetupView.swift */; };
 		7E615D3F8B44901457020ECF /* InterceptEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */; };
+		7F10E6BA9AFADBCD6910EC68 /* Badge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D3D2E292405631FA8FEEBD /* Badge.swift */; };
+		81A35403AFA1AB39F67CF307 /* BadgeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACC70D6A23846EF463C5D19 /* BadgeEngine.swift */; };
 		84D4E46A88EDB0ADCF8BD53D /* TreeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8571C205A09CDE7A9D133FB9 /* TreeStage.swift */; };
 		858E296A21CF3D69E5A241EB /* AppPasscodeEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FE0FF9C4DA56885BEFE76D /* AppPasscodeEntryView.swift */; };
 		8CB2A2D1AF3CE2C3C928B5B9 /* ShieldConfigurationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -61,6 +63,7 @@
 		E4F139715842E283EF4AA863 /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D0CF2E38F552EFDDD527D5B /* PrimaryButton.swift */; };
 		E5046C1790887A708ABCF0F5 /* AppPasscodeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653F6B25ACAA94752B935876 /* AppPasscodeStore.swift */; };
 		EB8CDD8D374E862BC4E4E232 /* AppDependencies+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8C2BF3EB1E5C2A78CA352B /* AppDependencies+Live.swift */; };
+		F3734729931408B05C7B91D0 /* BadgesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0949D21D62661DFB26F8D3 /* BadgesView.swift */; };
 		F4C102EA0740E14360BE1E4F /* ShieldActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A5FD3CF96E22F2F6DFE5EDCB /* ShieldActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F96DB2B2C6603B8E709293BB /* AllowedAppsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC34718370D9DBDAD5004B5 /* AllowedAppsCard.swift */; };
 /* End PBXBuildFile section */
@@ -166,6 +169,8 @@
 		C104BBA58BABF8B865454534 /* LockinFocus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LockinFocus.entitlements; sourceTree = "<group>"; };
 		C1078C15B7FA34E4A0316FC2 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		C4B2D87F644E569567E450FD /* ShieldConfigurationExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldConfigurationExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5D3D2E292405631FA8FEEBD /* Badge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Badge.swift; sourceTree = "<group>"; };
+		CC0949D21D62661DFB26F8D3 /* BadgesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgesView.swift; sourceTree = "<group>"; };
 		CD37ADA464FC5C7889B973DC /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		D23E9027F307D6A61CF49ADC /* LockinFocus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LockinFocus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D510AD77C91E399B077AEFF2 /* ShieldActionExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtensionHandler.swift; sourceTree = "<group>"; };
@@ -180,9 +185,26 @@
 		E49B4876E342317AB4383709 /* PersistenceKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceKeys.swift; sourceTree = "<group>"; };
 		F582104A00AAE1F741840688 /* AppPickerStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPickerStepView.swift; sourceTree = "<group>"; };
 		F79ABA2AFED8F1277D0C9967 /* AuthorizationStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationStepView.swift; sourceTree = "<group>"; };
+		FACC70D6A23846EF463C5D19 /* BadgeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		0BF68256AD6313F8346B4360 /* Badges */ = {
+			isa = PBXGroup;
+			children = (
+				CC0949D21D62661DFB26F8D3 /* BadgesView.swift */,
+			);
+			path = Badges;
+			sourceTree = "<group>";
+		};
+		1340EEC54A671603E6F9D423 /* Gamification */ = {
+			isa = PBXGroup;
+			children = (
+				FACC70D6A23846EF463C5D19 /* BadgeEngine.swift */,
+			);
+			path = Gamification;
+			sourceTree = "<group>";
+		};
 		154FEB8E745CB4595F212E2B /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
@@ -243,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				CEC05F51B58AF11215A75537 /* AppSelection */,
+				0BF68256AD6313F8346B4360 /* Badges */,
 				3C768F9148C5C355DF63913F /* Dashboard */,
 				166D4E3B2E72ACCCDA2724C9 /* Intercept */,
 				A3017E98B597B2BD03F50D78 /* Onboarding */,
@@ -325,6 +348,7 @@
 		7A86D44B1A410BB0A2E3B3EF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5D3D2E292405631FA8FEEBD /* Badge.swift */,
 				76F985331BBE7292B64A8E3B /* DailyFocus.swift */,
 				D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */,
 				CD37ADA464FC5C7889B973DC /* Schedule.swift */,
@@ -459,6 +483,7 @@
 			children = (
 				7A41C26F6EE49BBC0461E994 /* BlockingEngine */,
 				9FE3D2631F5904E3E581AAE6 /* DI */,
+				1340EEC54A671603E6F9D423 /* Gamification */,
 				7A86D44B1A410BB0A2E3B3EF /* Models */,
 				7A2F23815ECD638DB9AD6DD8 /* MonitoringEngine */,
 				CE09C3BF74228D5F9E7D14E1 /* Notifications */,
@@ -680,6 +705,9 @@
 				1C6243ABC5EF8F5F8997149F /* AppPickerStepView.swift in Sources */,
 				D619D9EC23F6AE1C4D76F9D4 /* AppSelectionView.swift in Sources */,
 				534327B8530619B9CEB3BEA3 /* AuthorizationStepView.swift in Sources */,
+				7F10E6BA9AFADBCD6910EC68 /* Badge.swift in Sources */,
+				81A35403AFA1AB39F67CF307 /* BadgeEngine.swift in Sources */,
+				F3734729931408B05C7B91D0 /* BadgesView.swift in Sources */,
 				C70A9B22099EB5DDB948F0B4 /* BlockingEngine.swift in Sources */,
 				D9E83C497354A68779DD05E6 /* DailyFocus.swift in Sources */,
 				77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */,

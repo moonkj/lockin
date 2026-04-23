@@ -24,12 +24,12 @@ struct AppPasscodeSetupView: View {
                         .foregroundStyle(AppColors.primaryText)
 
                     Text(step == .first
-                         ? "엄격 모드를 해제할 때 쓸 4자리 숫자 비번을 정해주세요. iPhone 잠금 암호와는 별개예요."
+                         ? "엄격 모드를 해제할 때 쓸 6자리 숫자 비번을 정해주세요. iPhone 잠금 암호와는 별개예요."
                          : "확인을 위해 한 번 더 입력해주세요.")
                         .font(.system(size: 14))
                         .foregroundStyle(AppColors.secondaryText)
 
-                    SecureField("숫자 4자리", text: step == .first ? $first : $second)
+                    SecureField("숫자 6자리", text: step == .first ? $first : $second)
                         .keyboardType(.numberPad)
                         .font(.system(size: 28, weight: .medium, design: .rounded))
                         .monospacedDigit()
@@ -39,12 +39,12 @@ struct AppPasscodeSetupView: View {
                                 .stroke(AppColors.divider, lineWidth: 1)
                         )
                         .onChange(of: first) { _ in
-                            first = String(first.prefix(4).filter(\.isNumber))
-                            if step == .first && first.count == 4 { advance() }
+                            first = String(first.prefix(6).filter(\.isNumber))
+                            if step == .first && first.count == 6 { advance() }
                         }
                         .onChange(of: second) { _ in
-                            second = String(second.prefix(4).filter(\.isNumber))
-                            if step == .confirm && second.count == 4 { advance() }
+                            second = String(second.prefix(6).filter(\.isNumber))
+                            if step == .confirm && second.count == 6 { advance() }
                         }
 
                     if let errorMessage {
@@ -73,12 +73,12 @@ struct AppPasscodeSetupView: View {
     private func advance() {
         switch step {
         case .first:
-            if first.count == 4 {
+            if first.count == 6 {
                 step = .confirm
                 errorMessage = nil
             }
         case .confirm:
-            if second.count == 4 {
+            if second.count == 6 {
                 if first == second {
                     _ = AppPasscodeStore.save(first)
                     onDone(true)

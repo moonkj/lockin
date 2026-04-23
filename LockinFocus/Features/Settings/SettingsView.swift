@@ -57,22 +57,27 @@ struct SettingsView: View {
                             get: { strictMode },
                             set: { newValue in
                                 if newValue {
+                                    // 앱 비번 필수. 없으면 토글을 거부하고 비번 설정으로 유도.
+                                    guard passcodeIsSet else {
+                                        showPasscodeSetup = true
+                                        return
+                                    }
                                     enableStrictMode()
                                 } else {
                                     // OFF 시도 → StrictModeUnlockView 로 유도.
-                                    // 토글은 성공 전까지 시각적으로 ON 유지.
                                     showStrictUnlock = true
                                 }
                             }
                         )) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("엄격 모드").foregroundStyle(AppColors.primaryText)
-                                Text("켜면 즉시 차단이 시작되고, 해제는 30초 + 문장 입력 + 본인 확인이 필요해요.")
+                                Text("켜면 즉시 차단이 시작되고, 해제는 30초 + 문장 입력 + 앱 비밀번호가 필요해요.")
                                     .font(.system(size: 12))
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
                         .tint(AppColors.primaryText)
+                        .disabled(!passcodeIsSet && !strictMode)
 
                         Button {
                             showPasscodeSetup = true
@@ -82,7 +87,7 @@ struct SettingsView: View {
                                     .foregroundStyle(AppColors.primaryText)
                                 Spacer()
                                 Text(passcodeIsSet ? "설정됨" : "미설정")
-                                    .foregroundStyle(AppColors.secondaryText)
+                                    .foregroundStyle(passcodeIsSet ? AppColors.secondaryText : AppColors.warning)
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(AppColors.secondaryText)
@@ -92,8 +97,8 @@ struct SettingsView: View {
                         Text("엄격 모드")
                     } footer: {
                         Text(passcodeIsSet
-                             ? "해제할 때 앱 비밀번호 또는 Face ID 중 선택할 수 있어요."
-                             : "앱 비밀번호를 설정하면 해제 방법을 선택할 수 있어요. (미설정 시 Face ID·기기 암호만 사용)")
+                             ? "해제할 때 이 앱 비밀번호를 입력하면 됩니다. (Face ID 는 사용하지 않아요.)"
+                             : "엄격 모드를 켜려면 먼저 앱 비밀번호를 설정해야 해요.")
                             .font(.system(size: 11))
                     }
 
@@ -138,6 +143,7 @@ struct SettingsView: View {
                 deps.blocking.clearShield()
                 deps.persistence.isManualFocusActive = false
                 deps.monitoring.stopMonitoring(name: "block_main")
+                BadgeEngine.onStrictSurvived(persistence: deps.persistence)
             }
         }
         .sheet(isPresented: $showPasscodeSetup) {
