@@ -57,4 +57,9 @@ protocol PersistenceStore: AnyObject {
     /// 하루 첫 앱 실행 보상(+5). 실제 적립되면 true.
     @discardableResult
     func awardDailyLoginIfNew() -> Bool
+
+    // MARK: - Admin / Debug tools
+
+    /// 관리자 전용: 주간 리포트 원천 기록을 통째로 덮어쓴다.
+    func debugSetDailyFocusHistory(_ entries: [DailyFocus])
 }

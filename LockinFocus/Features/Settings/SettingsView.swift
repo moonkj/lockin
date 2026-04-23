@@ -32,7 +32,7 @@ struct SettingsView: View {
                 AppColors.background.ignoresSafeArea()
 
                 List {
-                    Section("차단") {
+                    Section {
                         Button {
                             showAppPicker = true
                         } label: {
@@ -54,6 +54,8 @@ struct SettingsView: View {
                                 .foregroundStyle(AppColors.error)
                         }
                         .listRowBackground(AppColors.surface)
+                    } header: {
+                        sectionHeader("차단")
                     }
 
                     Section {
@@ -73,8 +75,10 @@ struct SettingsView: View {
                                 }
                             }
                         )) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("엄격 모드").foregroundStyle(AppColors.primaryText)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("엄격 모드")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(AppColors.primaryText)
                                 Text("켜면 즉시 차단이 시작되고, 해제는 30초 + 문장 입력 + 앱 비밀번호가 필요해요.")
                                     .font(.system(size: 12))
                                     .foregroundStyle(AppColors.secondaryText)
@@ -100,21 +104,24 @@ struct SettingsView: View {
                         }
                         .listRowBackground(AppColors.surface)
                     } header: {
-                        Text("엄격 모드")
+                        sectionHeader("엄격 모드")
                     } footer: {
                         Text(passcodeIsSet
                              ? "해제할 때 이 앱 비밀번호를 입력하면 됩니다. (Face ID 는 사용하지 않아요.)"
                              : "엄격 모드를 켜려면 먼저 앱 비밀번호를 설정해야 해요.")
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppColors.secondaryText)
                     }
 
-                    Section("앱 정보") {
+                    Section {
                         HStack {
                             Text("버전").foregroundStyle(AppColors.primaryText)
                             Spacer()
                             Text(appVersion).foregroundStyle(AppColors.secondaryText)
                         }
                         .listRowBackground(AppColors.surface)
+                    } header: {
+                        sectionHeader("앱 정보")
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -163,6 +170,15 @@ struct SettingsView: View {
         } message: {
             Text("모든 차단이 꺼졌어요. 홈으로 돌아가면 차단됐던 앱이 정상 열립니다.")
         }
+    }
+
+    /// 기본 iOS secondaryLabel 은 흰 배경 위에서 거의 안 보일 만큼 연해서
+    /// 직접 primaryText + 중간 weight 로 지정해 가독성을 확보.
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(AppColors.primaryText)
+            .textCase(nil)
     }
 
     private func row(title: String, trailing: String) -> some View {

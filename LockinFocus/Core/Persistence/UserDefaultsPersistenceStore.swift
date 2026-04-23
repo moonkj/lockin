@@ -205,6 +205,12 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         return true
     }
 
+    func debugSetDailyFocusHistory(_ entries: [DailyFocus]) {
+        if let data = try? encoder.encode(entries) {
+            defaults.set(data, forKey: PersistenceKeys.dailyFocusHistory)
+        }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }

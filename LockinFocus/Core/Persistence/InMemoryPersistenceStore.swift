@@ -153,6 +153,10 @@ final class InMemoryPersistenceStore: PersistenceStore {
         return true
     }
 
+    func debugSetDailyFocusHistory(_ entries: [DailyFocus]) {
+        history = entries
+    }
+
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()
         if focusScoreDate != today {
