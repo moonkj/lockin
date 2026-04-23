@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		05FDAEC033E4DCC0DF29567B /* NextScheduleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */; };
 		073D9557E253F67F0F68EF7F /* ScheduleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CACB2946DEE398B7959B5A /* ScheduleEditorView.swift */; };
+		0B48B7493D973FC938DBE6A4 /* FocusEndConfirmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C44235C4E0606767F7B65F /* FocusEndConfirmView.swift */; };
 		0E0FA37CC5D7C2E8AF119828 /* InterceptEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066DCB71D94F4B9303B14EDF /* InterceptEventTests.swift */; };
 		103F3EE57604C510F0A388BE /* NoopBlockingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E98561A891720BA1268508C /* NoopBlockingEngine.swift */; };
 		10968BDE652908473BF2C9B0 /* LockinFocusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C98439901996EBD355FA5E6 /* LockinFocusApp.swift */; };
@@ -148,6 +149,7 @@
 		628039D4169A9DA2D47BC702 /* ManagedSettingsBlockingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedSettingsBlockingEngine.swift; sourceTree = "<group>"; };
 		64DCB7C6B83A9A92D0190785 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		653F6B25ACAA94752B935876 /* AppPasscodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPasscodeStore.swift; sourceTree = "<group>"; };
+		69C44235C4E0606767F7B65F /* FocusEndConfirmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusEndConfirmView.swift; sourceTree = "<group>"; };
 		749BEF23E0F08587B35F4C60 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		74D1539DA2D384D2D62CC417 /* UserDefaultsPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPersistenceStore.swift; sourceTree = "<group>"; };
 		76F985331BBE7292B64A8E3B /* DailyFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyFocus.swift; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 			children = (
 				2EC34718370D9DBDAD5004B5 /* AllowedAppsCard.swift */,
 				12C78B4527F59D699D95EA69 /* DashboardView.swift */,
+				69C44235C4E0606767F7B65F /* FocusEndConfirmView.swift */,
 				295A2BDDA79EC295EC174FDD /* FocusScoreCard.swift */,
 				77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */,
 			);
@@ -713,6 +716,7 @@
 				77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */,
 				B749D701269FDF99AAC6D22B /* DeviceActivityMonitoringEngine.swift in Sources */,
 				8C5EC33CD2C1E9EE5B1B62DA /* FamilyActivitySelection+Display.swift in Sources */,
+				0B48B7493D973FC938DBE6A4 /* FocusEndConfirmView.swift in Sources */,
 				71D90CAEFBE9D462D47F33BA /* FocusScoreCard.swift in Sources */,
 				9A10EC44DF5A8B68FCCB9808 /* InMemoryPersistenceStore.swift in Sources */,
 				7E615D3F8B44901457020ECF /* InterceptEvent.swift in Sources */,

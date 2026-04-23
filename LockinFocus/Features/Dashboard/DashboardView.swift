@@ -18,6 +18,7 @@ struct DashboardView: View {
 
     @State private var showWeeklyReport: Bool = false
     @State private var showBadges: Bool = false
+    @State private var showFocusEndConfirm: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -83,6 +84,9 @@ struct DashboardView: View {
             BadgesView()
                 .environmentObject(deps)
         }
+        .sheet(isPresented: $showFocusEndConfirm) {
+            FocusEndConfirmView(onConfirm: endManualFocus)
+        }
     }
 
     @ViewBuilder
@@ -93,7 +97,8 @@ struct DashboardView: View {
                 if deps.persistence.isStrictModeActive {
                     showStrictActiveAlert = true
                 } else {
-                    toggleManualFocus()
+                    // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
+                    showFocusEndConfirm = true
                 }
             } else if allowedCount == 0 {
                 showEmptyAllowConfirm = true
@@ -179,32 +184,32 @@ struct DashboardView: View {
         isManualFocus = deps.persistence.isManualFocusActive
     }
 
-    /// 수동 집중 모드 토글. 스케줄과 독립적이며, 즉시 shield 적용/해제한다.
-    /// 종료 시 15분 이상 유지된 세션이라면 보너스 +15점(점수 규칙 B).
+    /// 수동 집중 **시작** 전용. 종료는 `endManualFocus()` 가 FocusEndConfirmView 경유해서 호출.
     private func toggleManualFocus() {
-        if isManualFocus {
-            let start = deps.persistence.manualFocusStartedAt
-            let now = Date()
-            deps.blocking.clearShield()
-            deps.persistence.isManualFocusActive = false
-            // 점수 규칙 B: 15분 이상 → +15점.
-            deps.persistence.awardSessionCompletionIfEligible(now: now)
-            // 뱃지: 누적 집중 시간 + 점수·스트릭·주간 평균.
-            if let start {
-                BadgeEngine.onManualFocusEnded(
-                    elapsed: now.timeIntervalSince(start),
-                    persistence: deps.persistence
-                )
-            }
-            BadgeEngine.onScoreChanged(persistence: deps.persistence)
-            isManualFocus = false
-        } else {
-            deps.blocking.applyWhitelist(for: selection)
-            deps.persistence.isManualFocusActive = true
-            deps.persistence.manualFocusStartedAt = Date()
-            BadgeEngine.onManualFocusStarted(persistence: deps.persistence)
-            isManualFocus = true
+        guard !isManualFocus else { return }
+        deps.blocking.applyWhitelist(for: selection)
+        deps.persistence.isManualFocusActive = true
+        deps.persistence.manualFocusStartedAt = Date()
+        BadgeEngine.onManualFocusStarted(persistence: deps.persistence)
+        isManualFocus = true
+    }
+
+    /// 수동 집중 종료 — FocusEndConfirmView 에서 "종료할게요" 확정 시만 호출.
+    /// 점수 규칙 B(15분 이상 → +15점) + 뱃지(누적 집중 시간, 점수, 스트릭, 주간 평균) 판정.
+    private func endManualFocus() {
+        let start = deps.persistence.manualFocusStartedAt
+        let now = Date()
+        deps.blocking.clearShield()
+        deps.persistence.isManualFocusActive = false
+        deps.persistence.awardSessionCompletionIfEligible(now: now)
+        if let start {
+            BadgeEngine.onManualFocusEnded(
+                elapsed: now.timeIntervalSince(start),
+                persistence: deps.persistence
+            )
         }
+        BadgeEngine.onScoreChanged(persistence: deps.persistence)
+        isManualFocus = false
     }
 
     private func save() {
