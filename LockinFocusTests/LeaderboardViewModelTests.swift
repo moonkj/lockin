@@ -36,6 +36,11 @@ final class LeaderboardViewModelTests: XCTestCase {
             case .failure(let err): throw err
             }
         }
+
+        var deletedUserIDs: [String] = []
+        func deleteRecord(userID: String) async throws {
+            deletedUserIDs.append(userID)
+        }
     }
 
     // MARK: - Helpers

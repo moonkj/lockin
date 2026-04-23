@@ -101,6 +101,20 @@ final class CloudKitLeaderboardService: ObservableObject {
         }
     }
 
+    /// 특정 userID 의 record 를 Public DB 에서 삭제.
+    /// 테스트 데이터 정리 / 사용자 요청 기반 기록 삭제에 사용.
+    func deleteRecord(userID: String) async throws {
+        let recordID = CKRecord.ID(recordName: userID)
+        do {
+            _ = try await database.deleteRecord(withID: recordID)
+        } catch let error as CKError where error.code == .unknownItem {
+            // 이미 없음 — 성공 처리.
+            return
+        } catch {
+            throw mapError(error)
+        }
+    }
+
     /// 모든 record 를 가져와 현재 period 에 해당하는 것만 남긴 뒤 점수 내림차순으로 정렬.
     func fetchRanking(period: LeaderboardPeriod, limit: Int = 500) async throws -> [LeaderboardEntry] {
         let query = CKQuery(
