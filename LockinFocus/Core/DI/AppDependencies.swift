@@ -54,6 +54,21 @@ final class PreviewPersistenceStore: PersistenceStore {
     func addFocusPoints(_ points: Int) {
         focusScoreToday = max(0, min(100, focusScoreToday + points))
     }
+
+    func dailyFocusHistory(lastDays: Int) -> [DailyFocus] {
+        // Preview 용 더미 데이터 — 최근 7일 요일별.
+        let sample = [24, 42, 71, 55, 90, 33, focusScoreToday]
+        let cal = Calendar.current
+        let today = Date()
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return sample.enumerated().map { idx, score in
+            let date = cal.date(byAdding: .day, value: idx - 6, to: today) ?? today
+            return DailyFocus(date: f.string(from: date), score: score)
+        }.suffix(lastDays).map { $0 }
+    }
 }
 
 final class PreviewBlockingEngine: BlockingEngine {

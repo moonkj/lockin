@@ -31,4 +31,7 @@ protocol PersistenceStore: AnyObject {
     /// Intercept 에서 "돌아가기" 를 누르는 것 같은 좋은 행동을 보상하는 데 쓴다.
     /// 자정 리셋 로직은 구현체가 담당.
     func addFocusPoints(_ points: Int)
+
+    /// 주간 리포트용 최근 N일치 집중 기록. 오늘 점수 리셋 시점에 자동 축적된다.
+    func dailyFocusHistory(lastDays: Int) -> [DailyFocus]
 }

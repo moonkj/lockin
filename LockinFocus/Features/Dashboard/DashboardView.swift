@@ -19,6 +19,7 @@ struct DashboardView: View {
     @State private var detoxSelection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var isDetoxActive: Bool = false
     @State private var showDetoxPicker: Bool = false
+    @State private var showWeeklyReport: Bool = false
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -89,6 +90,10 @@ struct DashboardView: View {
                 deps.persistence.detoxSelection = detoxSelection
             }
         }
+        .sheet(isPresented: $showWeeklyReport) {
+            WeeklyReportView()
+                .environmentObject(deps)
+        }
     }
 
     @ViewBuilder
@@ -143,12 +148,21 @@ struct DashboardView: View {
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 12) {
             Text("락인 포커스")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(AppColors.primaryText)
 
             Spacer()
+
+            Button {
+                showWeeklyReport = true
+            } label: {
+                Image(systemName: "chart.bar")
+                    .font(.system(size: 20))
+                    .foregroundStyle(AppColors.primaryText)
+            }
+            .buttonStyle(.plain)
 
             Button {
                 showSettings = true

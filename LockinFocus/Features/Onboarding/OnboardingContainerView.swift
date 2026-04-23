@@ -141,6 +141,9 @@ struct OnboardingContainerView: View {
             deps.monitoring.stopMonitoring(name: "block_main")
         }
 
+        // 주간 리포트 로컬 알림 등록 (권한 요청 포함).
+        WeeklyReportScheduler.enable()
+
         // RootView 가 deps.persistence.hasCompletedOnboarding 를 다시 읽도록 강제 재렌더.
         deps.objectWillChange.send()
     }

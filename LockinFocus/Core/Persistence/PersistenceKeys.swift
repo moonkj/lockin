@@ -39,4 +39,10 @@ enum PersistenceKeys {
 
     /// 현재 도파민 디톡스 모드 활성 여부.
     static let isDetoxActive = "isDetoxActive"
+
+    /// 최근 집중 기록(`[DailyFocus]` Codable). 주간 리포트 원천 데이터.
+    static let dailyFocusHistory = "dailyFocusHistory"
+
+    /// 주간 리포트 알림 ON/OFF (기본 true).
+    static let weeklyReportNotification = "weeklyReportNotification"
 }

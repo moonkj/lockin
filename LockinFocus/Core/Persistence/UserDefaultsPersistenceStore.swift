@@ -73,8 +73,46 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         let today = Self.todayString()
         let stored = defaults.string(forKey: PersistenceKeys.focusScoreDateKey)
         if stored != today {
+            // 어제(= 이전 기록) 점수를 history 에 적층.
+            if let prevDate = stored {
+                let prevScore = defaults.integer(forKey: SharedKeys.focusScoreToday)
+                appendHistory(DailyFocus(date: prevDate, score: prevScore))
+            }
             defaults.set(0, forKey: SharedKeys.focusScoreToday)
             defaults.set(today, forKey: PersistenceKeys.focusScoreDateKey)
+        }
+    }
+
+    func dailyFocusHistory(lastDays: Int) -> [DailyFocus] {
+        rolloverFocusScoreIfNewDay()
+        let all = readHistory()
+        // 오늘(진행 중) 점수도 포함해서 반환.
+        let today = DailyFocus(
+            date: Self.todayString(),
+            score: defaults.integer(forKey: SharedKeys.focusScoreToday)
+        )
+        var combined = all.filter { $0.date != today.date } + [today]
+        combined.sort { $0.date < $1.date }
+        return Array(combined.suffix(lastDays))
+    }
+
+    private func readHistory() -> [DailyFocus] {
+        guard let data = defaults.data(forKey: PersistenceKeys.dailyFocusHistory) else {
+            return []
+        }
+        return (try? decoder.decode([DailyFocus].self, from: data)) ?? []
+    }
+
+    private func appendHistory(_ entry: DailyFocus) {
+        var history = readHistory()
+        history.removeAll { $0.date == entry.date }
+        history.append(entry)
+        // 90일 초과분 drop.
+        if history.count > 90 {
+            history = Array(history.suffix(90))
+        }
+        if let data = try? encoder.encode(history) {
+            defaults.set(data, forKey: PersistenceKeys.dailyFocusHistory)
         }
     }
 

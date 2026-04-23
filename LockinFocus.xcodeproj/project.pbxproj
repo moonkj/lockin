@@ -29,7 +29,9 @@
 		4A8BFAB4BBAF79952F58C636 /* AppGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B8BE7E92D981AB99567935 /* AppGroup.swift */; };
 		534327B8530619B9CEB3BEA3 /* AuthorizationStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79ABA2AFED8F1277D0C9967 /* AuthorizationStepView.swift */; };
 		57E35FBD488C4A697951CE5C /* ScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC7DD93F50D33E6BBF77996 /* ScheduleTests.swift */; };
+		583D45F417036A10242F10CC /* WeeklyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81AAD98B8417EF535AF6A60 /* WeeklyReportView.swift */; };
 		5ADB81EF4E1557A05E1BC220 /* ScheduleStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAB627C6CEEA8F81B3715C5 /* ScheduleStepView.swift */; };
+		61A0FC6CCB80221A6B3BAD76 /* WeeklyReportScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCBD4B695A4D838A5E4515A /* WeeklyReportScheduler.swift */; };
 		64B2478D22AF15DAF5464A65 /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0366439E43C7603508733E5 /* DeviceActivityMonitorExtension.swift */; };
 		6C9FB985622F2E3DA37EA0B4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64DCB7C6B83A9A92D0190785 /* Assets.xcassets */; };
 		7093CAF5DD23DB744372FFC3 /* UserDefaultsPersistenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999147B975E461182ABFC26D /* UserDefaultsPersistenceStoreTests.swift */; };
@@ -55,6 +57,7 @@
 		D52A2858B5099E931374A6C1 /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD37ADA464FC5C7889B973DC /* Schedule.swift */; };
 		D5AE20AB3517B60B9A48F812 /* InterceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFDDD12B219434BC5E0D7C6 /* InterceptView.swift */; };
 		D619D9EC23F6AE1C4D76F9D4 /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47EB10BEBF04307CB751C5E3 /* AppSelectionView.swift */; };
+		D9E83C497354A68779DD05E6 /* DailyFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F985331BBE7292B64A8E3B /* DailyFocus.swift */; };
 		E4F139715842E283EF4AA863 /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D0CF2E38F552EFDDD527D5B /* PrimaryButton.swift */; };
 		E5046C1790887A708ABCF0F5 /* AppPasscodeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653F6B25ACAA94752B935876 /* AppPasscodeStore.swift */; };
 		EB8CDD8D374E862BC4E4E232 /* AppDependencies+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8C2BF3EB1E5C2A78CA352B /* AppDependencies+Live.swift */; };
@@ -131,6 +134,7 @@
 		30B8BE7E92D981AB99567935 /* AppGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroup.swift; sourceTree = "<group>"; };
 		312C4FD8B6F1F74B2701ACC7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3AFDDD12B219434BC5E0D7C6 /* InterceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterceptView.swift; sourceTree = "<group>"; };
+		3DCBD4B695A4D838A5E4515A /* WeeklyReportScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyReportScheduler.swift; sourceTree = "<group>"; };
 		3E98561A891720BA1268508C /* NoopBlockingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoopBlockingEngine.swift; sourceTree = "<group>"; };
 		47EB10BEBF04307CB751C5E3 /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		4D0CF2E38F552EFDDD527D5B /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
@@ -143,6 +147,7 @@
 		653F6B25ACAA94752B935876 /* AppPasscodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPasscodeStore.swift; sourceTree = "<group>"; };
 		749BEF23E0F08587B35F4C60 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		74D1539DA2D384D2D62CC417 /* UserDefaultsPersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsPersistenceStore.swift; sourceTree = "<group>"; };
+		76F985331BBE7292B64A8E3B /* DailyFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyFocus.swift; sourceTree = "<group>"; };
 		77AD5ECDADC1030848A204EF /* NextScheduleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextScheduleCard.swift; sourceTree = "<group>"; };
 		7A724848C91AC020F13069A2 /* PreviewEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewEngineTests.swift; sourceTree = "<group>"; };
 		818F5F39328805D4299B7C0A /* ShieldConfigurationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationProvider.swift; sourceTree = "<group>"; };
@@ -156,6 +161,7 @@
 		AB9C52BF72AE5B82CB91B430 /* DeviceActivityMonitorExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeviceActivityMonitorExtension.entitlements; sourceTree = "<group>"; };
 		B1BF834C282F98B0C0BC2D25 /* ShieldConfigurationExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldConfigurationExtension.entitlements; sourceTree = "<group>"; };
 		B21B03DBE1A6A641C55A2A60 /* DeviceActivityMonitorExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = DeviceActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B81AAD98B8417EF535AF6A60 /* WeeklyReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyReportView.swift; sourceTree = "<group>"; };
 		C0366439E43C7603508733E5 /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
 		C104BBA58BABF8B865454534 /* LockinFocus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LockinFocus.entitlements; sourceTree = "<group>"; };
 		C1078C15B7FA34E4A0316FC2 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
@@ -243,6 +249,7 @@
 				402C2FD4F1D34F97366F73B5 /* Schedule */,
 				C118D6C595CC0603EC0724FA /* Settings */,
 				7CECDEAD1B64EDF0FE7A889A /* Shared */,
+				91A4C17A70FB52E0F1AC6143 /* WeeklyReport */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -318,6 +325,7 @@
 		7A86D44B1A410BB0A2E3B3EF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				76F985331BBE7292B64A8E3B /* DailyFocus.swift */,
 				D79F31DC7BC0D1A09FE9EF0A /* InterceptEvent.swift */,
 				CD37ADA464FC5C7889B973DC /* Schedule.swift */,
 				8571C205A09CDE7A9D133FB9 /* TreeStage.swift */,
@@ -350,6 +358,14 @@
 				30B8BE7E92D981AB99567935 /* AppGroup.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		91A4C17A70FB52E0F1AC6143 /* WeeklyReport */ = {
+			isa = PBXGroup;
+			children = (
+				B81AAD98B8417EF535AF6A60 /* WeeklyReportView.swift */,
+			);
+			path = WeeklyReport;
 			sourceTree = "<group>";
 		};
 		9FE3D2631F5904E3E581AAE6 /* DI */ = {
@@ -405,6 +421,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		CE09C3BF74228D5F9E7D14E1 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				3DCBD4B695A4D838A5E4515A /* WeeklyReportScheduler.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		CEC05F51B58AF11215A75537 /* AppSelection */ = {
 			isa = PBXGroup;
 			children = (
@@ -437,6 +461,7 @@
 				9FE3D2631F5904E3E581AAE6 /* DI */,
 				7A86D44B1A410BB0A2E3B3EF /* Models */,
 				7A2F23815ECD638DB9AD6DD8 /* MonitoringEngine */,
+				CE09C3BF74228D5F9E7D14E1 /* Notifications */,
 				154FEB8E745CB4595F212E2B /* Persistence */,
 				8839DC326E472E0811EB85F8 /* Protocols */,
 				8AFA19B6F41D40D945903C65 /* Shared */,
@@ -656,6 +681,7 @@
 				D619D9EC23F6AE1C4D76F9D4 /* AppSelectionView.swift in Sources */,
 				534327B8530619B9CEB3BEA3 /* AuthorizationStepView.swift in Sources */,
 				C70A9B22099EB5DDB948F0B4 /* BlockingEngine.swift in Sources */,
+				D9E83C497354A68779DD05E6 /* DailyFocus.swift in Sources */,
 				77FA946FD4B7924EFA9B9A6B /* DashboardView.swift in Sources */,
 				79129CDFCA1515FBDB699BB3 /* DetoxPresetCard.swift in Sources */,
 				B749D701269FDF99AAC6D22B /* DeviceActivityMonitoringEngine.swift in Sources */,
@@ -684,6 +710,8 @@
 				84D4E46A88EDB0ADCF8BD53D /* TreeStage.swift in Sources */,
 				2C23D02DF5918E02867EC485 /* UserDefaultsPersistenceStore.swift in Sources */,
 				46D1B9D0F3B3804A178B1379 /* ValueStepView.swift in Sources */,
+				61A0FC6CCB80221A6B3BAD76 /* WeeklyReportScheduler.swift in Sources */,
+				583D45F417036A10242F10CC /* WeeklyReportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

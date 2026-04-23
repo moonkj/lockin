@@ -73,14 +73,33 @@ final class InMemoryPersistenceStore: PersistenceStore {
 
     // Focus score helpers (in-memory).
     private var focusScoreDate: String = ""
+    private var history: [DailyFocus] = []
 
     func addFocusPoints(_ points: Int) {
+        rolloverIfScoreDayChanged()
+        focusScoreToday = max(0, min(100, focusScoreToday + points))
+    }
+
+    func dailyFocusHistory(lastDays: Int) -> [DailyFocus] {
+        rolloverIfScoreDayChanged()
+        let today = DailyFocus(date: Self.todayString(), score: focusScoreToday)
+        var combined = history.filter { $0.date != today.date } + [today]
+        combined.sort { $0.date < $1.date }
+        return Array(combined.suffix(lastDays))
+    }
+
+    private func rolloverIfScoreDayChanged() {
         let today = Self.todayString()
         if focusScoreDate != today {
+            if !focusScoreDate.isEmpty {
+                history.append(DailyFocus(date: focusScoreDate, score: focusScoreToday))
+                if history.count > 90 {
+                    history = Array(history.suffix(90))
+                }
+            }
             focusScoreToday = 0
             focusScoreDate = today
         }
-        focusScoreToday = max(0, min(100, focusScoreToday + points))
     }
 
     private static func todayString() -> String {
