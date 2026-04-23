@@ -4,7 +4,7 @@ import SwiftUI
 /// 각 뱃지는 **일회성**(한 번 획득하면 영구) 이며, 규칙 판정은 `BadgeEngine` 이 담당.
 /// id(rawValue) 는 UserDefaults 에 저장되므로 **절대 변경 금지**.
 enum Badge: String, Codable, CaseIterable, Identifiable {
-    // 돌아가기(좋은 선택) 누적
+    // Shield 앞에서 "돌아가기" 선택을 집계하는 시리즈 (= 유혹을 극복한 횟수).
     case firstReturn
     case returnNovice    // 10회
     case returnAdept     // 50회
@@ -23,26 +23,26 @@ enum Badge: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .firstReturn:    return "첫 돌아감"
-        case .returnNovice:   return "돌아가기 10회"
-        case .returnAdept:    return "돌아가기 50회"
-        case .returnMaster:   return "돌아가기 100회"
+        case .firstReturn:    return "첫 집중 지킴"
+        case .returnNovice:   return "집중 지킴 10회"
+        case .returnAdept:    return "집중 지킴 50회"
+        case .returnMaster:   return "집중 지킴 100회"
         case .perfectDay:     return "완벽한 하루"
-        case .streak3Days:    return "3일 연속"
-        case .streak7Days:    return "한 주 집중"
-        case .strictSurvivor: return "엄격 생존자"
-        case .detoxStarter:   return "디톡스 시작"
+        case .streak3Days:    return "3일 연속 집중"
+        case .streak7Days:    return "일주일 완주"
+        case .strictSurvivor: return "엄격 모드 완주"
+        case .detoxStarter:   return "첫 디톡스"
         }
     }
 
     var detail: String {
         switch self {
-        case .firstReturn:    return "Shield 앞에서 처음으로 돌아섰어요."
-        case .returnNovice:   return "돌아가기를 10번 선택했어요."
-        case .returnAdept:    return "돌아가기를 50번 선택했어요."
-        case .returnMaster:   return "돌아가기를 100번 해낸 사람은 흔치 않아요."
-        case .perfectDay:     return "하루 100점을 채웠어요."
-        case .streak3Days:    return "3일 내리 집중 기록을 남겼어요."
+        case .firstReturn:    return "차단 화면에서 처음으로 돌아섰어요."
+        case .returnNovice:   return "차단 화면에서 10번 돌아섰어요."
+        case .returnAdept:    return "차단 화면에서 50번 돌아섰어요."
+        case .returnMaster:   return "차단 화면에서 100번 돌아선 사람은 흔치 않아요."
+        case .perfectDay:     return "하루 동안 100점을 모았어요."
+        case .streak3Days:    return "3일 동안 매일 집중 점수를 남겼어요."
         case .streak7Days:    return "7일 연속 집중을 이어갔어요."
         case .strictSurvivor: return "엄격 모드를 끝까지 겪고 해제했어요."
         case .detoxStarter:   return "도파민 디톡스 모드를 시작해봤어요."

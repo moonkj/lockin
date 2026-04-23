@@ -50,7 +50,7 @@ struct BadgesView: View {
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(AppColors.primaryText)
             Spacer()
-            Text("누적 돌아가기 \(deps.persistence.totalReturnCount)회")
+            Text("집중 지킴 \(deps.persistence.totalReturnCount)회")
                 .font(.system(size: 12))
                 .foregroundStyle(AppColors.secondaryText)
         }
