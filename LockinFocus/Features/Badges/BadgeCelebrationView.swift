@@ -76,6 +76,8 @@ struct BadgeCelebrationView: View {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.72)) {
                 appeared = true
             }
+            // 뱃지 획득 순간 긍정 햅틱 — 모달 등장과 함께.
+            Haptics.success()
         }
     }
 

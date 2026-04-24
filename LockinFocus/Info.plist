@@ -3,7 +3,16 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key>
-    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <string>ko</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>ko</string>
+        <string>en</string>
+        <string>ja</string>
+        <string>zh-Hans</string>
+        <string>fr</string>
+        <string>hi</string>
+    </array>
     <key>CFBundleDisplayName</key>
     <string>락인 포커스</string>
     <key>CFBundleExecutable</key>

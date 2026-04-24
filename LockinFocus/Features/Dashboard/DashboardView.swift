@@ -83,6 +83,8 @@ struct DashboardView: View {
 
                     FocusScoreCard(score: deps.persistence.focusScoreToday)
 
+                    StreakDotsCard(history: deps.persistence.dailyFocusHistory(lastDays: 7))
+
                     AllowedAppsCard(selection: selection) {
                         activeSheet = .appPicker
                     }

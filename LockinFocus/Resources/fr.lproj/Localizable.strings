@@ -1,0 +1,9 @@
+/*
+  Translation pending for fr.
+  See docs/gen_strings.py for the full translation table and regenerate this file
+  after the test suite is adjusted to be locale-agnostic (see issue noted in commit).
+  For now, this file is intentionally empty so iOS falls back to the development
+  region (ko) strings for all users — acceptable for MVP since the entire UI is
+  Korean. Enabling any translation requires updating ~90 ViewInspector tests that
+  assert Korean literal text.
+*/

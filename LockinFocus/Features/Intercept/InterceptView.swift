@@ -102,6 +102,8 @@ struct InterceptView: View {
     // MARK: - Actions
 
     private func handleReturn() {
+        // "돌아가기" 순간의 보상 햅틱 — 집중 방해 저항에 긍정 피드백.
+        Haptics.success()
         // 점수 규칙 B: 돌아가기 +5점 + 3분 쿨다운 + 하루 40점 한도.
         deps.persistence.awardReturnPoint()
         deps.persistence.interceptQueue.append(

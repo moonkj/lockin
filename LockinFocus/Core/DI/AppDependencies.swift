@@ -111,6 +111,8 @@ final class AppDependencies: ObservableObject {
             // end 뿐 아니라 start 도 함께 정리 — 다음 엄격 모드 시작 시 오래된 start 가 남지 않도록.
             persistence.strictModeEndAt = nil
             persistence.strictModeStartAt = nil
+            // 엄격 모드 완주 — 긍정 햅틱.
+            Haptics.success()
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
         }
     }
