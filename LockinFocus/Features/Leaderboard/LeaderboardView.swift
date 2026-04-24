@@ -1,88 +1,41 @@
 import SwiftUI
 
 /// CloudKit 기반 랭킹 — 일간/주간/월간 탭 + Top 3 메달 + 4~30위 리스트 + 내 순위.
+///
+/// 모든 비즈니스 로직 (cache · filter · load · submit) 은 `LeaderboardViewModel` 에
+/// 위치한다. View 는 vm.@Published 상태를 관찰해서 렌더만 한다.
 struct LeaderboardView: View {
     @EnvironmentObject var deps: AppDependencies
     @Environment(\.dismiss) private var dismiss
 
-    /// 서비스는 AppDependencies 에서 주입된 것을 사용한다 (테스트 mock 가능).
-    private var service: LeaderboardServiceProtocol { deps.leaderboardService }
-
-    @State private var period: LeaderboardPeriod
-    @State private var entries: [LeaderboardEntry]
-    @State private var isLoading: Bool = false
-    @State private var isSubmitting: Bool = false
-    @State private var errorMessage: String?
+    @StateObject private var vm: LeaderboardViewModel
     @State private var showNicknameSetup: Bool = false
-    @State private var scope: Scope = .all
     @State private var showFriendsSheet: Bool = false
-    /// CloudKit full fetch 캐시 — 1 회 fetch 로 3 period 모두 client-side 에서 커버.
-    @State private var rawEntries: [LeaderboardEntry] = []
-    @State private var rawEntriesFetchedAt: Date?
-    private static let rankingCacheTTL: TimeInterval = 60  // 초. 사용자 체감 갱신률 vs. 배터리.
 
-    enum Scope: String, CaseIterable, Identifiable {
-        case all, friends
-        var id: String { rawValue }
-        var label: String {
-            switch self {
-            case .all: return "전체"
-            case .friends: return "친구"
-            }
-        }
-    }
+    typealias Scope = LeaderboardViewModel.Scope
 
-    /// iCloud KV 조회가 동기라서 매 프레임 수십 번 부르면 UI 가 느려진다 —
-    /// 뷰 등장 시 한 번 캐시한 뒤 재사용.
-    @State private var myUserID: String
-
-    /// 기본 init — 런타임 사용 경로.
+    /// 기본 init — 런타임 사용 경로. VM 은 stub 으로 시작하고 .task 에서 실제 deps 와 reconnect.
     init() {
-        _period = State(initialValue: .daily)
-        _entries = State(initialValue: [])
-        _myUserID = State(initialValue: "")
+        _vm = StateObject(wrappedValue: LeaderboardViewModel(
+            service: _StubLeaderboardService(),
+            persistence: InMemoryPersistenceStore()
+        ))
     }
 
     /// 테스트 전용 init — 초기 entries/period/userID 주입해 medal/rankRow 렌더 분기 검증.
+    /// VM 의 stub service / InMemoryPersistenceStore 를 만들고 entries 를 직접 채운다.
     init(
         initialPeriod: LeaderboardPeriod,
         initialEntries: [LeaderboardEntry],
         initialMyUserID: String = ""
     ) {
-        _period = State(initialValue: initialPeriod)
-        _entries = State(initialValue: initialEntries)
-        _myUserID = State(initialValue: initialMyUserID)
-    }
-    private var myNickname: String? { deps.persistence.nickname }
-
-    /// 현재 scope (전체/친구) 에 해당하는 엔트리만 필터링.
-    /// 친구 scope 에서는 내 entry + 친구 entry 만 남기고 재정렬.
-    private var visibleEntries: [LeaderboardEntry] {
-        switch scope {
-        case .all:
-            return entries
-        case .friends:
-            let friendSet = Set(deps.persistence.friendUserIDs)
-            let allowed = friendSet.union([myUserID])
-            return entries
-                .filter { allowed.contains($0.userID) }
-                .sorted { $0.score(for: period) > $1.score(for: period) }
-        }
-    }
-
-    // 파라미터 버전: body 가 미리 계산한 visible 을 재활용해 재필터·재소트를 피한다.
-    private func myRank(in visible: [LeaderboardEntry]) -> Int? {
-        visible.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
-    }
-
-    private func myEntry(in visible: [LeaderboardEntry]) -> LeaderboardEntry? {
-        visible.first { $0.userID == myUserID }
-    }
-
-    private func myPercentile(in visible: [LeaderboardEntry]) -> Int? {
-        guard let rank = myRank(in: visible), !visible.isEmpty else { return nil }
-        let ratio = Double(rank) / Double(visible.count)
-        return max(1, min(100, Int(ceil(ratio * 100))))
+        _vm = StateObject(wrappedValue: LeaderboardViewModel(
+            service: _StubLeaderboardService(),
+            persistence: InMemoryPersistenceStore(),
+            initialPeriod: initialPeriod,
+            initialEntries: initialEntries,
+            initialMyUserID: initialMyUserID
+        ))
     }
 
     var body: some View {
@@ -91,10 +44,8 @@ struct LeaderboardView: View {
                 AppColors.background.ignoresSafeArea()
 
                 ScrollView {
-                    // body 진입 시 1회 계산해 하위 섹션에 전달 — rankRow 30 iterations 마다
-                    // visibleEntries 재구성 (filter + sort + UserDefaults 읽기) 막음.
-                    let visible = visibleEntries
-                    let maxScore = Double(visible.first?.score(for: period) ?? 1)
+                    let visible = vm.entries
+                    let maxScore = vm.maxScoreInPeriod
                     VStack(spacing: 20) {
                         scopePicker
                         periodPicker
@@ -107,11 +58,11 @@ struct LeaderboardView: View {
                     .readingWidth()
                 }
 
-                if isLoading && entries.isEmpty {
+                if vm.isLoading && vm.entries.isEmpty {
                     ProgressView().scaleEffect(1.2)
                 }
             }
-            .navigationTitle(scope == .friends ? "친구 랭킹" : "전체 랭킹")
+            .navigationTitle(vm.scope == .friends ? "친구 랭킹" : "전체 랭킹")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -129,19 +80,25 @@ struct LeaderboardView: View {
                         .accessibilityLabel("친구 관리")
 
                         Button {
-                            Task { await submitAndRefresh() }
+                            Task {
+                                await vm.submitAndRefresh(nicknameSetupTrigger: {
+                                    showNicknameSetup = true
+                                })
+                            }
                         } label: {
                             Image(systemName: "arrow.up.circle")
                                 .foregroundStyle(AppColors.primaryText)
                         }
-                        .disabled(isSubmitting)
+                        .disabled(vm.isSubmitting)
                         .accessibilityLabel("내 점수 랭킹에 등록")
                     }
                 }
             }
             .sheet(isPresented: $showNicknameSetup) {
                 NicknameSetupView { _ in
-                    Task { await submitAndRefresh() }
+                    Task {
+                        await vm.submitAndRefresh()
+                    }
                 }
                 .environmentObject(deps)
             }
@@ -150,40 +107,68 @@ struct LeaderboardView: View {
                     .environmentObject(deps)
             }
             .task {
-                // 뷰 첫 등장 시 iCloud KV 에서 userID 를 한 번만 조회해 캐시.
-                if myUserID.isEmpty {
-                    myUserID = deps.persistence.leaderboardUserID
+                vm.connect(service: deps.leaderboardService, persistence: deps.persistence)
+                vm.badgeAwardHandler = { [weak deps] badges in
+                    deps?.celebrate(badges)
                 }
-                await load()
-            }
-            .onChange(of: period) { _ in
-                Task { await load() }
+                await vm.onAppear()
             }
             .onReceive(deps.objectWillChange) { _ in
-                // iCloud KV didChangeExternallyNotification 수신 시 AppDependencies 가
-                // objectWillChange 를 쏜다 — 이때 다른 기기에서 userID 가 바뀌어
-                // 들어왔다면 stale 캐시를 교체. 매 tick 에도 호출되지만 UserDefaults
-                // 읽기 + 문자열 비교라 비용은 미미.
-                // 테스트 inject 경로(`initialMyUserID`)는 deps 의 @Published 를
-                // 건드리지 않아 여기에 도달하지 않으므로 주입 값이 보존된다.
-                let fresh = deps.persistence.leaderboardUserID
-                if !fresh.isEmpty && fresh != myUserID {
-                    myUserID = fresh
-                }
+                // iCloud KV 로 userID 가 다른 기기에서 변경됐을 때 vm 도 따라감.
+                vm.refreshMyUserIDIfChanged()
             }
         }
     }
 
     // MARK: - Sections
 
+    /// 친구 scope 에서 친구가 0 명일 때 보여주는 안내 + CTA.
+    private var emptyFriendsPlaceholder: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "person.2.circle")
+                .scaledFont(36)
+                .foregroundStyle(AppColors.secondaryText.opacity(0.6))
+                .accessibilityHidden(true)
+
+            VStack(spacing: 4) {
+                Text("아직 친구가 없어요")
+                    .scaledFont(15, weight: .semibold)
+                    .foregroundStyle(AppColors.primaryText)
+                Text("초대 링크를 공유하면 그룹 랭킹에서 함께 비교할 수 있어요.")
+                    .scaledFont(12)
+                    .foregroundStyle(AppColors.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                showFriendsSheet = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("친구 초대하기")
+                }
+                .scaledFont(13, weight: .semibold)
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 16)
+                .frame(height: 36)
+                .background(
+                    Capsule().fill(AppColors.primaryText)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+    }
+
     /// 전체 / 친구 범위 전환 세그먼트.
     private var scopePicker: some View {
         HStack(spacing: 0) {
             ForEach(Scope.allCases) { s in
-                let isSelected = scope == s
+                let isSelected = vm.scope == s
                 Button {
                     Haptics.selection()
-                    scope = s
+                    vm.scope = s
                 } label: {
                     Text(s.label)
                         .scaledFont(13, weight: isSelected ? .semibold : .regular)
@@ -209,9 +194,9 @@ struct LeaderboardView: View {
     private var periodPicker: some View {
         HStack(spacing: 8) {
             ForEach(LeaderboardPeriod.allCases) { p in
-                let isSelected = period == p
+                let isSelected = vm.period == p
                 Button {
-                    period = p
+                    vm.period = p
                 } label: {
                     Text(p.label)
                         .scaledFont(14, weight: isSelected ? .semibold : .regular)
@@ -236,7 +221,7 @@ struct LeaderboardView: View {
 
     private func topThreeSection(_ visible: [LeaderboardEntry]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("\(period.label) Top 3")
+            Text("\(vm.period.label) Top 3")
                 .scaledFont(13, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
@@ -273,12 +258,12 @@ struct LeaderboardView: View {
             Divider().frame(height: 28)
             summaryStat(
                 label: "내 등수",
-                value: myRank(in: visible).map { "\($0)등" } ?? "미등록"
+                value: vm.myRank.map { "\($0)등" } ?? "미등록"
             )
             Divider().frame(height: 28)
             summaryStat(
                 label: "상위",
-                value: myPercentile(in: visible).map { "\($0)%" } ?? "—"
+                value: vm.myPercentile.map { "\($0)%" } ?? "—"
             )
         }
         .padding(14)
@@ -303,19 +288,15 @@ struct LeaderboardView: View {
 
     private func rankingList(_ visible: [LeaderboardEntry], maxScore: Double) -> some View {
         VStack(spacing: 8) {
-            if let errorMessage {
+            if let errorMessage = vm.errorMessage {
                 Text(errorMessage)
                     .scaledFont(12)
                     .foregroundStyle(AppColors.error)
                     .padding(.vertical, 4)
             }
 
-            if scope == .friends && deps.persistence.friendUserIDs.isEmpty {
-                Text("아직 친구가 없어요.\n오른쪽 위 사람 아이콘에서 친구 초대 링크를 공유해보세요.")
-                    .scaledFont(13)
-                    .foregroundStyle(AppColors.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.vertical, 40)
+            if vm.scope == .friends && deps.persistence.friendUserIDs.isEmpty {
+                emptyFriendsPlaceholder
             } else if visible.count <= 3 {
                 Text("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")
                     .scaledFont(13)
@@ -331,7 +312,7 @@ struct LeaderboardView: View {
             }
 
             // 내 순위가 30위 밖이면 하단에 따로.
-            if let rank = myRank(in: visible), rank > 30, let me = myEntry(in: visible) {
+            if let rank = vm.myRank, rank > 30, let me = vm.myEntry {
                 Divider().padding(.vertical, 6)
                 Text("내 순위")
                     .scaledFont(12, weight: .semibold)
@@ -367,7 +348,7 @@ struct LeaderboardView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            Text("\(entry.score(for: period))점")
+            Text("\(entry.score(for: vm.period))점")
                 .scaledFont(11, weight: .medium)
                 .foregroundStyle(AppColors.secondaryText)
                 .monospacedDigit()
@@ -399,8 +380,8 @@ struct LeaderboardView: View {
     }
 
     private func rankRow(rank: Int, entry: LeaderboardEntry, maxScore: Double) -> some View {
-        let isMe = entry.userID == myUserID
-        let score = entry.score(for: period)
+        let isMe = entry.userID == vm.myUserID
+        let score = entry.score(for: vm.period)
         let ratio: Double = maxScore > 0 ? Double(score) / maxScore : 0
         // VoiceOver 용 통합 라벨 — 메달 색 · 등수 · 이름 · 점수를 한 번에 읽어준다.
         let medalPrefix: String = {
@@ -489,117 +470,21 @@ struct LeaderboardView: View {
             endPoint: .bottomTrailing
         )
     }
+}
 
-    // MARK: - Actions
+// MARK: - Stub service
 
-    @MainActor
-    private func refreshFriendNicknameCache(from fetched: [LeaderboardEntry]) {
-        let friendSet = Set(deps.persistence.friendUserIDs)
-        guard !friendSet.isEmpty else { return }
-        var cache = deps.persistence.friendNicknameCache
-        var changed = false
-        for entry in fetched where friendSet.contains(entry.userID) {
-            if cache[entry.userID] != entry.nickname {
-                cache[entry.userID] = entry.nickname
-                changed = true
-            }
-        }
-        if changed {
-            deps.persistence.friendNicknameCache = cache
-        }
+/// LeaderboardView 의 init 들이 VM 을 즉시 만들어야 하는 SwiftUI 제약 때문에 사용하는
+/// no-op service. 실제 deps 는 `.task` 에서 `vm.connect(...)` 로 주입된다.
+private final class _StubLeaderboardService: LeaderboardServiceProtocol {
+    func accountAvailable() async -> Bool { false }
+    func submit(
+        userID: String, nickname: String,
+        dailyScore: Int, weeklyTotal: Int, monthlyTotal: Int, now: Date
+    ) async throws -> LeaderboardEntry {
+        throw CloudKitLeaderboardService.ServiceError.iCloudUnavailable
     }
-
-    /// TTL 창이 살아있고 raw 캐시가 비어있지 않으면 true.
-    private var rawCacheFresh: Bool {
-        guard !rawEntries.isEmpty, let at = rawEntriesFetchedAt else { return false }
-        return Date().timeIntervalSince(at) < Self.rankingCacheTTL
-    }
-
-    /// rawEntries 를 현재 period 기준으로 filter + sort 해서 entries 에 반영.
-    /// period 탭 전환만 된 경우 (CloudKit 재fetch 없이) 즉시 갱신.
-    private func applyPeriodFilter() {
-        let currentID = LeaderboardPeriodID.current(period)
-        let filtered = rawEntries.filter { $0.periodID(for: period) == currentID }
-        entries = filtered.sorted { $0.score(for: period) > $1.score(for: period) }
-    }
-
-    private func load(forceRefresh: Bool = false) async {
-        // 캐시가 신선하면 client-side filter 만 재실행 — CloudKit 왕복 제거.
-        if !forceRefresh && rawCacheFresh {
-            applyPeriodFilter()
-            return
-        }
-
-        isLoading = true
-        errorMessage = nil
-        // 조회도 로그인된 iCloud 계정이 필요하다 — 로그아웃 상태면 조용히 빈 리스트가
-        // 뜨는 대신 명확한 에러 카피를 보여준다.
-        if !(await service.accountAvailable()) {
-            errorMessage = "iCloud 에 로그인해주세요. 설정 → Apple ID → iCloud."
-            entries = []
-            rawEntries = []
-            rawEntriesFetchedAt = nil
-            isLoading = false
-            return
-        }
-        do {
-            let all = try await service.fetchAllRaw(limit: 500)
-            rawEntries = all
-            rawEntriesFetchedAt = Date()
-            applyPeriodFilter()
-            // 친구 닉네임 캐시는 period 무관하게 전체에서 갱신 (raw 가 superset).
-            refreshFriendNicknameCache(from: all)
-            // 랭킹 로드 직후 순위 뱃지 판정 — 참가자 100명 이상이면 해당 구간·등수 뱃지 부여.
-            let unlocked = BadgeEngine.onRankingFetched(
-                entries: entries,
-                userID: myUserID,
-                persistence: deps.persistence
-            )
-            deps.celebrate(unlocked)
-        } catch let error as CloudKitLeaderboardService.ServiceError {
-            errorMessage = error.errorDescription
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-    @MainActor
-    private func submitAndRefresh() async {
-        // iCloud 를 먼저 체크 — 로그아웃 상태에서 nickname 시트를 먼저 띄우면
-        // 닉네임 저장 뒤 submit 에서 또 iCloud 에러가 나는 2-step 혼란이 생긴다.
-        guard await service.accountAvailable() else {
-            errorMessage = "iCloud 에 로그인되어 있어야 랭킹에 참여할 수 있어요."
-            return
-        }
-        guard let nickname = myNickname else {
-            showNicknameSetup = true
-            return
-        }
-        isSubmitting = true
-        errorMessage = nil
-
-        let dailyScore = deps.persistence.focusScoreToday
-        let recent7 = deps.persistence.dailyFocusHistory(lastDays: 7)
-        let weeklyTotal = recent7.reduce(0) { $0 + $1.score }
-        let recent30 = deps.persistence.dailyFocusHistory(lastDays: 30)
-        let monthlyTotal = recent30.reduce(0) { $0 + $1.score }
-
-        do {
-            _ = try await service.submit(
-                userID: deps.persistence.leaderboardUserID,
-                nickname: nickname,
-                dailyScore: dailyScore,
-                weeklyTotal: weeklyTotal,
-                monthlyTotal: monthlyTotal
-            )
-            // 내 기록을 방금 저장했으니 캐시 무효화 후 재fetch.
-            await load(forceRefresh: true)
-        } catch let error as CloudKitLeaderboardService.ServiceError {
-            errorMessage = error.errorDescription
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isSubmitting = false
-    }
+    func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry] { [] }
+    func fetchAllRaw(limit: Int) async throws -> [LeaderboardEntry] { [] }
+    func deleteRecord(userID: String) async throws -> Bool { false }
 }

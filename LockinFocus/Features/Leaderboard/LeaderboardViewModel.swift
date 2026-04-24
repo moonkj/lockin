@@ -26,12 +26,25 @@ final class LeaderboardViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (swappable via connect for SwiftUI init-time stubbing)
 
-    private let service: LeaderboardServiceProtocol
-    private let persistence: PersistenceStore
-    private let badgeAwardHandler: (([Badge]) -> Void)?
+    private(set) var service: LeaderboardServiceProtocol
+    private(set) var persistence: PersistenceStore
+    var badgeAwardHandler: (([Badge]) -> Void)?
     private let clock: () -> Date
+
+    /// 런타임에서 stub 으로 만들어진 VM 을 실제 deps 로 교체. View `.task` 에서 1회 호출.
+    /// 이미 stub 으로 시작된 entries / period 등의 @Published 상태는 유지하고 service +
+    /// persistence 만 갈아끼운다.
+    func connect(service: LeaderboardServiceProtocol, persistence: PersistenceStore) {
+        self.service = service
+        self.persistence = persistence
+        // 실제 persistence 로 갈아끼웠으니 myUserID 도 다시 산출.
+        let fresh = persistence.leaderboardUserID
+        if !fresh.isEmpty && (myUserID.isEmpty || myUserID != fresh) {
+            myUserID = fresh
+        }
+    }
 
     // MARK: - Inputs
 

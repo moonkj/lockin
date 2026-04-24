@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import FamilyControls
 
 /// MVP 설정 화면.
@@ -20,6 +21,7 @@ struct SettingsView: View {
     @State private var goalScore: Int = 80
     @State private var dailySummaryOn: Bool = false
     @State private var biometricOn: Bool = false
+    @State private var showNotificationDeniedAlert: Bool = false
 
     #if ADMIN_TOOLS_ENABLED
     @State private var versionTaps: Int = 0
@@ -225,8 +227,11 @@ struct SettingsView: View {
                             deps.persistence.dailySummaryNotification = newValue
                             if newValue {
                                 DailySummaryScheduler.enable { granted in
-                                    // 권한 거부 시 UI 토글 되돌림.
-                                    if !granted { dailySummaryOn = false }
+                                    if !granted {
+                                        // 권한 거부 — UI 토글 되돌리고 설정 앱 딥링크 안내.
+                                        dailySummaryOn = false
+                                        showNotificationDeniedAlert = true
+                                    }
                                 }
                             } else {
                                 DailySummaryScheduler.disable()
@@ -324,6 +329,16 @@ struct SettingsView: View {
             AdminPanelView().environmentObject(deps)
         }
         #endif
+        .alert("알림 권한이 꺼져 있어요", isPresented: $showNotificationDeniedAlert) {
+            Button("설정 앱 열기") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("나중에", role: .cancel) {}
+        } message: {
+            Text("설정 → 알림에서 권한을 켜야 하루 마감 알림을 받을 수 있어요.")
+        }
     }
 
     /// 기본 iOS secondaryLabel 은 흰 배경 위에서 거의 안 보일 만큼 연해서

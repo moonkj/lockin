@@ -13,13 +13,19 @@ enum WeeklyInsights {
     }
 
     /// 생성. `history` 는 오래된 → 최신 순 (최대 7개).
+    /// 우선순위 (위→아래) — 가장 의미 있는 규칙이 먼저.
     static func generate(history: [DailyFocus], best7d: Int?) -> String? {
         guard !history.isEmpty else { return nil }
         let scores = history.map(\.score)
         let nonZero = scores.filter { $0 > 0 }
         guard !nonZero.isEmpty else { return nil }
 
-        // 1. 최고 기록 근접 (1~5점 차). diff == 0 은 Rule 5 (오늘 = 주간최고) 가 잡는다.
+        // 1. 만점 (오늘 100점 첫 달성). 가장 강한 시그널.
+        if let todayScore = scores.last, todayScore == 100 {
+            return tr("오늘 100점 만점이에요. 정말 멋진 하루예요.")
+        }
+
+        // 2. 최고 기록 근접 (1~5점 차). diff == 0 은 Rule 6 (오늘 = 주간최고) 가 잡는다.
         if let best = best7d, best > 0, let todayScore = scores.last {
             let diff = best - todayScore
             if (1...5).contains(diff) && todayScore > 0 {
@@ -30,16 +36,19 @@ enum WeeklyInsights {
             }
         }
 
-        // 2. 연속 기록 (오늘 포함) 3일 이상. 구체성이 높아 평균 상승보다 우선.
+        // 3. 연속 기록 (오늘 포함) 3일 이상. 구체성이 높아 평균 상승보다 우선.
         var streak = 0
         for s in scores.reversed() {
             if s > 0 { streak += 1 } else { break }
+        }
+        if streak >= 7 {
+            return tr("이번 주 7일 모두 집중을 지켰어요. 정말 단단한 한 주예요.")
         }
         if streak >= 3 {
             return String(format: tr("%d일 연속 집중 중이에요. 꾸준함이 쌓이고 있어요."), streak)
         }
 
-        // 3. 주 평균 상승 — 전반부 vs 후반부.
+        // 4. 주 평균 상승 — 전반부 vs 후반부.
         if scores.count >= 4 {
             let mid = scores.count / 2
             let firstHalf = Array(scores.prefix(mid))
@@ -54,17 +63,28 @@ enum WeeklyInsights {
             }
         }
 
-        // 4. 첫 기록 복귀 — 0 점 날 뒤에 점수가 다시 생김.
+        // 5. 첫 기록 복귀 — 0 점 날 뒤에 점수가 다시 생김.
         if scores.count >= 2,
            let last = scores.last, last > 0,
            scores.dropLast().last == 0 {
             return tr("하루 쉬고 다시 돌아왔어요. 멋진 복귀예요.")
         }
 
-        // 5. 주간 최고치 갱신 (오늘이 7일 중 최고).
+        // 6. 주간 최고치 갱신 (오늘이 7일 중 최고).
         if let maxScore = scores.max(), let todayScore = scores.last,
            maxScore == todayScore, scores.count >= 2, maxScore > 0 {
             return String(format: tr("오늘이 이번 주 최고 %d점이에요."), maxScore)
+        }
+
+        // 7. 주간 평균 80+ — 안정적 패턴 인정.
+        if scores.count >= 5 {
+            let nonZeroScores = scores.filter { $0 > 0 }
+            if nonZeroScores.count >= 5 {
+                let avg = nonZeroScores.reduce(0, +) / nonZeroScores.count
+                if avg >= 80 {
+                    return String(format: tr("기록 있는 날 평균 %d점. 안정된 흐름이에요."), avg)
+                }
+            }
         }
 
         return nil
