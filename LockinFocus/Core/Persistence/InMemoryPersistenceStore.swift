@@ -201,6 +201,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var dailySummaryNotification: Bool = false
     var streakFreezeToken: Int = 0
     var streakFreezeLastWeek: String = ""
+    var pinnedBadgeIDs: [String] = []
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

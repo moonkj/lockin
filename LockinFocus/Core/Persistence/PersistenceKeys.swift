@@ -107,4 +107,8 @@ enum PersistenceKeys {
     /// Siri App Intent 가 앱 실행을 요청하며 남긴 pending route raw value. 앱이 foreground
     /// 진입 시 1회 consume 하고 `AppDependencies.Route` 로 매핑.
     static let pendingIntentRoute = "pendingIntentRoute"
+
+    /// 대시보드에 핀 고정된 뱃지 ID 배열. 최대 3개. 사용자가 뱃지 모음에서 long-press
+    /// 컨텍스트 메뉴로 토글.
+    static let pinnedBadgeIDs = "pinnedBadgeIDs"
 }

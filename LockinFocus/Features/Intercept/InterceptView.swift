@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WidgetKit
 
 /// 차단 앱 실행 후 Shield → 메인 앱으로 돌아온 사용자에게 10초의 자각 공간을 제공.
@@ -92,14 +93,33 @@ struct InterceptView: View {
         let seconds = deps.persistence.currentUnlockDelaySeconds()
         totalSeconds = seconds
         remaining = seconds
+        // VoiceOver 진입 시점 안내 — 시각 UI 만 보고 있는 사용자에겐 시각 카운트다운으로
+        // 충분하지만, VO 사용자는 숫자가 조용히 줄어드는 것을 모른다.
+        announceRemainingIfVO()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if remaining > 0 {
                 remaining -= 1
+                // 주요 분기점 (반절, 3초·2초·1초 남음) 에 음성 안내. 너무 빈번하면 오히려 방해.
+                if remaining == totalSeconds / 2 || remaining <= 3 {
+                    announceRemainingIfVO()
+                }
             }
             if remaining == 0 {
                 t.invalidate()
+                announceReadyIfVO()
             }
         }
+    }
+
+    private func announceRemainingIfVO() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        let msg = "\(remaining)초 남음"
+        UIAccessibility.post(notification: .announcement, argument: msg)
+    }
+
+    private func announceReadyIfVO() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        UIAccessibility.post(notification: .announcement, argument: "돌아가기 또는 열기를 선택할 수 있어요")
     }
 
     // MARK: - Actions

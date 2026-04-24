@@ -317,6 +317,16 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.streakFreezeLastWeek) }
     }
 
+    var pinnedBadgeIDs: [String] {
+        get { defaults.stringArray(forKey: PersistenceKeys.pinnedBadgeIDs) ?? [] }
+        set {
+            // 상한 3 개 + 중복 제거.
+            var unique: [String] = []
+            for id in newValue where !unique.contains(id) { unique.append(id) }
+            defaults.set(Array(unique.prefix(3)), forKey: PersistenceKeys.pinnedBadgeIDs)
+        }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }

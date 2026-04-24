@@ -129,9 +129,31 @@ struct BadgesView: View {
                 cellBody
             }
             .buttonStyle(.plain)
+            .contextMenu {
+                let pinned = deps.persistence.pinnedBadgeIDs.contains(badge.id)
+                Button {
+                    togglePin(badge: badge)
+                } label: {
+                    Label(pinned ? "대시보드에서 해제" : "대시보드에 핀 고정",
+                          systemImage: pinned ? "pin.slash" : "pin")
+                }
+            }
         } else {
             cellBody
         }
+    }
+
+    /// 핀 토글 — 최대 3개 상한. 이미 있으면 제거, 없으면 append.
+    private func togglePin(badge: Badge) {
+        var list = deps.persistence.pinnedBadgeIDs
+        if let idx = list.firstIndex(of: badge.id) {
+            list.remove(at: idx)
+        } else {
+            if list.count >= 3 { list.removeFirst() }  // 오래된 핀 밀어냄.
+            list.append(badge.id)
+        }
+        deps.persistence.pinnedBadgeIDs = list
+        Haptics.selection()
     }
 }
 

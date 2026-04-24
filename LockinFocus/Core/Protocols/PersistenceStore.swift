@@ -120,6 +120,11 @@ protocol PersistenceStore: AnyObject {
 
     /// 마지막 지급 ISO 주 (`yyyy-Www`). 비었으면 미지급.
     var streakFreezeLastWeek: String { get set }
+
+    // MARK: - Pinned badges
+
+    /// 대시보드에 고정된 뱃지 id 목록. 최대 3개. 순서는 사용자 pin 순.
+    var pinnedBadgeIDs: [String] { get set }
 }
 
 extension PersistenceStore {

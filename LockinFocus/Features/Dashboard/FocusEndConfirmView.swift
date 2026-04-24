@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 수동 집중 종료 전 개입 뷰.
 /// 하루 첫 번째 해제: 10초 원 파형 → 문장 한 줄 입력 → 6자리 비번 → 종료.
@@ -302,10 +303,27 @@ struct FocusEndConfirmView: View {
         // 카운트다운이 초기화돼선 안 된다 (remaining 을 0 으로 유지).
         guard step == .wave else { return }
         timer?.invalidate()
+        announceRemainingIfVO()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if remaining > 0 { remaining -= 1 }
-            if remaining == 0 { t.invalidate() }
+            if remaining == 5 || remaining == 3 || remaining == 1 {
+                announceRemainingIfVO()
+            }
+            if remaining == 0 {
+                t.invalidate()
+                announceReadyIfVO()
+            }
         }
+    }
+
+    private func announceRemainingIfVO() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        UIAccessibility.post(notification: .announcement, argument: "\(remaining)초 남음")
+    }
+
+    private func announceReadyIfVO() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        UIAccessibility.post(notification: .announcement, argument: "다음 단계로 진행할 수 있어요")
     }
 }
 

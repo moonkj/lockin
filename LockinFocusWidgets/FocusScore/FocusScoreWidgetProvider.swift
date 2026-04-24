@@ -24,12 +24,18 @@ struct FocusScoreWidgetProvider: TimelineProvider {
         let rawScore = defaults?.integer(forKey: SharedKeys.focusScoreToday) ?? 0
         let storedDate = defaults?.string(forKey: PersistenceKeys.focusScoreDateKey)
         let score = (storedDate == Self.todayString()) ? rawScore : 0
+        let isActive = defaults?.bool(forKey: PersistenceKeys.isManualFocusActive) ?? false
 
         let history: [Int]? = (family == .systemLarge)
             ? readWeeklyHistory(defaults: defaults, todayScore: score)
             : nil
 
-        return FocusScoreEntry(date: now, score: score, weeklyHistory: history)
+        return FocusScoreEntry(
+            date: now,
+            score: score,
+            weeklyHistory: history,
+            isManualFocusActive: isActive
+        )
     }
 
     private func readWeeklyHistory(defaults: UserDefaults?, todayScore: Int) -> [Int] {

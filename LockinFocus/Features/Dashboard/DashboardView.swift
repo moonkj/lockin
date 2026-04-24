@@ -89,6 +89,11 @@ struct DashboardView: View {
                         goal: deps.persistence.focusGoalScore
                     )
 
+                    PinnedBadgesStrip(
+                        pinnedIDs: deps.persistence.pinnedBadgeIDs,
+                        onTap: { _ in activeSheet = .badges }
+                    )
+
                     StreakDotsCard(
                         history: last7DaysHistory,
                         freezeTokens: deps.persistence.streakFreezeToken

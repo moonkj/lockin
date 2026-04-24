@@ -72,7 +72,9 @@ final class CloudKitLeaderboardService: ObservableObject {
         let recordID = CKRecord.ID(recordName: userID)
         let record: CKRecord
         do {
-            record = try await database.record(for: recordID)
+            record = try await withRetry { [database] in
+                try await database.record(for: recordID)
+            }
         } catch let error as CKError where error.code == .unknownItem {
             record = CKRecord(recordType: LeaderboardEntry.recordType, recordID: recordID)
         } catch {
@@ -88,22 +90,20 @@ final class CloudKitLeaderboardService: ObservableObject {
         record["monthlyMonth"] = LeaderboardPeriodID.monthly(now) as CKRecordValue
         record["updatedAt"] = now as CKRecordValue
 
-        do {
-            let saved = try await database.save(record)
-            return LeaderboardEntry(record: saved) ?? LeaderboardEntry(
-                userID: userID,
-                nickname: cleanNickname,
-                dailyScore: daily,
-                dailyDate: LeaderboardPeriodID.daily(now),
-                weeklyTotal: weekly,
-                weeklyWeek: LeaderboardPeriodID.weekly(now),
-                monthlyTotal: monthly,
-                monthlyMonth: LeaderboardPeriodID.monthly(now),
-                updatedAt: now
-            )
-        } catch {
-            throw mapError(error)
+        let saved: CKRecord = try await withRetry { [database] in
+            try await database.save(record)
         }
+        return LeaderboardEntry(record: saved) ?? LeaderboardEntry(
+            userID: userID,
+            nickname: cleanNickname,
+            dailyScore: daily,
+            dailyDate: LeaderboardPeriodID.daily(now),
+            weeklyTotal: weekly,
+            weeklyWeek: LeaderboardPeriodID.weekly(now),
+            monthlyTotal: monthly,
+            monthlyMonth: LeaderboardPeriodID.monthly(now),
+            updatedAt: now
+        )
     }
 
     /// 특정 userID 의 record 를 Public DB 에서 삭제.
@@ -139,17 +139,62 @@ final class CloudKitLeaderboardService: ObservableObject {
         )
         query.sortDescriptors = []
 
-        let matches: [(CKRecord.ID, Result<CKRecord, Error>)]
-        do {
-            (matches, _) = try await database.records(matching: query, resultsLimit: limit)
-        } catch {
-            throw mapError(error)
+        let matches: [(CKRecord.ID, Result<CKRecord, Error>)] = try await withRetry { [database] in
+            let (m, _) = try await database.records(matching: query, resultsLimit: limit)
+            return m
         }
 
         return matches.compactMap { _, result in
             guard let record = try? result.get() else { return nil }
             return LeaderboardEntry(record: record)
         }
+    }
+
+    // MARK: - Retry / backoff
+
+    /// 일시적 장애(네트워크/rate limit/service unavailable) 에만 적용되는 exponential backoff.
+    /// - 기본 1s → 2s → 4s (최대 3회, 총 ~7초). `retryAfterSeconds` userInfo 가 있으면 존중.
+    /// - 치명적 에러 (`.notAuthenticated`, schema 에러 등) 는 즉시 throw.
+    private func withRetry<T>(_ block: () async throws -> T) async throws -> T {
+        let maxAttempts = 3
+        var attempt = 0
+        var lastError: Error = CKError(.internalError)
+        while attempt < maxAttempts {
+            do {
+                return try await block()
+            } catch {
+                lastError = error
+                guard isRetryable(error), attempt < maxAttempts - 1 else {
+                    throw mapError(error)
+                }
+                let delay = retryDelay(for: error, attempt: attempt)
+                let nanos = UInt64(max(0.1, delay) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: nanos)
+                attempt += 1
+            }
+        }
+        throw mapError(lastError)
+    }
+
+    private func isRetryable(_ error: Error) -> Bool {
+        guard let ck = error as? CKError else { return false }
+        switch ck.code {
+        case .networkUnavailable, .networkFailure, .serviceUnavailable,
+             .requestRateLimited, .zoneBusy:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// retryAfter userInfo 가 있으면 우선 적용, 없으면 1s * 2^attempt.
+    private func retryDelay(for error: Error, attempt: Int) -> TimeInterval {
+        if let ck = error as? CKError,
+           let retryAfter = ck.userInfo[CKErrorRetryAfterKey] as? TimeInterval,
+           retryAfter > 0 {
+            return min(retryAfter, 30)  // 30초 상한 — 너무 긴 대기 방지.
+        }
+        return pow(2.0, Double(attempt))  // 1, 2, 4, ...
     }
 
     // MARK: - Error mapping
@@ -166,3 +211,4 @@ final class CloudKitLeaderboardService: ObservableObject {
         }
     }
 }
+
