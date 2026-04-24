@@ -91,10 +91,20 @@ struct ScheduleEditorView: View {
                                 .fill(AppColors.surface)
                         )
 
+                        if !canSave {
+                            // 요일을 0개로 저장하면 스케줄은 켜져 있어도 절대 발동 안 됨 —
+                            // 사용자가 이걸 모른채 저장하는 걸 막는 가드.
+                            Text("요일을 한 개 이상 골라야 저장할 수 있어요.")
+                                .scaledFont(12)
+                                .foregroundStyle(AppColors.secondaryText)
+                        }
+
                         PrimaryButton("저장") {
                             commit()
                             onSave()
                         }
+                        .disabled(!canSave)
+                        .opacity(canSave ? 1 : 0.4)
                     }
                     .padding(20)
                     .readingWidth()
@@ -113,6 +123,10 @@ struct ScheduleEditorView: View {
     }
 
     // MARK: - Helpers
+
+    private var canSave: Bool {
+        !schedule.weekdays.isEmpty
+    }
 
     private func toggleWeekday(_ w: Int) {
         if schedule.weekdays.contains(w) {

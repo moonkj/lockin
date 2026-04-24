@@ -44,6 +44,9 @@ struct DashboardView: View {
     @State private var schedule: Schedule
     @State private var isManualFocus: Bool
     @State private var toastMessage: String? = nil
+    /// 7일 스트릭 히스토리 캐시 — 매 tick 마다 body 가 재평가돼도 JSON 디코드를
+    /// 반복하지 않도록 load 시점에 한 번만 읽는다.
+    @State private var last7DaysHistory: [DailyFocus] = []
 
     init() {
         _selection = State(initialValue: FamilyActivitySelection())
@@ -83,7 +86,7 @@ struct DashboardView: View {
 
                     FocusScoreCard(score: deps.persistence.focusScoreToday)
 
-                    StreakDotsCard(history: deps.persistence.dailyFocusHistory(lastDays: 7))
+                    StreakDotsCard(history: last7DaysHistory)
 
                     AllowedAppsCard(selection: selection) {
                         activeSheet = .appPicker
@@ -171,17 +174,19 @@ struct DashboardView: View {
     @ViewBuilder
     private var manualFocusButton: some View {
         Button {
-            if isManualFocus {
-                // 엄격 모드 활성화 상태에서는 종료 버튼이 경고만 띄운다.
-                if deps.persistence.isStrictModeActive {
-                    showStrictActiveAlert = true
-                } else {
-                    // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
-                    activeSheet = .focusEndConfirm
-                }
+            // 엄격 모드가 활성 중이면 어떤 버튼 상태에서든 strict 경고가 최우선.
+            // (isManualFocus 플래그가 race 로 false 인 상태에서 user 가 다시 start 를
+            // 누르면 이전 구조에선 비번 토스트가 떠버리는 UX 버그가 있었다.)
+            if deps.persistence.isStrictModeActive {
+                showStrictActiveAlert = true
+            } else if isManualFocus {
+                // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
+                activeSheet = .focusEndConfirm
             } else if !AppPasscodeStore.isSet {
-                // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정이기 때문.
-                toastMessage = "앱 비밀번호를 먼저 설정해주세요. 설정에서 등록할 수 있어요."
+                // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정.
+                // 토스트로 안내하고 바로 비번 설정 시트를 띄워 2-step 마찰 제거.
+                toastMessage = "앱 비밀번호를 먼저 설정해주세요."
+                activeSheet = .passcodeSetup
             } else if allowedCount == 0 {
                 showEmptyAllowConfirm = true
             } else {
@@ -288,6 +293,9 @@ struct DashboardView: View {
         selection = deps.persistence.selection
         schedule = deps.persistence.schedule
         isManualFocus = deps.persistence.isManualFocusActive
+        // 7일 히스토리는 뷰 라이프사이클 (onAppear, 시트 닫힘) 에만 재로드. body 안에서
+        // 매 tick JSON 디코드하지 않도록 @State 캐시 사용.
+        last7DaysHistory = deps.persistence.dailyFocusHistory(lastDays: 7)
     }
 
     /// 수동 집중 **시작** 전용. 종료는 `endManualFocus()` 가 FocusEndConfirmView 경유해서 호출.

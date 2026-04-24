@@ -109,10 +109,19 @@ final class AppDependencies: ObservableObject {
 
     /// 전역 타이머 — 엄격 모드 활성 중에만 1초 해상도로 돌고,
     /// 비활성 중에는 10초 해상도로 낮춰 배터리 부담을 최소화한다.
-    /// publish 는 초 단위가 실제로 바뀌었을 때만 fire 해 SwiftUI 렌더 폭풍 방지.
+    /// 이전 구현은 publish 만 throttle 했지만 Timer 자체는 매초 wake-up 했음 —
+    /// 현재는 Timer 간격 자체를 strict 상태에 맞춰 재스케줄해 스레드 wake-up 도 줄임.
+    private var tickerIsFastMode: Bool = false
+
     private func startGlobalTicker() {
+        scheduleTicker(fast: persistence.isStrictModeActive)
+    }
+
+    private func scheduleTicker(fast: Bool) {
         tickTimer?.invalidate()
-        let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        tickerIsFastMode = fast
+        let interval: TimeInterval = fast ? 1 : 10
+        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.onTick()
             }
@@ -123,7 +132,13 @@ final class AppDependencies: ObservableObject {
     private func onTick() {
         let now = Date()
         let strictActive = persistence.isStrictModeActive
-        // 엄격 모드가 아니면 tick 을 매 10초에만 갱신 — 대부분 화면에서 재렌더 생략.
+
+        // strict 시작/종료에 맞춰 Timer 간격 재조정. scheduleTicker 가 기존 Timer 를 정리 후 재스케줄.
+        if strictActive != tickerIsFastMode {
+            scheduleTicker(fast: strictActive)
+        }
+
+        // strict 때만 매초 publish, 아니면 10초 간격으로 publish (Timer 도 이제 10초 간격이므로 사실상 매 fire).
         let secondsSinceLastPublish = now.timeIntervalSince(tick)
         if strictActive || secondsSinceLastPublish >= 10 {
             tick = now
@@ -139,8 +154,9 @@ final class AppDependencies: ObservableObject {
             // 엄격 모드 완주 — 긍정 햅틱.
             Haptics.success()
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
-            // Live Activity 도 함께 종료.
+            // Live Activity 도 함께 종료 + ticker 도 slow 로 전환.
             FocusActivityService.end()
+            scheduleTicker(fast: false)
         }
     }
 

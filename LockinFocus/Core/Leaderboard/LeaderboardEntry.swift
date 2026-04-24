@@ -21,12 +21,25 @@ enum LeaderboardPeriod: String, CaseIterable, Identifiable {
 /// - weekly: `yyyy-Www` (ISO 8601 주)
 /// - monthly: `yyyy-MM`
 enum LeaderboardPeriodID {
-    static func daily(_ now: Date = Date()) -> String {
+    // thread-safe static formatters — 인스턴스 할당 비용 (수백 μs) 제거.
+    private static let dailyFormatter: DateFormatter = {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .gregorian)
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: now)
+        return f
+    }()
+
+    private static let monthlyFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM"
+        return f
+    }()
+
+    static func daily(_ now: Date = Date()) -> String {
+        dailyFormatter.string(from: now)
     }
 
     static func weekly(_ now: Date = Date()) -> String {
@@ -36,11 +49,7 @@ enum LeaderboardPeriodID {
     }
 
     static func monthly(_ now: Date = Date()) -> String {
-        let f = DateFormatter()
-        f.calendar = Calendar(identifier: .gregorian)
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "yyyy-MM"
-        return f.string(from: now)
+        monthlyFormatter.string(from: now)
     }
 
     static func current(_ period: LeaderboardPeriod, now: Date = Date()) -> String {

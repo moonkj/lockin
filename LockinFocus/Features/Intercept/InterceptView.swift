@@ -79,6 +79,8 @@ struct InterceptView: View {
                 .scaledFont(48, weight: .semibold, design: .rounded)
                 .foregroundStyle(AppColors.primaryText)
                 .monospacedDigit()
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
         }
     }
 
@@ -106,11 +108,16 @@ struct InterceptView: View {
         // "돌아가기" 순간의 보상 햅틱 — 집중 방해 저항에 긍정 피드백.
         Haptics.success()
         // 점수 규칙 B: 돌아가기 +5점 + 3분 쿨다운 + 하루 40점 한도.
-        deps.persistence.awardReturnPoint()
+        // 엄격 모드 중엔 사용자가 "그래도 열기" 를 선택할 수 없어 돌아가기 말고는 길이 없다 —
+        // 이 경로에서 점수를 주면 앱을 무의미하게 여닫는 grind exploit 이 된다.
+        // strict 중엔 기록만 남기고 점수는 skip.
+        if !strictActive {
+            deps.persistence.awardReturnPoint()
+        }
         deps.persistence.interceptQueue.append(
             InterceptEvent(type: .returned, subjectKind: .application)
         )
-        // 뱃지 판정 + 축하 모달 큐잉.
+        // 뱃지 판정 + 축하 모달 큐잉. (strict 때는 점수가 안 올라 onScoreChanged 는 no-op.)
         var unlocked: [Badge] = []
         unlocked.append(contentsOf: BadgeEngine.onReturn(persistence: deps.persistence))
         unlocked.append(contentsOf: BadgeEngine.onScoreChanged(persistence: deps.persistence))

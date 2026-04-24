@@ -75,8 +75,20 @@ struct FocusEndConfirmView: View {
         typed.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// 한국어 입력기 IME 가 결합 자모(NFD) 로 보내주는 문자열을 표준 NFC 로 맞추고,
+    /// 공백이 두 번 들어간 경우(모바일 키보드 오토스페이스, 전각→반각 등)도 정규화.
+    /// `==` 비교 전에 양쪽 모두 이 정규화를 태운다.
+    private static func normalizeForMatch(_ s: String) -> String {
+        // precomposed = NFC 정규화. 자소 분리/결합 둘 다 같은 문자열로 수렴.
+        let nfc = s.precomposedStringWithCanonicalMapping
+        // 내부 공백이 둘 이상이면 하나로 접어 비교. 사용자가 쉼표 뒤에 실수로 스페이스
+        // 2번 쳐도 통과하도록.
+        let collapsedSpaces = nfc.split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ")
+        return collapsedSpaces
+    }
+
     private var sentenceMatches: Bool {
-        trimmedTyped == targetSentence
+        Self.normalizeForMatch(trimmedTyped) == Self.normalizeForMatch(targetSentence)
     }
 
     var body: some View {
@@ -256,6 +268,8 @@ struct FocusEndConfirmView: View {
                     .scaledFont(40, weight: .semibold, design: .rounded)
                     .foregroundStyle(AppColors.primaryText)
                     .monospacedDigit()
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
             }
         }
     }

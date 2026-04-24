@@ -43,6 +43,7 @@ struct AllowedAppsCard: View {
                     Image(systemName: "chevron.right")
                         .scaledFont(12, weight: .semibold)
                         .foregroundStyle(AppColors.secondaryText)
+                        .accessibilityHidden(true)
                 }
             }
             .padding(20)

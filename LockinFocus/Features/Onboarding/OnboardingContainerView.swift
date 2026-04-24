@@ -51,12 +51,14 @@ struct OnboardingContainerView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
+                            .accessibilityHidden(true)
                         Text("뒤로")
                     }
                     .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("뒤로")
             }
             Spacer()
         }

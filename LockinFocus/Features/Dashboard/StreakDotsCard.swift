@@ -47,6 +47,12 @@ struct StreakDotsCard: View {
     private func dayDot(for day: DailyFocus) -> some View {
         let stage = TreeStage.from(score: day.score)
         let filled = day.score > 0
+        // VoiceOver: 점만 보면 색상 차이로만 상태 전달 — 숫자와 요일을 함께 읽어주도록 combine.
+        let a11yLabel: String = {
+            if day.date.isEmpty { return "기록 없음" }
+            if filled { return "\(day.shortWeekday) \(day.score)점" }
+            return "\(day.shortWeekday) 0점"
+        }()
         return VStack(spacing: 6) {
             Circle()
                 .fill(filled ? stage.accentColor : Color.clear)
@@ -63,6 +69,8 @@ struct StreakDotsCard: View {
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(a11yLabel)
     }
 }
 

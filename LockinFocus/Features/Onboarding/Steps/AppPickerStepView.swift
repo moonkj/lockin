@@ -45,6 +45,7 @@ struct AppPickerStepView: View {
                         Image(systemName: "chevron.right")
                             .scaledFont(13, weight: .semibold)
                             .foregroundStyle(AppColors.secondaryText)
+                            .accessibilityHidden(true)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)

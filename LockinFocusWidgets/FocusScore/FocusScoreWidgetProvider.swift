@@ -50,11 +50,15 @@ struct FocusScoreWidgetProvider: TimelineProvider {
         return padding + last6 + [todayScore]
     }
 
-    private static func todayString() -> String {
+    private static let ymdFormatter: DateFormatter = {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .gregorian)
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
+        return f
+    }()
+
+    private static func todayString() -> String {
+        ymdFormatter.string(from: Date())
     }
 }

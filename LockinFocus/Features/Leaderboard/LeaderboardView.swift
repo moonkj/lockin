@@ -394,6 +394,17 @@ struct LeaderboardView: View {
         let score = entry.score(for: period)
         let maxScore = Double(visibleEntries.first?.score(for: period) ?? 1)
         let ratio: Double = maxScore > 0 ? Double(score) / maxScore : 0
+        // VoiceOver 용 통합 라벨 — 메달 색 · 등수 · 이름 · 점수를 한 번에 읽어준다.
+        let medalPrefix: String = {
+            switch rank {
+            case 1: return "금메달 1등"
+            case 2: return "은메달 2등"
+            case 3: return "동메달 3등"
+            default: return "\(rank)등"
+            }
+        }()
+        let meSuffix = isMe ? " 나" : ""
+        let a11yLabel = "\(medalPrefix), \(entry.nickname)\(meSuffix), \(score)점"
 
         return VStack(spacing: 6) {
             HStack(spacing: 12) {
@@ -409,7 +420,7 @@ struct LeaderboardView: View {
                 Text(entry.nickname)
                     .scaledFont(15, weight: isMe ? .semibold : .regular)
                     .foregroundStyle(AppColors.primaryText)
-                    .lineLimit(1)
+                    .lineLimit(2)
 
                 if isMe {
                     Text("나")
@@ -439,6 +450,7 @@ struct LeaderboardView: View {
                 }
             }
             .frame(height: 4)
+            .accessibilityHidden(true)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -446,6 +458,8 @@ struct LeaderboardView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(isMe ? AppColors.surface : Color.clear)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(a11yLabel)
     }
 
     // MARK: - Medal palette
@@ -519,12 +533,14 @@ struct LeaderboardView: View {
 
     @MainActor
     private func submitAndRefresh() async {
-        guard let nickname = myNickname else {
-            showNicknameSetup = true
-            return
-        }
+        // iCloud 를 먼저 체크 — 로그아웃 상태에서 nickname 시트를 먼저 띄우면
+        // 닉네임 저장 뒤 submit 에서 또 iCloud 에러가 나는 2-step 혼란이 생긴다.
         guard await service.accountAvailable() else {
             errorMessage = "iCloud 에 로그인되어 있어야 랭킹에 참여할 수 있어요."
+            return
+        }
+        guard let nickname = myNickname else {
+            showNicknameSetup = true
             return
         }
         isSubmitting = true

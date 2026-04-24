@@ -132,6 +132,7 @@ struct SettingsView: View {
                                 Image(systemName: "chevron.right")
                                     .scaledFont(12, weight: .semibold)
                                     .foregroundStyle(AppColors.secondaryText)
+                                    .accessibilityHidden(true)
                             }
                         }
                         .listRowBackground(AppColors.surface)
@@ -152,10 +153,12 @@ struct SettingsView: View {
                                 Spacer()
                                 Text(nickname ?? "미설정")
                                     .foregroundStyle(nickname == nil ? AppColors.warning : AppColors.secondaryText)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.trailing)
                                 Image(systemName: "chevron.right")
                                     .scaledFont(12, weight: .semibold)
                                     .foregroundStyle(AppColors.secondaryText)
+                                    .accessibilityHidden(true)
                             }
                         }
                         .listRowBackground(AppColors.surface)
@@ -257,6 +260,7 @@ struct SettingsView: View {
             Image(systemName: "chevron.right")
                 .scaledFont(12, weight: .semibold)
                 .foregroundStyle(AppColors.secondaryText)
+                .accessibilityHidden(true)
         }
     }
 

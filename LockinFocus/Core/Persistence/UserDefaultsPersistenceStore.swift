@@ -383,12 +383,19 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         }
     }
 
-    private static func todayString() -> String {
+    /// yyyy-MM-dd 포맷 고정 Date → String 변환기.
+    /// DateFormatter 생성은 수백 μs 비용이라 매 호출마다 만들면 hot path (onTick, body)
+    /// 에서 누적 코스트가 커진다. static let 은 thread-safe (iOS 7+).
+    private static let ymdFormatter: DateFormatter = {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .gregorian)
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
+        return f
+    }()
+
+    private static func todayString() -> String {
+        ymdFormatter.string(from: Date())
     }
 
     // MARK: - InterceptQueue (Codable 보관)

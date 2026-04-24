@@ -10,6 +10,8 @@ struct FriendsManagementView: View {
 
     @State private var friendIDs: [String] = []
     @State private var nicknameCache: [String: String] = [:]
+    @State private var pendingRemoval: (uid: String, nickname: String)?
+    @State private var showNicknameSetup: Bool = false
 
     private var myUserID: String { deps.persistence.leaderboardUserID }
     private var myNickname: String? { deps.persistence.nickname }
@@ -20,8 +22,9 @@ struct FriendsManagementView: View {
     }
 
     private var shareMessage: String {
+        // 앱 이름 노출 금지 (CLAUDE.md 카피 규칙) — 앱 이름 대신 기능 설명만.
         let nick = myNickname ?? "저"
-        return "\(nick)와 락인 포커스에서 그룹 랭킹을 해봐요. 링크를 눌러 친구로 추가하세요."
+        return "\(nick)와 함께 집중 점수 그룹 랭킹을 해봐요. 링크를 눌러 친구로 추가하세요."
     }
 
     var body: some View {
@@ -46,6 +49,26 @@ struct FriendsManagementView: View {
                     Button("닫기") { dismiss() }
                         .foregroundStyle(AppColors.secondaryText)
                 }
+            }
+            .confirmationDialog(
+                pendingRemoval.map { "\($0.nickname) 삭제" } ?? "친구 삭제",
+                isPresented: Binding(
+                    get: { pendingRemoval != nil },
+                    set: { if !$0 { pendingRemoval = nil } }
+                ),
+                titleVisibility: .visible,
+                presenting: pendingRemoval
+            ) { removal in
+                Button("삭제", role: .destructive) {
+                    performRemove(uid: removal.uid)
+                }
+                Button("취소", role: .cancel) { pendingRemoval = nil }
+            } message: { removal in
+                Text("\(removal.nickname)님을 친구 목록에서 삭제할까요? 그룹 랭킹에서 더 이상 보이지 않아요.")
+            }
+            .sheet(isPresented: $showNicknameSetup) {
+                NicknameSetupView { _ in }
+                    .environmentObject(deps)
             }
         }
         .onAppear(perform: reload)
@@ -78,9 +101,25 @@ struct FriendsManagementView: View {
                     )
                 }
             } else {
-                Text("먼저 랭킹에서 닉네임을 설정해야 초대 링크를 만들 수 있어요.")
-                    .scaledFont(12)
-                    .foregroundStyle(AppColors.error)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("초대 링크를 만들려면 먼저 닉네임이 필요해요.")
+                        .scaledFont(12)
+                        .foregroundStyle(AppColors.secondaryText)
+                    Button {
+                        showNicknameSetup = true
+                    } label: {
+                        Text("닉네임 설정하기")
+                            .scaledFont(14, weight: .semibold)
+                            .foregroundStyle(AppColors.primaryText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(AppColors.primaryText, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
         .padding(16)
@@ -131,7 +170,7 @@ struct FriendsManagementView: View {
             Spacer()
 
             Button {
-                remove(uid: uid)
+                pendingRemoval = (uid: uid, nickname: String(nickname))
             } label: {
                 Text("삭제")
                     .scaledFont(12)
@@ -150,6 +189,11 @@ struct FriendsManagementView: View {
     private func reload() {
         friendIDs = deps.persistence.friendUserIDs
         nicknameCache = deps.persistence.friendNicknameCache
+    }
+
+    private func performRemove(uid: String) {
+        remove(uid: uid)
+        pendingRemoval = nil
     }
 
     private func remove(uid: String) {
