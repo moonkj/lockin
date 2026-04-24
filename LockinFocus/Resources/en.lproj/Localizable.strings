@@ -134,3 +134,13 @@
 "획득 뱃지" = "Badges earned";
 "누적 집중 지킴" = "Total focus saves";
 "공유하기" = "Share";
+"오늘의 집중 돌아보기" = "Today's focus recap";
+"오늘 하루의 점수와 연속 기록을 한 번 돌아보세요." = "Take a moment to review today's score and streak.";
+"하루 마감 알림" = "Daily wrap-up reminder";
+"매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요." = "Gently reminded every night at 10 PM to review your score and streak.";
+"Face ID 로 잠금 해제" = "Unlock with Face ID";
+"생체 인식이 실패하거나 취소하면 자동으로 6자리 비번 입력으로 돌아와요." = "Falls back to the 6-digit passcode if biometrics fail or are canceled.";
+"집중 목표" = "Focus goal";
+"대시보드에서 목표까지 남은 점수와 달성 알림을 보여줘요." = "The dashboard shows points remaining and celebrates when you hit the goal.";
+"오늘의 목표" = "Today's goal";
+"알림" = "Notifications";

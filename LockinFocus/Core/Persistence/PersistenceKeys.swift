@@ -81,4 +81,10 @@ enum PersistenceKeys {
 
     /// 오늘 집중 목표 점수 (기본 80). 사용자가 Settings 에서 조정.
     static let focusGoalScore = "focusGoalScore"
+
+    /// 비밀번호 입력 시 Face ID / Touch ID 로 대체 허용. 기본 off (사용자 opt-in).
+    static let useBiometricForPasscode = "useBiometricForPasscode"
+
+    /// 하루 마감 요약 알림 on/off. 기본 off (사용자 opt-in).
+    static let dailySummaryNotification = "dailySummaryNotification"
 }

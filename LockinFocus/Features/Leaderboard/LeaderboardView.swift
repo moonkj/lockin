@@ -16,6 +16,10 @@ struct LeaderboardView: View {
     @State private var showNicknameSetup: Bool = false
     @State private var scope: Scope = .all
     @State private var showFriendsSheet: Bool = false
+    /// CloudKit full fetch 캐시 — 1 회 fetch 로 3 period 모두 client-side 에서 커버.
+    @State private var rawEntries: [LeaderboardEntry] = []
+    @State private var rawEntriesFetchedAt: Date?
+    private static let rankingCacheTTL: TimeInterval = 60  // 초. 사용자 체감 갱신률 vs. 배터리.
 
     enum Scope: String, CaseIterable, Identifiable {
         case all, friends
@@ -501,7 +505,27 @@ struct LeaderboardView: View {
         }
     }
 
-    private func load() async {
+    /// TTL 창이 살아있고 raw 캐시가 비어있지 않으면 true.
+    private var rawCacheFresh: Bool {
+        guard !rawEntries.isEmpty, let at = rawEntriesFetchedAt else { return false }
+        return Date().timeIntervalSince(at) < Self.rankingCacheTTL
+    }
+
+    /// rawEntries 를 현재 period 기준으로 filter + sort 해서 entries 에 반영.
+    /// period 탭 전환만 된 경우 (CloudKit 재fetch 없이) 즉시 갱신.
+    private func applyPeriodFilter() {
+        let currentID = LeaderboardPeriodID.current(period)
+        let filtered = rawEntries.filter { $0.periodID(for: period) == currentID }
+        entries = filtered.sorted { $0.score(for: period) > $1.score(for: period) }
+    }
+
+    private func load(forceRefresh: Bool = false) async {
+        // 캐시가 신선하면 client-side filter 만 재실행 — CloudKit 왕복 제거.
+        if !forceRefresh && rawCacheFresh {
+            applyPeriodFilter()
+            return
+        }
+
         isLoading = true
         errorMessage = nil
         // 조회도 로그인된 iCloud 계정이 필요하다 — 로그아웃 상태면 조용히 빈 리스트가
@@ -509,13 +533,18 @@ struct LeaderboardView: View {
         if !(await service.accountAvailable()) {
             errorMessage = "iCloud 에 로그인해주세요. 설정 → Apple ID → iCloud."
             entries = []
+            rawEntries = []
+            rawEntriesFetchedAt = nil
             isLoading = false
             return
         }
         do {
-            entries = try await service.fetchRanking(period: period)
-            // 친구 닉네임 캐시 갱신 — 친구 목록에 있는 userID 의 최신 닉네임을 들고 있다가 오프라인에서도 이름을 보여주기 위함.
-            refreshFriendNicknameCache(from: entries)
+            let all = try await service.fetchAllRaw(limit: 500)
+            rawEntries = all
+            rawEntriesFetchedAt = Date()
+            applyPeriodFilter()
+            // 친구 닉네임 캐시는 period 무관하게 전체에서 갱신 (raw 가 superset).
+            refreshFriendNicknameCache(from: all)
             // 랭킹 로드 직후 순위 뱃지 판정 — 참가자 100명 이상이면 해당 구간·등수 뱃지 부여.
             let unlocked = BadgeEngine.onRankingFetched(
                 entries: entries,
@@ -560,7 +589,8 @@ struct LeaderboardView: View {
                 weeklyTotal: weeklyTotal,
                 monthlyTotal: monthlyTotal
             )
-            await load()
+            // 내 기록을 방금 저장했으니 캐시 무효화 후 재fetch.
+            await load(forceRefresh: true)
         } catch let error as CloudKitLeaderboardService.ServiceError {
             errorMessage = error.errorDescription
         } catch {

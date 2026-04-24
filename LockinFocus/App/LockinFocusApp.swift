@@ -18,6 +18,11 @@ struct LockinFocusApp: App {
 
         // 권한이 이미 승인돼 있으면 주간 리포트 알림 스케줄 재등록.
         WeeklyReportScheduler.reschedule()
+
+        // 하루 마감 알림 — 사용자가 설정에서 on 해뒀으면 재등록, 아니면 정리.
+        let dailyOn = UserDefaults(suiteName: AppGroup.identifier)?
+            .bool(forKey: PersistenceKeys.dailySummaryNotification) ?? false
+        DailySummaryScheduler.rescheduleIfEnabled(when: dailyOn)
     }
 
     var body: some Scene {

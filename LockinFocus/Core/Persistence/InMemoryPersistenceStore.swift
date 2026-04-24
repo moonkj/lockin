@@ -195,6 +195,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var friendUserIDs: [String] = []
     var friendNicknameCache: [String: String] = [:]
     var focusGoalScore: Int = 80
+    var useBiometricForPasscode: Bool = false
+    var dailySummaryNotification: Bool = false
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

@@ -140,8 +140,30 @@ private struct WeeklyReport: View {
         return history.reduce(0) { $0 + $1.score } / history.count
     }
 
+    private var insight: String? {
+        let best = history.map(\.score).max()
+        return WeeklyInsights.generate(history: history, best7d: best)
+    }
+
     var body: some View {
         VStack(spacing: 16) {
+            if let insight {
+                // 숫자만 보는 리포트가 아니라 "의미" 한 줄을 맨 위에 — 조건 만족 시에만.
+                card {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "sparkles")
+                            .scaledFont(16)
+                            .foregroundStyle(AppColors.primaryText)
+                            .accessibilityHidden(true)
+                        Text(insight)
+                            .scaledFont(13)
+                            .foregroundStyle(AppColors.primaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+
             card {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("최근 7일 평균")

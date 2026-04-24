@@ -124,13 +124,19 @@ final class CloudKitLeaderboardService: ObservableObject {
 
     /// 모든 record 를 가져와 현재 period 에 해당하는 것만 남긴 뒤 점수 내림차순으로 정렬.
     func fetchRanking(period: LeaderboardPeriod, limit: Int = 500) async throws -> [LeaderboardEntry] {
+        let all = try await fetchAllRaw(limit: limit)
+        let currentID = LeaderboardPeriodID.current(period)
+        let filtered = all.filter { $0.periodID(for: period) == currentID }
+        return filtered.sorted { $0.score(for: period) > $1.score(for: period) }
+    }
+
+    /// 필터/정렬 없는 raw 목록. LeaderboardView 가 period 마다 재-호출하지 않고
+    /// 한 번 받은 뒤 client-side 로 3 탭을 모두 구성할 수 있게 한다.
+    func fetchAllRaw(limit: Int = 500) async throws -> [LeaderboardEntry] {
         let query = CKQuery(
             recordType: LeaderboardEntry.recordType,
             predicate: NSPredicate(value: true)
         )
-        // 정렬은 클라이언트에서 period 별로 수행한다. CloudKit 의 server sort 를
-        // 쓰려면 해당 필드에 sortable 인덱스가 필요하므로, 초기 스키마 설정 부담을
-        // 줄이기 위해 sortDescriptors 는 비워둔다.
         query.sortDescriptors = []
 
         let matches: [(CKRecord.ID, Result<CKRecord, Error>)]
@@ -140,14 +146,10 @@ final class CloudKitLeaderboardService: ObservableObject {
             throw mapError(error)
         }
 
-        let all: [LeaderboardEntry] = matches.compactMap { _, result in
+        return matches.compactMap { _, result in
             guard let record = try? result.get() else { return nil }
             return LeaderboardEntry(record: record)
         }
-
-        let currentID = LeaderboardPeriodID.current(period)
-        let filtered = all.filter { $0.periodID(for: period) == currentID }
-        return filtered.sorted { $0.score(for: period) > $1.score(for: period) }
     }
 
     // MARK: - Error mapping

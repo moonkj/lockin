@@ -296,6 +296,8 @@ final class PreviewPersistenceStore: PersistenceStore {
     var friendUserIDs: [String] = []
     var friendNicknameCache: [String: String] = [:]
     var focusGoalScore: Int = 80
+    var useBiometricForPasscode: Bool = false
+    var dailySummaryNotification: Bool = false
 
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue

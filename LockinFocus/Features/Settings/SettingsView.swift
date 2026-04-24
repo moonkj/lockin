@@ -18,6 +18,8 @@ struct SettingsView: View {
     @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
     @State private var nickname: String? = nil
     @State private var goalScore: Int = 80
+    @State private var dailySummaryOn: Bool = false
+    @State private var biometricOn: Bool = false
 
     #if ADMIN_TOOLS_ENABLED
     @State private var versionTaps: Int = 0
@@ -214,6 +216,44 @@ struct SettingsView: View {
                     }
 
                     Section {
+                        Toggle(isOn: $dailySummaryOn) {
+                            Text("하루 마감 알림")
+                                .foregroundStyle(AppColors.primaryText)
+                        }
+                        .tint(AppColors.primaryText)
+                        .onChange(of: dailySummaryOn) { newValue in
+                            deps.persistence.dailySummaryNotification = newValue
+                            if newValue {
+                                DailySummaryScheduler.enable { granted in
+                                    // 권한 거부 시 UI 토글 되돌림.
+                                    if !granted { dailySummaryOn = false }
+                                }
+                            } else {
+                                DailySummaryScheduler.disable()
+                            }
+                        }
+                        .listRowBackground(AppColors.surface)
+
+                        if BiometricAuth.isAvailable {
+                            Toggle(isOn: $biometricOn) {
+                                Text("Face ID 로 잠금 해제")
+                                    .foregroundStyle(AppColors.primaryText)
+                            }
+                            .tint(AppColors.primaryText)
+                            .onChange(of: biometricOn) { newValue in
+                                deps.persistence.useBiometricForPasscode = newValue
+                            }
+                            .listRowBackground(AppColors.surface)
+                        }
+                    } header: {
+                        sectionHeader("알림")
+                    } footer: {
+                        Text("매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요.\n생체 인식이 실패하거나 취소하면 자동으로 6자리 비번 입력으로 돌아와요.")
+                            .scaledFont(12)
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+
+                    Section {
                         HStack {
                             Text("버전").foregroundStyle(AppColors.primaryText)
                             Spacer()
@@ -324,6 +364,8 @@ struct SettingsView: View {
         passcodeIsSet = AppPasscodeStore.isSet
         nickname = deps.persistence.nickname
         goalScore = deps.persistence.focusGoalScore
+        dailySummaryOn = deps.persistence.dailySummaryNotification
+        biometricOn = deps.persistence.useBiometricForPasscode
     }
 
     /// 엄격 모드 시작: 종료 시각을 설정하고 즉시 shield 적용 + 수동 집중 ON.

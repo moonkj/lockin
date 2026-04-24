@@ -134,3 +134,13 @@
 "획득 뱃지" = "Badges obtenus";
 "누적 집중 지킴" = "Total sauvegardes focus";
 "공유하기" = "Partager";
+"오늘의 집중 돌아보기" = "Bilan de la concentration d'aujourd'hui";
+"오늘 하루의 점수와 연속 기록을 한 번 돌아보세요." = "Prenez un moment pour revoir votre score et votre série.";
+"하루 마감 알림" = "Rappel de fin de journée";
+"매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요." = "Rappel discret chaque soir à 22 h pour revoir votre score et votre série.";
+"Face ID 로 잠금 해제" = "Déverrouiller avec Face ID";
+"생체 인식이 실패하거나 취소하면 자동으로 6자리 비번 입력으로 돌아와요." = "Retour au code à 6 chiffres si la biométrie échoue ou est annulée.";
+"집중 목표" = "Objectif de concentration";
+"대시보드에서 목표까지 남은 점수와 달성 알림을 보여줘요." = "Le tableau de bord affiche les points restants et célèbre l'atteinte de l'objectif.";
+"오늘의 목표" = "Objectif du jour";
+"알림" = "Notifications";

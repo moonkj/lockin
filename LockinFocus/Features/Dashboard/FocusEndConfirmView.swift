@@ -241,11 +241,16 @@ struct FocusEndConfirmView: View {
 
     // MARK: - Step 3: passcode
 
+    @EnvironmentObject private var deps: AppDependencies
+
     private var passcodeStep: some View {
-        AppPasscodeEntryView {
-            onConfirm()
-            dismiss()
-        }
+        AppPasscodeEntryView(
+            onSuccess: {
+                onConfirm()
+                dismiss()
+            },
+            useBiometric: deps.persistence.useBiometricForPasscode
+        )
     }
 
     // MARK: - Ripples

@@ -292,6 +292,16 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         }
     }
 
+    var useBiometricForPasscode: Bool {
+        get { defaults.bool(forKey: PersistenceKeys.useBiometricForPasscode) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.useBiometricForPasscode) }
+    }
+
+    var dailySummaryNotification: Bool {
+        get { defaults.bool(forKey: PersistenceKeys.dailySummaryNotification) }
+        set { defaults.set(newValue, forKey: PersistenceKeys.dailySummaryNotification) }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }

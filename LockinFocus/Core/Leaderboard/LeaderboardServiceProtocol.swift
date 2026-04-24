@@ -18,6 +18,11 @@ protocol LeaderboardServiceProtocol: AnyObject {
 
     func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry]
 
+    /// period 필터/정렬을 하지 않은 raw 목록. LeaderboardView 의 3-period cache 용 —
+    /// 한 번 fetch 로 일간/주간/월간 세 탭 모두 client-side 필터로 커버.
+    /// 기본 구현은 fetchRanking(.daily) 에 위임 (backward compat); production 구현이 오버라이드.
+    func fetchAllRaw(limit: Int) async throws -> [LeaderboardEntry]
+
     /// 특정 userID 의 record 를 Public DB 에서 삭제.
     /// 반환값: true = 실제로 지웠음, false = 애초에 record 가 없었음.
     @discardableResult
@@ -46,6 +51,12 @@ extension LeaderboardServiceProtocol {
 
     func fetchRanking(period: LeaderboardPeriod) async throws -> [LeaderboardEntry] {
         try await fetchRanking(period: period, limit: 500)
+    }
+
+    func fetchAllRaw(limit: Int = 500) async throws -> [LeaderboardEntry] {
+        // Mock / legacy 구현은 fetchRanking(.daily) 로 fallback.
+        // 실제 production 구현은 period 필터를 skip 한 full list 를 반환.
+        try await fetchRanking(period: .daily, limit: limit)
     }
 }
 

@@ -97,6 +97,14 @@ protocol PersistenceStore: AnyObject {
 
     /// 오늘 집중 목표 점수 (0…100). 기본 80. Dashboard 에서 진척 라벨에 쓰인다.
     var focusGoalScore: Int { get set }
+
+    // MARK: - Toggles
+
+    /// 비밀번호 입력 시 Face ID / Touch ID 대체 허용 여부. 기본 false.
+    var useBiometricForPasscode: Bool { get set }
+
+    /// 하루 마감 요약 로컬 알림 on/off. 기본 false.
+    var dailySummaryNotification: Bool { get set }
 }
 
 extension PersistenceStore {
