@@ -43,14 +43,29 @@ final class LeaderboardViewModelTests: XCTestCase {
             deletedUserIDs.append(userID)
             return true
         }
+
+        var fetchAllRawCallCount = 0
+        var fetchAllRawResult: Result<[LeaderboardEntry], Error>?
+        func fetchAllRaw(limit: Int) async throws -> [LeaderboardEntry] {
+            fetchAllRawCallCount += 1
+            if let result = fetchAllRawResult {
+                switch result {
+                case .success(let list): return list
+                case .failure(let err): throw err
+                }
+            }
+            // Override 가 없으면 기본 fetchRanking fallback 경로.
+            return try await fetchRanking(period: .daily, limit: limit)
+        }
     }
 
     // MARK: - Helpers
 
+    /// VM 이 today-period filter 를 적용하므로 test entries 는 오늘 날짜로 만든다.
     private func makeEntry(userID: String, daily: Int = 0) -> LeaderboardEntry {
         LeaderboardEntry(
             userID: userID, nickname: "N-\(userID)",
-            dailyScore: daily, dailyDate: "2026-04-23",
+            dailyScore: daily, dailyDate: LeaderboardPeriodID.daily(),
             weeklyTotal: 0, weeklyWeek: "",
             monthlyTotal: 0, monthlyMonth: "",
             updatedAt: Date()
@@ -212,5 +227,83 @@ final class LeaderboardViewModelTests: XCTestCase {
     func testMyPercentile_nilWhenEmpty() async {
         let (vm, _, _) = makeVM()
         XCTAssertNil(vm.myPercentile)
+    }
+
+    // MARK: - Round 4 VM expansion: 60s TTL cache + scope
+
+    func testLoad_useRawCacheWhenFresh_skipsSecondFetch() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchAllRawResult = .success([makeEntry(userID: "a"), makeEntry(userID: "b")])
+        await vm.load()
+        let firstCount = svc.fetchAllRawCallCount
+        XCTAssertEqual(firstCount, 1)
+        // 동일 period 재load — 캐시 신선하면 CK 호출 안 함.
+        await vm.load()
+        XCTAssertEqual(svc.fetchAllRawCallCount, firstCount, "cache TTL 내 재load 는 CloudKit 호출 skip")
+    }
+
+    func testLoad_forceRefresh_overridesCache() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchAllRawResult = .success([makeEntry(userID: "a")])
+        await vm.load()
+        XCTAssertEqual(svc.fetchAllRawCallCount, 1)
+        await vm.load(forceRefresh: true)
+        XCTAssertEqual(svc.fetchAllRawCallCount, 2, "forceRefresh 는 캐시 무시")
+    }
+
+    func testPeriodChange_usesCachedRawEntries_noCloudKitRoundTrip() async {
+        let (vm, svc, _) = makeVM()
+        svc.fetchAllRawResult = .success([makeEntry(userID: "a")])
+        await vm.load()
+        XCTAssertEqual(svc.fetchAllRawCallCount, 1)
+        // period 변경 → didSet 이 applyFilter 호출 (또는 fresh 면 load skip).
+        vm.period = .weekly
+        // applyFilter 는 동기 — 추가 CK 호출 없어야.
+        XCTAssertEqual(svc.fetchAllRawCallCount, 1, "period 토글은 client-side 필터로 끝")
+    }
+
+    func testScope_friendsWithNoFriends_showsOnlyMyEntry() async {
+        let (vm, svc, store) = makeVM()
+        store.friendUserIDs = []
+        svc.fetchAllRawResult = .success([
+            makeEntry(userID: "other1"),
+            makeEntry(userID: vm.myUserID),
+            makeEntry(userID: "other2")
+        ])
+        await vm.load()
+        vm.scope = .friends
+        XCTAssertEqual(vm.entries.count, 1)
+        XCTAssertEqual(vm.entries.first?.userID, vm.myUserID)
+    }
+
+    func testScope_friendsWithFriends_includesMePlusFriends() async {
+        let (vm, svc, store) = makeVM()
+        store.friendUserIDs = ["f1", "f2"]
+        svc.fetchAllRawResult = .success([
+            makeEntry(userID: "stranger"),
+            makeEntry(userID: vm.myUserID),
+            makeEntry(userID: "f1"),
+            makeEntry(userID: "f2")
+        ])
+        await vm.load()
+        vm.scope = .friends
+        let ids = Set(vm.entries.map { $0.userID })
+        XCTAssertEqual(ids, [vm.myUserID, "f1", "f2"])
+        XCTAssertFalse(ids.contains("stranger"))
+    }
+
+    func testRefreshMyUserIDIfChanged_updatesWhenStoreChanges() async {
+        let store = InMemoryPersistenceStore()
+        // InMemory 의 leaderboardUserID 는 UUID 로 한 번 고정됨 — 새 인스턴스로 교체 시뮬.
+        let svc = MockLeaderboardService()
+        let vm = LeaderboardViewModel(
+            service: svc,
+            persistence: store,
+            initialMyUserID: "old-injected"
+        )
+        XCTAssertEqual(vm.myUserID, "old-injected")
+        // store 의 userID 는 UUID 로 생성된 값 — 명시 호출 시 그 값으로 갱신.
+        vm.refreshMyUserIDIfChanged()
+        XCTAssertEqual(vm.myUserID, store.leaderboardUserID)
     }
 }
