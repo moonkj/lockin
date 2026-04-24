@@ -78,4 +78,7 @@ enum PersistenceKeys {
 
     /// 친구 닉네임 캐시 (`[String: String]` userID → 최근 본 닉네임). 오프라인에서도 친구 라벨을 보여주기 위한 캐시.
     static let friendNicknameCache = "friendNicknameCache"
+
+    /// 오늘 집중 목표 점수 (기본 80). 사용자가 Settings 에서 조정.
+    static let focusGoalScore = "focusGoalScore"
 }

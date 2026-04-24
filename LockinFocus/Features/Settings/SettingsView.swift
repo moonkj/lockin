@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var showNicknameSetup: Bool = false
     @State private var passcodeIsSet: Bool = AppPasscodeStore.isSet
     @State private var nickname: String? = nil
+    @State private var goalScore: Int = 80
 
     #if ADMIN_TOOLS_ENABLED
     @State private var versionTaps: Int = 0
@@ -171,6 +172,48 @@ struct SettingsView: View {
                     }
 
                     Section {
+                        HStack(spacing: 12) {
+                            Text("오늘의 목표")
+                                .foregroundStyle(AppColors.primaryText)
+                            Spacer()
+                            Text("\(goalScore)점")
+                                .foregroundStyle(AppColors.secondaryText)
+                                .monospacedDigit()
+                        }
+                        .listRowBackground(AppColors.surface)
+
+                        VStack(spacing: 8) {
+                            HStack {
+                                ForEach([60, 80, 100], id: \.self) { preset in
+                                    Button {
+                                        goalScore = preset
+                                        deps.persistence.focusGoalScore = preset
+                                    } label: {
+                                        Text("\(preset)")
+                                            .scaledFont(13, weight: goalScore == preset ? .semibold : .regular)
+                                            .foregroundStyle(goalScore == preset ? Color.white : AppColors.primaryText)
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 32)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                    .fill(goalScore == preset ? AppColors.primaryText : AppColors.divider.opacity(0.2))
+                                            )
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                        .listRowBackground(AppColors.surface)
+                    } header: {
+                        sectionHeader("집중 목표")
+                    } footer: {
+                        Text("대시보드에서 목표까지 남은 점수와 달성 알림을 보여줘요.")
+                            .scaledFont(12)
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+
+                    Section {
                         HStack {
                             Text("버전").foregroundStyle(AppColors.primaryText)
                             Spacer()
@@ -280,6 +323,7 @@ struct SettingsView: View {
         schedule = deps.persistence.schedule
         passcodeIsSet = AppPasscodeStore.isSet
         nickname = deps.persistence.nickname
+        goalScore = deps.persistence.focusGoalScore
     }
 
     /// 엄격 모드 시작: 종료 시각을 설정하고 즉시 shield 적용 + 수동 집중 ON.

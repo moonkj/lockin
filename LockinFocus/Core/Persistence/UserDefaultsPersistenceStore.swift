@@ -281,6 +281,17 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.friendNicknameCache) }
     }
 
+    var focusGoalScore: Int {
+        get {
+            // 키가 없으면 기본 80 반환. 사용자가 0 으로 낮추는 건 허용하되 UI 에서 표시는 감춤.
+            let v = defaults.object(forKey: PersistenceKeys.focusGoalScore) as? Int
+            return v ?? 80
+        }
+        set {
+            defaults.set(max(0, min(100, newValue)), forKey: PersistenceKeys.focusGoalScore)
+        }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }
@@ -378,6 +389,15 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         let today = Self.todayString()
         let stored = defaults.string(forKey: PersistenceKeys.todayUnlockDateKey)
         if stored != today {
+            // 시계 되돌림 방지: 저장된 날짜가 오늘보다 "뒤"(미래 → 다시 과거 복귀 시도)면
+            // count 를 초기화하지 않고 보존. 예: 오늘 3번 해제 후 시스템 시간을
+            // 어제로 되돌려 10s 지연을 10s 로 리셋하는 공격 차단.
+            // POSIX yyyy-MM-dd 는 사전식 비교 == 시간적 비교.
+            if let stored, stored > today {
+                // 과거로 이동한 걸 감지 — count 는 유지, 날짜는 갱신하지 않아
+                // 이후에도 계속 높은 count 판정 유지.
+                return
+            }
             defaults.set(0, forKey: PersistenceKeys.todayUnlockCount)
             defaults.set(today, forKey: PersistenceKeys.todayUnlockDateKey)
         }

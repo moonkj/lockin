@@ -92,6 +92,11 @@ protocol PersistenceStore: AnyObject {
 
     /// userID → 마지막으로 본 닉네임 캐시. 오프라인 상태나 상대 record 가 아직 없을 때 이름을 보여주기 위한 용도.
     var friendNicknameCache: [String: String] { get set }
+
+    // MARK: - Focus goal
+
+    /// 오늘 집중 목표 점수 (0…100). 기본 80. Dashboard 에서 진척 라벨에 쓰인다.
+    var focusGoalScore: Int { get set }
 }
 
 extension PersistenceStore {

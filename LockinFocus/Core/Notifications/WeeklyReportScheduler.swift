@@ -20,10 +20,18 @@ enum WeeklyReportScheduler {
     }
 
     /// 이미 권한이 있을 때 직접 스케줄만 (앱 시작 시 갱신용).
+    /// 이미 같은 identifier 의 pending request 가 있으면 remove+add 를 건너뛴다 —
+    /// 매 cold launch 마다 notification daemon 에 IPC 를 쏘지 않도록.
     static func reschedule() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else { return }
-            schedule()
+            center.getPendingNotificationRequests { requests in
+                if requests.contains(where: { $0.identifier == identifier }) {
+                    return
+                }
+                schedule()
+            }
         }
     }
 

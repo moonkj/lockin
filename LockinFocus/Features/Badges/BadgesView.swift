@@ -21,7 +21,9 @@ struct BadgesView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        // 26개 ForEach 가 매 렌더마다 earned 를 참조 — Set 을 한 번만 읽어 캐시.
+        let earnedSet = earned
+        return NavigationStack {
             ZStack {
                 AppColors.background.ignoresSafeArea()
                 ScrollView {
@@ -30,7 +32,7 @@ struct BadgesView: View {
 
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(all) { badge in
-                                cell(for: badge, unlocked: earned.contains(badge.id))
+                                cell(for: badge, unlocked: earnedSet.contains(badge.id))
                             }
                         }
 

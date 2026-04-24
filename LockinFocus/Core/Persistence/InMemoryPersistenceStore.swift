@@ -194,6 +194,7 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var leaderboardUserID: String { _leaderboardUserID }
     var friendUserIDs: [String] = []
     var friendNicknameCache: [String: String] = [:]
+    var focusGoalScore: Int = 80
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

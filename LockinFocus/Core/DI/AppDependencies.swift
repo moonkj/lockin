@@ -31,8 +31,26 @@ final class AppDependencies: ObservableObject {
     /// 자기 자신을 추가하는 건 무의미하므로 걸러낸다.
     @Published var pendingFriendInvite: FriendInviteLink.Payload?
 
+    /// 연속 호출 (악성 링크 스팸 · universal link 리다이렉트 반복) 을 방어하기 위한
+    /// 레이트 리미터. 같은 payload 가 1초 이내 반복되면 무시.
+    private var lastInviteRequestAt: Date?
+    private var lastInviteRequestUID: String?
+
+    /// 친구 목록 상한. 끝없이 append 하는 DoS 방지 + iOS UserDefaults 어레이 성능 가드.
+    static let maxFriendCount = 500
+
     func requestFriendInvite(_ payload: FriendInviteLink.Payload) {
         guard payload.userID != persistence.leaderboardUserID else { return }
+        // 1초 디바운스: 같은 UID 연속 호출 무시.
+        let now = Date()
+        if let lastAt = lastInviteRequestAt,
+           let lastUID = lastInviteRequestUID,
+           lastUID == payload.userID,
+           now.timeIntervalSince(lastAt) < 1.0 {
+            return
+        }
+        lastInviteRequestAt = now
+        lastInviteRequestUID = payload.userID
         pendingFriendInvite = payload
     }
 
@@ -43,11 +61,18 @@ final class AppDependencies: ObservableObject {
         guard let p = pendingFriendInvite else { return }
         var ids = persistence.friendUserIDs
         if !ids.contains(p.userID) {
+            // 상한 도달 시 가장 오래된 항목을 밀어낸다 — append 무한 증가 방지.
+            if ids.count >= Self.maxFriendCount {
+                ids.removeFirst(ids.count - Self.maxFriendCount + 1)
+            }
             ids.append(p.userID)
             persistence.friendUserIDs = ids
         }
         var cache = persistence.friendNicknameCache
         cache[p.userID] = p.nickname
+        // 캐시도 친구 목록에 실제 있는 키만 유지.
+        let allowed = Set(ids)
+        cache = cache.filter { allowed.contains($0.key) }
         persistence.friendNicknameCache = cache
         pendingFriendInvite = nil
     }
@@ -83,8 +108,27 @@ final class AppDependencies: ObservableObject {
     /// 관찰하는 뷰가 이 값을 읽으면 자동으로 매초 재렌더링된다.
     @Published private(set) var tick: Date = Date()
 
+    /// 엄격 모드 활성 상태 캐시 — `persistence.isStrictModeActive` 는 매 호출마다
+    /// UserDefaults 2 읽기 + Date 비교를 한다. 뷰 body 가 매 tick 이걸 여러 번 부르면
+    /// syscall 폭주 — `@Published` 캐시에 두고 상태가 flip 한 때만 emission.
+    @Published private(set) var strictActive: Bool = false
+
     private var tickTimer: Timer?
     private var kvObserver: NSObjectProtocol?
+
+    /// 앱이 백그라운드로 갔을 때 Timer 를 정지해 wake-up 을 0으로. 포그라운드 복귀 시 재개.
+    /// RootView 의 scenePhase onChange 에서 호출한다.
+    func pauseTicker() {
+        tickTimer?.invalidate()
+        tickTimer = nil
+    }
+
+    func resumeTicker() {
+        guard tickTimer == nil else { return }
+        // 복귀 직후 strict 만료 체크가 늦지 않도록 한 번 즉시 실행.
+        onTick()
+        startGlobalTicker()
+    }
 
     init(
         persistence: PersistenceStore,
@@ -96,6 +140,8 @@ final class AppDependencies: ObservableObject {
         self.blocking = blocking
         self.monitoring = monitoring
         self.leaderboardService = leaderboardService
+        // strictActive 초기 상태 — onTick 가 돌기 전에도 뷰가 올바른 값을 읽도록.
+        self.strictActive = persistence.isStrictModeActive
         startGlobalTicker()
         observeICloudKVChanges()
     }
@@ -131,12 +177,18 @@ final class AppDependencies: ObservableObject {
 
     private func onTick() {
         let now = Date()
-        let strictActive = persistence.isStrictModeActive
+        let currentStrict = persistence.isStrictModeActive
+
+        // 캐시된 strictActive 상태가 flip 했을 때만 @Published emission.
+        if currentStrict != strictActive {
+            strictActive = currentStrict
+        }
 
         // strict 시작/종료에 맞춰 Timer 간격 재조정. scheduleTicker 가 기존 Timer 를 정리 후 재스케줄.
-        if strictActive != tickerIsFastMode {
-            scheduleTicker(fast: strictActive)
+        if currentStrict != tickerIsFastMode {
+            scheduleTicker(fast: currentStrict)
         }
+        let strictActive = currentStrict  // 기존 지역 변수 이름 유지 위한 shadow.
 
         // strict 때만 매초 publish, 아니면 10초 간격으로 publish (Timer 도 이제 10초 간격이므로 사실상 매 fire).
         let secondsSinceLastPublish = now.timeIntervalSince(tick)
@@ -163,15 +215,28 @@ final class AppDependencies: ObservableObject {
     /// iCloud KV 가 다른 기기에서 바뀌었다는 알림을 받으면 로컬 캐시를 맞춰준다.
     /// split-brain 수렴 메커니즘: 두 기기가 동시에 앱을 처음 실행해 각자 UUID 를
     /// 만든 경우에도 KV 가 나중에 동기화되면 이 알림이 떠서 뒤늦게 합쳐진다.
+    ///
+    /// 이전 구현은 어떤 KV 키가 바뀌든 objectWillChange 를 쏴 전체 뷰 재렌더를
+    /// 유발했다. 변경된 키 배열을 검사해 우리가 관심 있는 키가 섞여 있을 때만
+    /// 브로드캐스트해 배터리·렌더 비용을 줄인다.
     private func observeICloudKVChanges() {
+        let relevantKeys: Set<String> = [
+            ICloudKeyValueStore.Keys.leaderboardUserID,
+            ICloudKeyValueStore.Keys.nickname
+        ]
         kvObserver = NotificationCenter.default.addObserver(
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
             object: NSUbiquitousKeyValueStore.default,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] note in
             guard let self else { return }
+            let changedKeys = (note.userInfo?[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String]) ?? []
+            let changedSet = Set(changedKeys)
+            // 관련 키가 전혀 없으면 무시. userInfo 미지원 OS 변화(방어) 시엔 안전하게 처리.
+            if !changedKeys.isEmpty && changedSet.isDisjoint(with: relevantKeys) {
+                return
+            }
             // 닉네임·userID 모두 getter 내부에서 iCloud 우선으로 로컬을 재동기화한다.
-            // 여기서는 objectWillChange 를 강제로 발행해 관찰 중인 뷰를 재렌더.
             _ = self.persistence.leaderboardUserID
             _ = self.persistence.nickname
             self.objectWillChange.send()
@@ -230,6 +295,7 @@ final class PreviewPersistenceStore: PersistenceStore {
     let leaderboardUserID: String = "preview-user"
     var friendUserIDs: [String] = []
     var friendNicknameCache: [String: String] = [:]
+    var focusGoalScore: Int = 80
 
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue

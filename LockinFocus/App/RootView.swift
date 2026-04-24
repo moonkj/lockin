@@ -21,8 +21,19 @@ struct RootView: View {
             drainQueue()
         }
         .onChange(of: scenePhase) { phase in
-            if phase == .active {
+            switch phase {
+            case .active:
+                deps.resumeTicker()
                 drainQueue()
+            case .background:
+                // 백그라운드에선 tick 을 완전히 끄고, 시스템에 wake-up 을 맡긴다
+                // (Live Activity / DeviceActivity / 로컬 알림 이 이미 설치돼 있어
+                // strict 만료 등은 그쪽 경로로 사용자에게 노출된다).
+                deps.pauseTicker()
+            case .inactive:
+                break
+            @unknown default:
+                break
             }
         }
         .onOpenURL { url in

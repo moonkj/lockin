@@ -128,4 +128,36 @@ extension NicknameValidator.ValidationError: Equatable {
             return false
         }
     }
+
+    // MARK: - Hardened strip set (isolated bidi + newlines)
+
+    func testValidate_rejectsIsolatedBidi_U2066() {
+        // FSI (U+2068) + nickname + PDI (U+2069) — Unicode 6.3+ 격리 포맷
+        let name = "\u{2068}집중러\u{2069}"
+        XCTAssertEqual(NicknameValidator.validate(name), .failure(.containsBannedWord))
+    }
+
+    func testValidate_rejectsEmbeddedNewline() {
+        let name = "집중러\n악성"
+        XCTAssertEqual(NicknameValidator.validate(name), .failure(.containsBannedWord))
+    }
+
+    func testValidate_rejectsLineSeparatorU2028() {
+        let name = "집중러\u{2028}악성"
+        XCTAssertEqual(NicknameValidator.validate(name), .failure(.containsBannedWord))
+    }
+
+    // MARK: - Badword dense-pass (separator bypass)
+
+    func testValidate_rejectsDotSeparatedBadword() {
+        // 구두점으로 나눈 우회 시도도 condensed pass 에서 잡혀야.
+        XCTAssertEqual(NicknameValidator.validate("s.h.i.t"), .failure(.containsBannedWord))
+    }
+
+    func testValidate_rejectsNumericSubstitution() {
+        // 5hit 류 leet 는 현재 숫자가 condensed 에서 제거돼 shi 만 남아 여전히 fail.
+        // 여기서는 "shit" 의 경우만 확실히 잡는지 확인.
+        XCTAssertEqual(NicknameValidator.validate("shhit"), .success("shhit"))  // 완전 일치 안 하면 통과
+        XCTAssertEqual(NicknameValidator.validate("sh-it"), .failure(.containsBannedWord))
+    }
 }

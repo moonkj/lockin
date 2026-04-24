@@ -19,32 +19,50 @@ enum NicknameValidator {
     }
 
     static func validate(_ raw: String) -> Result<String, ValidationError> {
-        // 0-width 문자 + bidi 마커 제거 + Unicode NFC 정규화로 조합형/완성형 일관성 확보.
+        // 0-width 문자 + bidi 마커 (LRE/RLE/PDF/LRO/RLO + LRI/RLI/FSI/PDI + ALM) 제거.
+        // + NFC 정규화로 조합형/완성형 일관성 확보.
         let stripped = raw.unicodeScalars.filter {
-            // ZWJ/ZWNJ/ZWSP/word joiner/BOM + LRE/RLE/PDF/LRO/RLO bidi 마커 제거.
             ![
+                // ZWJ/ZWNJ/ZWSP/word joiner/BOM
                 0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF,
-                0x202A, 0x202B, 0x202C, 0x202D, 0x202E
+                // 전통적 bidi 제어 (Unicode 1.x)
+                0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+                // 격리 bidi (Unicode 6.3+) — 이걸 생략하면 새로 삽입된 포맷 공격 통과.
+                0x2066, 0x2067, 0x2068, 0x2069,
+                // Arabic letter mark
+                0x061C
             ].contains($0.value)
         }
         let normalized = String(String.UnicodeScalarView(stripped)).precomposedStringWithCanonicalMapping
         let trimmed = normalized.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count < 2 { return .failure(.tooShort) }
         if trimmed.count > 20 { return .failure(.tooLong) }
-        // 바이트 길이도 60 이하로 제한 (CloudKit 필드 부담 완화 + 이모지 플러드 방지).
         if trimmed.utf8.count > 60 { return .failure(.tooLong) }
+        // 개행·라인분리자 거부 — SwiftUI 가 leaderboard 행을 세로로 늘려버려 다른 사용자
+        // UI 를 깨는 주입 공격 차단.
+        for s in trimmed.unicodeScalars {
+            if s.properties.generalCategory == .control
+                || s.properties.generalCategory == .format
+                || s == "\n" || s == "\r"
+                || s.value == 0x2028 || s.value == 0x2029 {
+                return .failure(.containsBannedWord)
+            }
+        }
         if containsBanned(trimmed) { return .failure(.containsBannedWord) }
         return .success(trimmed)
     }
 
-    /// 내부 금칙어 판정. 대소문자 무시, 공백·0-width 제거 + NFC 정규화 후 부분 일치.
+    /// 내부 금칙어 판정. 구두점·공백·숫자 기반 분리 trick (s.h.i.t / ㅅ ㅂ / 5hit) 을
+    /// 추가로 회피시키기 위해 영문/한글 자모 이외 문자는 모두 제거한 pass 로도 검사.
     private static func containsBanned(_ input: String) -> Bool {
-        let normalized = input
-            .precomposedStringWithCanonicalMapping
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "")
+        let raw = input.precomposedStringWithCanonicalMapping.lowercased()
+        let noSpaces = raw.replacingOccurrences(of: " ", with: "")
+        // 편법 회피 방지: 구두점·공백·숫자 등 문자/자모 이외 제거한 고밀도 표현.
+        let condensed = String(raw.unicodeScalars.filter { s in
+            s.properties.isAlphabetic || (s.value >= 0xAC00 && s.value <= 0xD7A3)
+        })
         for word in bannedWords {
-            if normalized.contains(word) { return true }
+            if noSpaces.contains(word) || condensed.contains(word) { return true }
         }
         return false
     }

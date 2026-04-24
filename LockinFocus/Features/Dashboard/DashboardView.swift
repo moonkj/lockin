@@ -84,7 +84,10 @@ struct DashboardView: View {
                     header
                         .padding(.top, 8)
 
-                    FocusScoreCard(score: deps.persistence.focusScoreToday)
+                    FocusScoreCard(
+                        score: deps.persistence.focusScoreToday,
+                        goal: deps.persistence.focusGoalScore
+                    )
 
                     StreakDotsCard(history: last7DaysHistory)
 

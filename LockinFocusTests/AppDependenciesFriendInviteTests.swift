@@ -103,4 +103,50 @@ final class AppDependenciesFriendInviteTests: XCTestCase {
         XCTAssertEqual(deps.persistence.friendUserIDs.count, 3)
         XCTAssertEqual(deps.persistence.friendNicknameCache.count, 3)
     }
+
+    // MARK: - Spam / DoS 방어
+
+    func testRequestFriendInvite_sameUIDTwiceWithin1s_secondIgnored() {
+        let deps = makeDeps()
+        let payload = FriendInviteLink.Payload(userID: "f1", nickname: "A")
+        deps.requestFriendInvite(payload)
+        deps.consumeFriendInvite()  // 첫 alert 취소 시뮬.
+        // 곧바로 같은 링크가 다시 들어와도 무시돼야 (악성 리다이렉트 루프 보호).
+        deps.requestFriendInvite(payload)
+        XCTAssertNil(deps.pendingFriendInvite)
+    }
+
+    func testRequestFriendInvite_differentUID_notDebounced() {
+        let deps = makeDeps()
+        deps.requestFriendInvite(FriendInviteLink.Payload(userID: "a", nickname: "A"))
+        deps.consumeFriendInvite()
+        // 다른 UID 는 정상 진행.
+        deps.requestFriendInvite(FriendInviteLink.Payload(userID: "b", nickname: "B"))
+        XCTAssertEqual(deps.pendingFriendInvite?.userID, "b")
+    }
+
+    func testAcceptFriendInvite_capAtMaxCount() {
+        let deps = makeDeps()
+        let max = AppDependencies.maxFriendCount
+        // 상한까지 채운 상태.
+        deps.persistence.friendUserIDs = (0..<max).map { "f\($0)" }
+        XCTAssertEqual(deps.persistence.friendUserIDs.count, max)
+        deps.requestFriendInvite(FriendInviteLink.Payload(userID: "overflow", nickname: "O"))
+        deps.acceptFriendInvite()
+        XCTAssertEqual(deps.persistence.friendUserIDs.count, max, "상한 초과 시 총 개수 유지")
+        XCTAssertTrue(deps.persistence.friendUserIDs.contains("overflow"), "새 항목은 들어가야")
+        XCTAssertFalse(deps.persistence.friendUserIDs.contains("f0"), "가장 오래된 항목이 밀려나야")
+    }
+
+    func testAcceptFriendInvite_nicknameCacheIsPruned() {
+        let deps = makeDeps()
+        // 친구가 아닌 UID 의 잔재 캐시가 남아있는 상황.
+        deps.persistence.friendUserIDs = ["f1"]
+        deps.persistence.friendNicknameCache = ["f1": "유지", "stale": "지워야"]
+        deps.requestFriendInvite(FriendInviteLink.Payload(userID: "f2", nickname: "새"))
+        deps.acceptFriendInvite()
+        XCTAssertEqual(deps.persistence.friendNicknameCache["stale"], nil, "친구 목록에 없는 키는 pruning")
+        XCTAssertEqual(deps.persistence.friendNicknameCache["f1"], "유지")
+        XCTAssertEqual(deps.persistence.friendNicknameCache["f2"], "새")
+    }
 }
