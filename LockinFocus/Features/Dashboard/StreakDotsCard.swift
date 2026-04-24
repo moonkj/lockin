@@ -8,12 +8,36 @@ struct StreakDotsCard: View {
     /// 남은 스트릭 보존 토큰 수 (0 or 1). 기본 0 이면 카피 숨김.
     var freezeTokens: Int = 0
 
+    /// 최근 7일을 정확히 채운다. 기록 없는 날은 "0점 entry" 로 패딩하되
+    /// 날짜는 실제 달력 기준 (오늘부터 6일 전까지) 으로 채워서 요일 라벨이 보이도록 한다.
     private var displayDays: [DailyFocus] {
-        // 정확히 7개가 되도록 앞쪽에 빈 DailyFocus 로 패딩.
-        let pad = max(0, 7 - history.count)
-        let padded = (0..<pad).map { _ in DailyFocus(date: "", score: 0) } + history
-        return Array(padded.suffix(7))
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        var byDate: [String: DailyFocus] = [:]
+        for entry in history {
+            byDate[entry.date] = entry
+        }
+        var result: [DailyFocus] = []
+        for offset in (0..<7).reversed() {
+            guard let dayDate = cal.date(byAdding: .day, value: -offset, to: today) else { continue }
+            let key = Self.dateFormatter.string(from: dayDate)
+            if let recorded = byDate[key] {
+                result.append(recorded)
+            } else {
+                // 기록 없는 날도 실제 날짜를 가진 0점 entry — 요일 라벨 표시 용.
+                result.append(DailyFocus(date: key, score: 0))
+            }
+        }
+        return result
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

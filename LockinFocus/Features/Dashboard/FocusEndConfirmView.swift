@@ -245,12 +245,18 @@ struct FocusEndConfirmView: View {
     @EnvironmentObject private var deps: AppDependencies
 
     private var passcodeStep: some View {
-        AppPasscodeEntryView(
+        // Face ID 는 "오늘 목표 달성 후" 에만 비번 단축 키로 동작.
+        // 목표 미달이면 토글이 켜져있어도 6자리 입력 그대로 유지 — 마찰이 핵심 가치라
+        // 누구나 매일 우회되면 의미가 없음. 목표를 넘긴 보상으로만 제공.
+        let p = deps.persistence
+        let goalReached = p.focusGoalScore > 0 && p.focusScoreToday >= p.focusGoalScore
+        let allowBiometric = p.useBiometricForPasscode && goalReached
+        return AppPasscodeEntryView(
             onSuccess: {
                 onConfirm()
                 dismiss()
             },
-            useBiometric: deps.persistence.useBiometricForPasscode
+            useBiometric: allowBiometric
         )
     }
 

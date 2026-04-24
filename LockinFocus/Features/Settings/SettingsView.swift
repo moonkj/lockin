@@ -248,7 +248,7 @@ struct SettingsView: View {
                     } header: {
                         sectionHeader("알림")
                     } footer: {
-                        Text("매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요.\n생체 인식이 실패하거나 취소하면 자동으로 6자리 비번 입력으로 돌아와요.")
+                        Text("매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요.\nFace ID 는 오늘의 목표를 달성한 뒤에만 비번 단축으로 사용돼요.")
                             .scaledFont(12)
                             .foregroundStyle(AppColors.secondaryText)
                     }

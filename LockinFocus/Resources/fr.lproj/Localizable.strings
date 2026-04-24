@@ -151,3 +151,4 @@
 "이번 주 후반 평균이 %d점 올랐어요. 흐름이 좋아요." = "Votre moyenne de seconde moitié est de %d points supérieure cette semaine. Bon élan.";
 "하루 쉬고 다시 돌아왔어요. 멋진 복귀예요." = "De retour après une pause d'une journée. Beau retour.";
 "오늘이 이번 주 최고 %d점이에요." = "Aujourd'hui est le sommet de la semaine avec %d points.";
+"매일 밤 10시에 오늘의 점수와 연속 기록을 한 번 돌아볼 수 있어요.\nFace ID 는 오늘의 목표를 달성한 뒤에만 비번 단축으로 사용돼요." = "Rappel discret chaque soir à 22 h pour revoir votre score et votre série.\nFace ID sert de raccourci au code uniquement après avoir atteint l'objectif du jour.";
