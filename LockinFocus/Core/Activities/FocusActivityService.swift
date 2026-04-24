@@ -15,7 +15,12 @@ enum FocusActivityService {
     /// 현재 활성 Activity id. update/end 에서 식별자 기반 접근이 필요할 때.
     private static var currentActivityID: String?
 
-    /// 집중 세션 시작. 이미 활성 Activity 가 있으면 종료 후 재시작.
+    /// 집중 세션 시작. 이미 활성 Activity 가 있으면 새로 만들지 않고 update 로 상태만 갱신.
+    ///
+    /// 이전 구현: `endAll()` 후 `Activity.request(…)` — 그런데 endAll 이 Task 로 비동기
+    /// 종료하는 동안 request 가 먼저 실행돼서 유저가 빠르게 두 번 탭하면 Dynamic Island
+    /// 에 activity 가 두 개 떠 있는 race 가 있었다.
+    /// 현 구현: "이미 활성이면 update" 로 단일화 — 새 세션이 아니라 같은 세션의 상태 반영.
     static func start(
         startDate: Date,
         strictEndDate: Date?,
@@ -24,7 +29,14 @@ enum FocusActivityService {
     ) {
         #if canImport(ActivityKit)
         if #available(iOS 16.2, *) {
-            // 기존 세션이 남아 있다면 정리 — 여러 개 떠 있는 건 방지.
+            // 현재 ID 가 시스템 활성 목록에 실제로 존재하면 update 경로로 보낸다.
+            if let id = currentActivityID,
+               Activity<FocusActivityAttributes>.activities.contains(where: { $0.id == id }) {
+                update(strictEndDate: strictEndDate, allowedCount: allowedCount, focusScore: focusScore)
+                return
+            }
+
+            // 어플리케이션이 모르는 사이 남은 좀비 activity 는 정리 — 중복 방지.
             endAll()
 
             let attributes = FocusActivityAttributes()
@@ -36,15 +48,10 @@ enum FocusActivityService {
             )
 
             do {
-                let activity: Activity<FocusActivityAttributes>
-                if #available(iOS 16.2, *) {
-                    activity = try Activity.request(
-                        attributes: attributes,
-                        content: .init(state: state, staleDate: nil)
-                    )
-                } else {
-                    return
-                }
+                let activity = try Activity.request(
+                    attributes: attributes,
+                    content: .init(state: state, staleDate: nil)
+                )
                 currentActivityID = activity.id
             } catch {
                 // 권한 거부·시스템 한도 초과 등 — 조용히 실패.

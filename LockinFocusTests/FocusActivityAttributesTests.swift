@@ -115,4 +115,31 @@ final class FocusActivityServiceTests: XCTestCase {
         FocusActivityService.endAll()
         XCTAssertTrue(true)
     }
+
+    // 빠른 연속 start() 호출이 시뮬레이터에서 Activity.request 실패로 조용히
+    // no-op 되어야 하는 계약. 실기기에서는 update 경로로 바뀌어 중복 Activity 가
+    // 안 뜨게 되는 고정.
+    func testStart_rapidDouble_doesNotCrash() {
+        FocusActivityService.start(
+            startDate: Date(),
+            strictEndDate: nil,
+            allowedCount: 3,
+            focusScore: 10
+        )
+        FocusActivityService.start(
+            startDate: Date(),
+            strictEndDate: Date().addingTimeInterval(3600),
+            allowedCount: 3,
+            focusScore: 20
+        )
+        XCTAssertTrue(true)
+    }
+
+    func testStart_thenEnd_thenStart_safe() {
+        FocusActivityService.start(startDate: Date(), strictEndDate: nil, allowedCount: 1, focusScore: 1)
+        FocusActivityService.end()
+        FocusActivityService.start(startDate: Date(), strictEndDate: nil, allowedCount: 2, focusScore: 2)
+        FocusActivityService.end()
+        XCTAssertTrue(true)
+    }
 }
