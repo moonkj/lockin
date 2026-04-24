@@ -96,6 +96,7 @@ targets:
       - path: LockinFocus/Core/Resources/QuoteProvider.swift
       - path: LockinFocus/Core/Shared/AppGroup.swift
       - path: LockinFocus/Core/Persistence/PersistenceKeys.swift
+      - path: LockinFocus/Core/Activities/FocusActivityAttributes.swift
       - path: LockinFocus/Resources/Quotes
     settings:
       base:

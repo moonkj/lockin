@@ -293,11 +293,19 @@ struct DashboardView: View {
     /// 수동 집중 **시작** 전용. 종료는 `endManualFocus()` 가 FocusEndConfirmView 경유해서 호출.
     private func toggleManualFocus() {
         guard !isManualFocus else { return }
+        let now = Date()
         deps.blocking.applyWhitelist(for: selection)
         deps.persistence.isManualFocusActive = true
-        deps.persistence.manualFocusStartedAt = Date()
+        deps.persistence.manualFocusStartedAt = now
         deps.celebrate(BadgeEngine.onManualFocusStarted(persistence: deps.persistence))
         isManualFocus = true
+
+        FocusActivityService.start(
+            startDate: now,
+            strictEndDate: deps.persistence.strictModeEndAt,
+            allowedCount: allowedCount,
+            focusScore: deps.persistence.focusScoreToday
+        )
     }
 
     /// 수동 집중 종료 — FocusEndConfirmView 에서 "종료할게요" 확정 시만 호출.
@@ -319,6 +327,7 @@ struct DashboardView: View {
         unlocked.append(contentsOf: BadgeEngine.onScoreChanged(persistence: deps.persistence))
         deps.celebrate(unlocked)
         WidgetCenter.shared.reloadTimelines(ofKind: "LockinFocusScoreWidget")
+        FocusActivityService.end()
         isManualFocus = false
     }
 

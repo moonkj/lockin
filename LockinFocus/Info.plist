@@ -31,6 +31,8 @@
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>NSFaceIDUsageDescription</key>
     <string>엄격 모드를 해제할 때 본인 확인에 사용돼요.</string>
+    <key>NSSupportsLiveActivities</key>
+    <true/>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UIApplicationSceneManifest</key>

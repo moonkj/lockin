@@ -114,6 +114,8 @@ final class AppDependencies: ObservableObject {
             // 엄격 모드 완주 — 긍정 햅틱.
             Haptics.success()
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
+            // Live Activity 도 함께 종료.
+            FocusActivityService.end()
         }
     }
 

@@ -292,6 +292,16 @@ struct SettingsView: View {
         if schedule.isEnabled {
             try? deps.monitoring.startSchedule(schedule, name: "block_main")
         }
+
+        let allowedCount = selection.applicationTokens.count
+            + selection.categoryTokens.count
+            + selection.webDomainTokens.count
+        FocusActivityService.start(
+            startDate: now,
+            strictEndDate: end,
+            allowedCount: allowedCount,
+            focusScore: deps.persistence.focusScoreToday
+        )
     }
 
     private func save() {
