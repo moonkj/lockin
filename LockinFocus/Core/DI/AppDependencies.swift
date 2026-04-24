@@ -7,6 +7,9 @@ final class AppDependencies: ObservableObject {
     let persistence: PersistenceStore
     let blocking: BlockingEngine
     let monitoring: MonitoringEngine
+    /// 리더보드 서비스 — 테스트에서는 MockLeaderboardService 를 주입.
+    /// 프로덕션은 CloudKitLeaderboardService.shared.
+    let leaderboardService: LeaderboardServiceProtocol
 
     /// 위젯 탭 같은 외부 deep link 가 열렸을 때 갱신된다.
     /// 일회성 값 — `requestRoute(_:)` 로 쓰고 `consumeRoute()` 로 비운다.
@@ -61,11 +64,13 @@ final class AppDependencies: ObservableObject {
     init(
         persistence: PersistenceStore,
         blocking: BlockingEngine,
-        monitoring: MonitoringEngine
+        monitoring: MonitoringEngine,
+        leaderboardService: LeaderboardServiceProtocol = CloudKitLeaderboardService.shared
     ) {
         self.persistence = persistence
         self.blocking = blocking
         self.monitoring = monitoring
+        self.leaderboardService = leaderboardService
         startGlobalTicker()
         observeICloudKVChanges()
     }

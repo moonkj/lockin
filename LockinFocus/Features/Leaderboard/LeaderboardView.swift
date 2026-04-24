@@ -5,7 +5,8 @@ struct LeaderboardView: View {
     @EnvironmentObject var deps: AppDependencies
     @Environment(\.dismiss) private var dismiss
 
-    @StateObject private var service = CloudKitLeaderboardService.shared
+    /// 서비스는 AppDependencies 에서 주입된 것을 사용한다 (테스트 mock 가능).
+    private var service: LeaderboardServiceProtocol { deps.leaderboardService }
 
     @State private var period: LeaderboardPeriod
     @State private var entries: [LeaderboardEntry]
