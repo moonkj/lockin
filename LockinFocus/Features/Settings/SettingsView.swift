@@ -103,10 +103,8 @@ struct SettingsView: View {
                             .listRowBackground(AppColors.surface)
                         } else {
                             Button {
-                                guard passcodeIsSet else {
-                                    showPasscodeSetup = true
-                                    return
-                                }
+                                // 엄격 모드는 시간이 지나기 전에는 어떤 수단으로도 해제 불가 —
+                                // 비번을 요구하지 않는다. 비번은 일반 모드 첫 해제 때만 쓰인다.
                                 showStrictDurationPicker = true
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -140,9 +138,7 @@ struct SettingsView: View {
                     } header: {
                         sectionHeader("엄격 모드")
                     } footer: {
-                        Text(passcodeIsSet
-                             ? "앱 비밀번호는 일반 모드의 하루 첫 해제 때 쓰여요."
-                             : "엄격 모드를 쓰려면 먼저 앱 비밀번호를 설정해야 해요.")
+                        Text("앱 비밀번호는 일반 모드의 하루 첫 해제 때만 쓰여요. 엄격 모드는 시간이 지나기 전에는 어떤 방법으로도 풀 수 없어요.")
                             .font(.system(size: 12))
                             .foregroundStyle(AppColors.secondaryText)
                     }

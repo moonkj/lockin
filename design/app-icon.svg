@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lockin Focus — App Icon (v5 — "Lock + Sprout", refined)
+  Concept: a minimal ink padlock holding a green sprout inside.
+
+  v5 changes vs v4:
+    - Shackle arched more roundly (taller hoop, higher apex).
+    - Sprout enlarged ~1.25× so it reads at 40 pt thumbnail.
+    - Leaves slightly angled more so silhouette is clearer.
+
+  Message: "집중은 잠가 지켜주고, 그 안에서 성장한다."
+  The lock silhouette communicates "locked/protected". The green sprout
+  inside communicates "growth that the protection enables". Together
+  they position the app as care for what matters, not punishment.
+
+  Palette (in-app system):
+    ink   #111117  → AppColors.primaryText
+    green #2FA26C  → brighter variant of TreeStage.grown so it reads
+                     cleanly against the ink body at small sizes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+
+  <!-- Shackle: taller, rounder U. -->
+  <path d="M 372 408
+           L 372 260
+           C 372 150, 652 150, 652 260
+           L 652 408"
+        fill="none"
+        stroke="#111117"
+        stroke-width="72"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Body: rounded square, filled ink. -->
+  <rect x="220" y="388" width="584" height="476"
+        rx="72" ry="72"
+        fill="#111117"/>
+
+  <!-- Sprout stem — enlarged, brighter green. -->
+  <path d="M 512 790 L 512 540"
+        stroke="#2FA26C"
+        stroke-width="36"
+        stroke-linecap="round"/>
+
+  <!-- Left leaf — wider teardrop, tilted 42° up-left. -->
+  <ellipse cx="432" cy="582" rx="92" ry="40"
+           fill="#2FA26C"
+           transform="rotate(-42 432 582)"/>
+
+  <!-- Right leaf — mirrored. -->
+  <ellipse cx="592" cy="582" rx="92" ry="40"
+           fill="#2FA26C"
+           transform="rotate(42 592 582)"/>
+
+</svg>
