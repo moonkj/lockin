@@ -271,7 +271,13 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
     }
 
     var friendNicknameCache: [String: String] {
-        get { defaults.dictionary(forKey: PersistenceKeys.friendNicknameCache) as? [String: String] ?? [:] }
+        get {
+            // `as? [String: String]` 캐스트는 값 중 하나라도 String 이 아니면 전체 nil 을
+            // 반환해 누적된 친구 닉네임이 통째로 날아간다. compactMapValues 로 String 값만
+            // 살려 부분 손상에도 복구 가능하도록.
+            guard let raw = defaults.dictionary(forKey: PersistenceKeys.friendNicknameCache) else { return [:] }
+            return raw.compactMapValues { $0 as? String }
+        }
         set { defaults.set(newValue, forKey: PersistenceKeys.friendNicknameCache) }
     }
 

@@ -150,6 +150,18 @@ struct LeaderboardView: View {
             .onChange(of: period) { _ in
                 Task { await load() }
             }
+            .onReceive(deps.objectWillChange) { _ in
+                // iCloud KV didChangeExternallyNotification 수신 시 AppDependencies 가
+                // objectWillChange 를 쏜다 — 이때 다른 기기에서 userID 가 바뀌어
+                // 들어왔다면 stale 캐시를 교체. 매 tick 에도 호출되지만 UserDefaults
+                // 읽기 + 문자열 비교라 비용은 미미.
+                // 테스트 inject 경로(`initialMyUserID`)는 deps 의 @Published 를
+                // 건드리지 않아 여기에 도달하지 않으므로 주입 값이 보존된다.
+                let fresh = deps.persistence.leaderboardUserID
+                if !fresh.isEmpty && fresh != myUserID {
+                    myUserID = fresh
+                }
+            }
         }
     }
 
