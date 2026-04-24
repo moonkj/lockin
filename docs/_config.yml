@@ -1,0 +1,24 @@
+title: Lockin Focus
+description: 손이 움직이기 전에 생각하게 만드는 iOS 집중 강화 앱
+theme: jekyll-theme-minimal
+
+# GitHub Pages 는 /docs 폴더 전체를 Jekyll 로 처리한다.
+# Privacy Policy 는 /docs/PrivacyPolicy.md → /PrivacyPolicy URL 로 서빙.
+
+# 외부 공개하지 않을 내부 설계 문서들은 빌드에서 제외.
+exclude:
+  - 01_Xcode_Setup_Guide.md
+  - 02_UX_Design.md
+  - 03_Architecture.md
+  - 04_Integration_Resolution.md
+  - 05_Debugger_Report.md
+  - 06_Test_Report.md
+  - 07_Review_Report.md
+  - 08_Architecture_Map.md
+  - 09_Release_Checklist.md
+  - ReleaseChecklist.md
+  - gen_strings.py
+  - "*.py"
+
+# permalink: 사이트 URL 에 날짜 prefix 없음.
+permalink: /:title/

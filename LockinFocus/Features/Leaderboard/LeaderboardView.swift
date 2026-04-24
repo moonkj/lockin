@@ -173,6 +173,7 @@ struct LeaderboardView: View {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .fill(isSelected ? AppColors.surface : Color.clear)
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
@@ -204,6 +205,7 @@ struct LeaderboardView: View {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .stroke(isSelected ? Color.clear : AppColors.divider, lineWidth: 1)
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }

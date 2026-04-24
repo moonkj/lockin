@@ -41,12 +41,20 @@
 
 - **무엇**: App Store Connect 제출 폼에서 Privacy Policy URL 필수 입력.
 - **이미 작성됨**: `docs/PrivacyPolicy.md` (한국어+영어+일본어+중국어간체+프랑스어+힌디어)
-- **호스팅 옵션**:
-  1. GitHub Pages: `https://moonkj.github.io/lockin/privacy` 로 노출
-  2. 개인 블로그 / Notion public page
-  3. GitHub raw 링크: `https://raw.githubusercontent.com/moonkj/lockin/main/docs/PrivacyPolicy.md`
-- **추천**: GitHub Pages (무료, 변경 이력 자동, 공식 URL 형태)
-- **상태**: ⬜ 호스팅 전
+- **배포 인프라 준비 완료**:
+  - `docs/_config.yml` — Jekyll 빌드 설정 (내부 설계 문서는 제외)
+  - `docs/index.md` — 랜딩 페이지
+  - `docs/PrivacyPolicy.md` — front matter `permalink: /PrivacyPolicy/` 지정
+  - `.github/workflows/pages.yml` — main 브랜치 push 시 자동 배포
+- **GitHub 저장소 설정 (1회성, 사용자 작업)**:
+  1. https://github.com/moonkj/lockin/settings/pages
+  2. **Source**: "GitHub Actions" 선택 (Deploy from a branch 아님)
+  3. 저장 → 첫 배포가 `.github/workflows/pages.yml` 로 자동 트리거
+- **최종 URL**:
+  - 랜딩: `https://moonkj.github.io/lockin/`
+  - Privacy Policy: `https://moonkj.github.io/lockin/PrivacyPolicy/`
+- **App Store Connect 에 입력할 값**: `https://moonkj.github.io/lockin/PrivacyPolicy/`
+- **상태**: ⬜ 저장소 Pages 활성화 전
 
 ### A-4. App Store Connect 메타데이터 [사용자가 직접]
 

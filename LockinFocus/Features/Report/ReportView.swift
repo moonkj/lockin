@@ -44,6 +44,7 @@ struct ReportView: View {
                                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                                             .stroke(isSelected ? Color.clear : AppColors.divider, lineWidth: 1)
                                     )
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }

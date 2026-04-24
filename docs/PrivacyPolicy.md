@@ -1,3 +1,9 @@
+---
+layout: default
+title: Privacy Policy
+permalink: /PrivacyPolicy/
+---
+
 # 락인 포커스 개인정보 처리방침 / Privacy Policy
 
 **Last updated · 최종 수정일: 2026-04-24**
