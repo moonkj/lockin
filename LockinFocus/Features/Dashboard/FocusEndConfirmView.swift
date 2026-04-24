@@ -198,14 +198,30 @@ struct FocusEndConfirmView: View {
                 }
 
                 SecondaryLinkButton(
-                    "다음 단계로",
+                    sentenceNextLabel,
                     isEnabled: sentenceMatches,
-                    action: { step = .passcode }
+                    action: advanceFromSentence
                 )
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// 비번이 설정돼 있으면 "다음 단계로" (passcode step), 없으면 "종료할게요" (즉시 종료).
+    private var sentenceNextLabel: String {
+        AppPasscodeStore.isSet ? "다음 단계로" : "종료할게요"
+    }
+
+    /// 문장 통과 후: 비번이 설정된 경우만 passcode step 으로.
+    /// 비번 미설정 유저가 갇히지 않도록 바로 onConfirm 호출.
+    private func advanceFromSentence() {
+        if AppPasscodeStore.isSet {
+            step = .passcode
+        } else {
+            onConfirm()
+            dismiss()
+        }
     }
 
     // MARK: - Step 3: passcode

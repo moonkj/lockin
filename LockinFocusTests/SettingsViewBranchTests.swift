@@ -12,10 +12,10 @@ final class SettingsViewBranchTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "스케줄"))
     }
 
-    func testSettings_hasStrictFooter_noPasscode() throws {
+    func testSettings_strictFooterExplainsPasscode() throws {
         let view = SettingsView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(
-            text: "엄격 모드를 쓰려면 먼저 앱 비밀번호를 설정해야 해요."
+            text: "앱 비밀번호는 일반 모드의 하루 첫 해제 때만 쓰여요. 엄격 모드는 시간이 지나기 전에는 어떤 방법으로도 풀 수 없어요."
         ))
     }
 

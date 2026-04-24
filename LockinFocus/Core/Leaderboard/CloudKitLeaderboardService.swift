@@ -57,12 +57,17 @@ final class CloudKitLeaderboardService: ObservableObject {
         let weekly = max(0, min(700, weeklyTotal))
         let monthly = max(0, min(3100, monthlyTotal))
         // 닉네임 재검증 — UI 를 거치지 않은 직접 호출 경로도 가드.
-        let cleanNickname: String
-        if case .success(let valid) = NicknameValidator.validate(nickname) {
-            cleanNickname = valid
-        } else {
-            // 검증 실패 시 원본을 그대로 쓰지 않고 알 수 없는 사용자 처리.
-            cleanNickname = "익명"
+        // 실패 시 조용한 "익명" 덮어쓰기는 금지: 이전에 저장된 정상 record 가
+        // 규칙 강화 뒤 재제출에서 "익명" 으로 파괴되는 regression 을 막기 위해
+        // ValidationError 를 그대로 던진다. 호출부(ViewModel)는 errorMessage 로 표시.
+        guard case .success(let cleanNickname) = NicknameValidator.validate(nickname) else {
+            throw ServiceError.underlying(
+                NSError(
+                    domain: "LockinFocus.NicknameValidation",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "닉네임이 규칙에 맞지 않아요. 2~20자 + 금칙어 없이 다시 입력해주세요."]
+                )
+            )
         }
         let recordID = CKRecord.ID(recordName: userID)
         let record: CKRecord

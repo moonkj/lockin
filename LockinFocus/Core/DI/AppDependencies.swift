@@ -103,7 +103,9 @@ final class AppDependencies: ObservableObject {
             if let start = persistence.strictModeStartAt, now < start {
                 return
             }
+            // end 뿐 아니라 start 도 함께 정리 — 다음 엄격 모드 시작 시 오래된 start 가 남지 않도록.
             persistence.strictModeEndAt = nil
+            persistence.strictModeStartAt = nil
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
         }
     }
