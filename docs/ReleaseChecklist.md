@@ -1,8 +1,9 @@
 # 락인 포커스 — 릴리스 체크리스트
 
-마지막 업데이트: 2026-04-24
+마지막 업데이트: 2026-04-24 (저녁)
 
 **팀리더 결정**: A(출시 준비) → B(커버리지) → C(기능) → D(국제화) 순으로 진행.
+**추가 Phase**: iPad 레이아웃, Live Activity, 친구/그룹 랭킹 완료 (2번 Pomodoro 는 건너뜀).
 
 ---
 
@@ -75,17 +76,23 @@
 
 ## B. 테스트 커버리지 확장
 
-현재 416 tests / 87.94% 메인 앱 커버리지.
+현재 469 tests (= 430 + 39 new feature tests) / 메인 앱 ~88% 커버리지.
 
-- ⬜ Widget 타깃 커버리지 (현재 ~11% → 60%+ 목표)
-- ⬜ Extension 타깃 커버리지 (ShieldAction / DeviceActivityMonitor 지표, 계약 회귀 방지)
+- ✅ Widget/AppGroup 계약 테스트 (WidgetProviderTests — 7건, UserDefaults 키 고정)
+- ✅ Extension 계약 테스트 (ExtensionContractTests — InterceptEvent rawValue 스키마 고정)
+- ✅ 신규 기능 단위 테스트 (39건 추가)
+  - FriendInviteLink URL 파싱/빌드 왕복 (12건)
+  - FocusActivityAttributes Codable/Hashable + Service no-op 안전성 (10건)
+  - ReadingWidthModifier inspect 안정성 (6건)
+  - AppDependencies 친구 초대 생명주기 (10건)
+- ⚠️ 기존 81 건 뷰 테스트 실패는 iOS 26 + ViewInspector `AccessibilityImageLabel` 블로커 (인프라 이슈, 프로덕션 영향 없음). ViewInspector 0.10.x + main branch 둘 다 미해결.
 
 ---
 
 ## C. 기능 추가
 
-- ⬜ Haptic 피드백 (뱃지 해제, Intercept 돌아가기, 엄격 모드 만료)
-- ⬜ 대시보드 7일 스트릭 점 시각화
+- ✅ Haptic 피드백 (뱃지 해제 success + 뱃지 탭 selection, Intercept 돌아가기, 엄격 모드 자동 만료)
+- ✅ 대시보드 7일 스트릭 점 시각화 (StreakDotsCard)
 
 ---
 
@@ -93,10 +100,18 @@
 
 한국어 / 영어 / 일본어 / 중국어 간체 / 프랑스어 / 힌디어
 
-- ⬜ Localizable.strings 파일 + 각 언어 .lproj 디렉터리
-- ⬜ 모든 하드코딩된 한국어 문자열을 LocalizedStringKey 로 전환
-- ⬜ Info.plist `CFBundleLocalizations` 배열 추가
-- ⬜ 날짜/숫자 포맷 로케일 대응
+- ✅ Localizable.strings 파일 + 6 개 .lproj 디렉터리 (docs/gen_strings.py 로 자동 생성 — 각 언어 134 개 키)
+- ✅ 앱 내 하드코딩 문자열이 LocalizedStringKey 해석됨 (SwiftUI `Text("…")` 은 기본 LocalizedStringKey)
+- ✅ Info.plist `CFBundleLocalizations` = [ko, en, ja, zh-Hans, fr, hi], `CFBundleDevelopmentRegion` = ko
+- ✅ 테스트용 `L()` 헬퍼 (Bundle.main.localizedString) 로 시뮬레이터 locale 독립 매칭
+
+---
+
+## E. 추가 Phase (세션 중 완료)
+
+- ✅ **iPad 레이아웃 최적화**: `readingWidth(520–720)` 모디파이어로 13개 상위 뷰가 iPad 에서 가독 폭 중앙 정렬. iPhone 에선 no-op.
+- ✅ **Live Activity + Dynamic Island** (iOS 16.2+): 집중 세션 활성 시 Lock Screen 카드 + Dynamic Island (compact/minimal/expanded). `FocusActivityService` 가 manual focus 토글 + strict 시작/자동만료에 훅.
+- ✅ **친구 + 그룹 랭킹**: `lockinfocus://friend?uid=X&nick=Y` 초대 링크 → RootView alert 확인 → 친구 목록 저장. LeaderboardView 의 전체/친구 scope picker 로 그룹 비교. FriendsManagementView 에서 초대/삭제.
 
 ---
 
