@@ -144,3 +144,5 @@
 "대시보드에서 목표까지 남은 점수와 달성 알림을 보여줘요." = "The dashboard shows points remaining and celebrates when you hit the goal.";
 "오늘의 목표" = "Today's goal";
 "알림" = "Notifications";
+"엄격 모드 완료" = "Strict mode completed";
+"%@ 집중을 지켰어요. 잠시 돌아보는 시간을 가져볼까요?" = "You stayed focused for %@. Take a moment to reflect on it.";

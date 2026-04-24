@@ -25,6 +25,7 @@ struct RootView: View {
             case .active:
                 deps.resumeTicker()
                 drainQueue()
+                drainPendingIntentRoute()
             case .background:
                 // 백그라운드에선 tick 을 완전히 끄고, 시스템에 wake-up 을 맡긴다
                 // (Live Activity / DeviceActivity / 로컬 알림 이 이미 설치돼 있어
@@ -78,6 +79,16 @@ struct RootView: View {
         let events = deps.persistence.drainInterceptQueue()
         guard !events.isEmpty else { return }
         showIntercept = true
+    }
+
+    /// Siri App Intent 가 남긴 pending route 키를 읽어 `deps.requestRoute` 로 전달한다.
+    /// 소비 즉시 키를 지워 재진입 시 중복 실행 방지.
+    private func drainPendingIntentRoute() {
+        let ud = UserDefaults(suiteName: AppGroup.identifier)
+        guard let raw = ud?.string(forKey: PersistenceKeys.pendingIntentRoute),
+              let route = AppDependencies.Route(rawValue: raw) else { return }
+        ud?.removeObject(forKey: PersistenceKeys.pendingIntentRoute)
+        deps.requestRoute(route)
     }
 }
 

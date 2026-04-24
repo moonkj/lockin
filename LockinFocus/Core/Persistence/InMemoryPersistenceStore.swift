@@ -12,6 +12,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var isManualFocusActive: Bool
     var strictModeEndAt: Date?
     var strictModeStartAt: Date?
+    var strictModeStartUptime: Double?
+    var strictModeDurationSeconds: Double?
     var interceptQueue: [InterceptEvent]
 
     private var focusEndCount: Int = 0
@@ -197,6 +199,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var focusGoalScore: Int = 80
     var useBiometricForPasscode: Bool = false
     var dailySummaryNotification: Bool = false
+    var streakFreezeToken: Int = 0
+    var streakFreezeLastWeek: String = ""
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

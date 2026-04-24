@@ -5,6 +5,8 @@ import SwiftUI
 /// Dashboard 에서 오늘의 집중 카드 아래 얇게 배치해 "어제까지의 흐름" 을 한눈에.
 struct StreakDotsCard: View {
     let history: [DailyFocus]  // 오래된 → 최신 순, 정확히 7개 이하
+    /// 남은 스트릭 보존 토큰 수 (0 or 1). 기본 0 이면 카피 숨김.
+    var freezeTokens: Int = 0
 
     private var displayDays: [DailyFocus] {
         // 정확히 7개가 되도록 앞쪽에 빈 DailyFocus 로 패딩.
@@ -27,9 +29,16 @@ struct StreakDotsCard: View {
             .frame(maxWidth: .infinity)
 
             if let bestScore = history.map(\.score).max(), bestScore > 0 {
-                Text("이번 주 최고 \(bestScore)점")
-                    .scaledFont(11)
-                    .foregroundStyle(AppColors.secondaryText)
+                HStack(spacing: 8) {
+                    Text("이번 주 최고 \(bestScore)점")
+                        .scaledFont(11)
+                        .foregroundStyle(AppColors.secondaryText)
+                    if freezeTokens > 0 {
+                        Text("· 쉬는 날 \(freezeTokens)개 남음")
+                            .scaledFont(11)
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+                }
             } else {
                 Text("아직 이번 주 기록이 없어요.")
                     .scaledFont(11)

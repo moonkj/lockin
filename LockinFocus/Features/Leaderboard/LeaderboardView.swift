@@ -70,17 +70,18 @@ struct LeaderboardView: View {
         }
     }
 
-    private var myRank: Int? {
-        visibleEntries.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
+    // 파라미터 버전: body 가 미리 계산한 visible 을 재활용해 재필터·재소트를 피한다.
+    private func myRank(in visible: [LeaderboardEntry]) -> Int? {
+        visible.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
     }
 
-    private var myEntry: LeaderboardEntry? {
-        visibleEntries.first { $0.userID == myUserID }
+    private func myEntry(in visible: [LeaderboardEntry]) -> LeaderboardEntry? {
+        visible.first { $0.userID == myUserID }
     }
 
-    private var myPercentile: Int? {
-        guard let rank = myRank, !visibleEntries.isEmpty else { return nil }
-        let ratio = Double(rank) / Double(visibleEntries.count)
+    private func myPercentile(in visible: [LeaderboardEntry]) -> Int? {
+        guard let rank = myRank(in: visible), !visible.isEmpty else { return nil }
+        let ratio = Double(rank) / Double(visible.count)
         return max(1, min(100, Int(ceil(ratio * 100))))
     }
 
@@ -90,12 +91,16 @@ struct LeaderboardView: View {
                 AppColors.background.ignoresSafeArea()
 
                 ScrollView {
+                    // body 진입 시 1회 계산해 하위 섹션에 전달 — rankRow 30 iterations 마다
+                    // visibleEntries 재구성 (filter + sort + UserDefaults 읽기) 막음.
+                    let visible = visibleEntries
+                    let maxScore = Double(visible.first?.score(for: period) ?? 1)
                     VStack(spacing: 20) {
                         scopePicker
                         periodPicker
-                        topThreeSection
-                        summaryStrip
-                        rankingList
+                        topThreeSection(visible)
+                        summaryStrip(visible)
+                        rankingList(visible, maxScore: maxScore)
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 40)
@@ -229,25 +234,25 @@ struct LeaderboardView: View {
         .padding(.top, 4)
     }
 
-    private var topThreeSection: some View {
+    private func topThreeSection(_ visible: [LeaderboardEntry]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("\(period.label) Top 3")
                 .scaledFont(13, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
             HStack(alignment: .bottom, spacing: 20) {
-                if visibleEntries.indices.contains(1) {
-                    medalCell(rank: 2, entry: visibleEntries[1])
+                if visible.indices.contains(1) {
+                    medalCell(rank: 2, entry: visible[1])
                 } else {
                     placeholderMedal(rank: 2)
                 }
-                if visibleEntries.indices.contains(0) {
-                    medalCell(rank: 1, entry: visibleEntries[0])
+                if visible.indices.contains(0) {
+                    medalCell(rank: 1, entry: visible[0])
                 } else {
                     placeholderMedal(rank: 1)
                 }
-                if visibleEntries.indices.contains(2) {
-                    medalCell(rank: 3, entry: visibleEntries[2])
+                if visible.indices.contains(2) {
+                    medalCell(rank: 3, entry: visible[2])
                 } else {
                     placeholderMedal(rank: 3)
                 }
@@ -262,18 +267,18 @@ struct LeaderboardView: View {
         )
     }
 
-    private var summaryStrip: some View {
+    private func summaryStrip(_ visible: [LeaderboardEntry]) -> some View {
         HStack(spacing: 20) {
-            summaryStat(label: "참여자", value: "\(visibleEntries.count)명")
+            summaryStat(label: "참여자", value: "\(visible.count)명")
             Divider().frame(height: 28)
             summaryStat(
                 label: "내 등수",
-                value: myRank.map { "\($0)등" } ?? "미등록"
+                value: myRank(in: visible).map { "\($0)등" } ?? "미등록"
             )
             Divider().frame(height: 28)
             summaryStat(
                 label: "상위",
-                value: myPercentile.map { "\($0)%" } ?? "—"
+                value: myPercentile(in: visible).map { "\($0)%" } ?? "—"
             )
         }
         .padding(14)
@@ -296,7 +301,7 @@ struct LeaderboardView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var rankingList: some View {
+    private func rankingList(_ visible: [LeaderboardEntry], maxScore: Double) -> some View {
         VStack(spacing: 8) {
             if let errorMessage {
                 Text(errorMessage)
@@ -311,28 +316,28 @@ struct LeaderboardView: View {
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.vertical, 40)
-            } else if visibleEntries.count <= 3 {
+            } else if visible.count <= 3 {
                 Text("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")
                     .scaledFont(13)
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.vertical, 40)
             } else {
-                ForEach(Array(visibleEntries.prefix(30).enumerated()), id: \.element.id) { index, entry in
+                ForEach(Array(visible.prefix(30).enumerated()), id: \.element.id) { index, entry in
                     if index >= 3 {
-                        rankRow(rank: index + 1, entry: entry)
+                        rankRow(rank: index + 1, entry: entry, maxScore: maxScore)
                     }
                 }
             }
 
             // 내 순위가 30위 밖이면 하단에 따로.
-            if let rank = myRank, rank > 30, let me = myEntry {
+            if let rank = myRank(in: visible), rank > 30, let me = myEntry(in: visible) {
                 Divider().padding(.vertical, 6)
                 Text("내 순위")
                     .scaledFont(12, weight: .semibold)
                     .foregroundStyle(AppColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                rankRow(rank: rank, entry: me)
+                rankRow(rank: rank, entry: me, maxScore: maxScore)
             }
         }
     }
@@ -393,10 +398,9 @@ struct LeaderboardView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func rankRow(rank: Int, entry: LeaderboardEntry) -> some View {
+    private func rankRow(rank: Int, entry: LeaderboardEntry, maxScore: Double) -> some View {
         let isMe = entry.userID == myUserID
         let score = entry.score(for: period)
-        let maxScore = Double(visibleEntries.first?.score(for: period) ?? 1)
         let ratio: Double = maxScore > 0 ? Double(score) / maxScore : 0
         // VoiceOver 용 통합 라벨 — 메달 색 · 등수 · 이름 · 점수를 한 번에 읽어준다.
         let medalPrefix: String = {

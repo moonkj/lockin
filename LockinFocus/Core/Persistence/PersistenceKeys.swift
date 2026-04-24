@@ -40,6 +40,15 @@ enum PersistenceKeys {
     /// 현재 시각이 start 보다 이전이면 시간이 조작됐다고 판정하고 end 를 그대로 유지.
     static let strictModeStartAt = "strictModeStartAt"
 
+    /// 엄격 모드 시작 시점 `ProcessInfo.processInfo.systemUptime` 스냅샷.
+    /// wallclock 조작 방어용 — 실제로 흐른 기기 uptime 이 duration 에 도달해야
+    /// 엄격 모드 만료. 재부팅 후엔 nil (이 경우는 wallclock 만 신뢰).
+    static let strictModeStartUptime = "strictModeStartUptime"
+
+    /// 엄격 모드의 총 duration (초). wallclock 만료 도달 + uptime 증가 도 같은 값 이상
+    /// 이어야 실제 해제 — wallclock 조작 시 기기 uptime 검증으로 2차 방어.
+    static let strictModeDurationSeconds = "strictModeDurationSeconds"
+
     /// 오늘 수동 집중을 종료한 횟수. 1회차는 더 강한 마찰(문장+비번), 2회차 30초, 3회차+ 60초 대기.
     static let focusEndCountToday = "focusEndCountToday"
     static let focusEndCountDateKey = "focusEndCountDate"
@@ -87,4 +96,15 @@ enum PersistenceKeys {
 
     /// 하루 마감 요약 알림 on/off. 기본 off (사용자 opt-in).
     static let dailySummaryNotification = "dailySummaryNotification"
+
+    /// 스트릭 보존권 — 주 1회 지급되는 "쉬는 날" 토큰. 0점 날 1회 소모로 스트릭 유지.
+    /// 값: 0 또는 1 (동시 최대 1개만 보유).
+    static let streakFreezeToken = "streakFreezeToken"
+
+    /// 마지막으로 스트릭 토큰을 지급한 ISO 주 (`yyyy-Www`). 같은 주엔 재지급 안 함.
+    static let streakFreezeLastWeek = "streakFreezeLastWeek"
+
+    /// Siri App Intent 가 앱 실행을 요청하며 남긴 pending route raw value. 앱이 foreground
+    /// 진입 시 1회 consume 하고 `AppDependencies.Route` 로 매핑.
+    static let pendingIntentRoute = "pendingIntentRoute"
 }

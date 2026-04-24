@@ -19,6 +19,8 @@ final class AppDependencies: ObservableObject {
     enum Route: String, Equatable {
         case weeklyReport
         case quoteDetail
+        case startFocus  // Siri/Shortcut 에서 "집중 시작" intent.
+        case endFocus    // Siri/Shortcut 에서 "집중 종료" intent.
     }
 
     /// deep link 진입점.
@@ -55,6 +57,59 @@ final class AppDependencies: ObservableObject {
     }
 
     func consumeFriendInvite() { pendingFriendInvite = nil }
+
+    // MARK: - Shared focus toggle (Siri App Intent 와 Dashboard 공유)
+
+    /// Dashboard 의 "지금 집중 시작" 과 동일한 동작을 App Intent 에서도 호출할 수 있게
+    /// AppDependencies 레벨에서 제공. selection 은 persistence 에 저장된 마지막 값을
+    /// 사용한다 (Dashboard state 와 동일).
+    @discardableResult
+    func startManualFocusFromIntent() -> Bool {
+        guard !persistence.isManualFocusActive else { return false }
+        guard !strictActive else { return false }  // 엄격 중엔 intent 로 재시작 방지.
+        let selection = persistence.selection
+        let allowedCount = selection.applicationTokens.count
+            + selection.categoryTokens.count
+            + selection.webDomainTokens.count
+        let now = Date()
+        blocking.applyWhitelist(for: selection)
+        persistence.isManualFocusActive = true
+        persistence.manualFocusStartedAt = now
+        celebrate(BadgeEngine.onManualFocusStarted(persistence: persistence))
+        FocusActivityService.start(
+            startDate: now,
+            strictEndDate: persistence.strictModeEndAt,
+            allowedCount: allowedCount,
+            focusScore: persistence.focusScoreToday
+        )
+        return true
+    }
+
+    /// Siri intent "집중 종료". 엄격 모드 중이면 거부 (strict 계약 유지).
+    /// 일반 모드에서는 FocusEndConfirmView 플로우를 스킵하고 직접 종료 — intent 사용자는
+    /// 이미 음성·자동화 경로로 "끝내겠다" 를 명시적으로 선언했기 때문.
+    @discardableResult
+    func endManualFocusFromIntent() -> Bool {
+        guard persistence.isManualFocusActive else { return false }
+        guard !strictActive else { return false }
+        let start = persistence.manualFocusStartedAt
+        let now = Date()
+        blocking.clearShield()
+        persistence.isManualFocusActive = false
+        persistence.recordManualFocusEnd()
+        _ = persistence.awardSessionCompletionIfEligible(now: now)
+        var unlocked: [Badge] = []
+        if let start {
+            unlocked.append(contentsOf: BadgeEngine.onManualFocusEnded(
+                elapsed: now.timeIntervalSince(start),
+                persistence: persistence
+            ))
+        }
+        unlocked.append(contentsOf: BadgeEngine.onScoreChanged(persistence: persistence))
+        celebrate(unlocked)
+        FocusActivityService.end()
+        return true
+    }
 
     /// 현재 payload 를 확정: 친구 목록에 추가하고 닉네임 캐시 갱신.
     func acceptFriendInvite() {
@@ -201,13 +256,15 @@ final class AppDependencies: ObservableObject {
                 return
             }
             // end 뿐 아니라 start 도 함께 정리 — 다음 엄격 모드 시작 시 오래된 start 가 남지 않도록.
+            // uptime/duration 은 strictModeEndAt setter 가 자동 정리.
             persistence.strictModeEndAt = nil
             persistence.strictModeStartAt = nil
             // 엄격 모드 완주 — 긍정 햅틱.
             Haptics.success()
             celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
-            // Live Activity 도 함께 종료 + ticker 도 slow 로 전환.
+            // Live Activity + 예약된 완료 알림 모두 정리 (알림은 이미 발송됐을 수 있음).
             FocusActivityService.end()
+            StrictCompletionScheduler.cancel()
             scheduleTicker(fast: false)
         }
     }
@@ -264,6 +321,8 @@ final class PreviewPersistenceStore: PersistenceStore {
     var isManualFocusActive = false
     var strictModeEndAt: Date? = nil
     var strictModeStartAt: Date? = nil
+    var strictModeStartUptime: Double? = nil
+    var strictModeDurationSeconds: Double? = nil
     var interceptQueue: [InterceptEvent] = []
 
     var focusEndCountToday: Int { 0 }
@@ -298,6 +357,8 @@ final class PreviewPersistenceStore: PersistenceStore {
     var focusGoalScore: Int = 80
     var useBiometricForPasscode: Bool = false
     var dailySummaryNotification: Bool = false
+    var streakFreezeToken: Int = 0
+    var streakFreezeLastWeek: String = ""
 
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue

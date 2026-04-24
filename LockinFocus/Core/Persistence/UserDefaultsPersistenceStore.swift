@@ -302,6 +302,21 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         set { defaults.set(newValue, forKey: PersistenceKeys.dailySummaryNotification) }
     }
 
+    var streakFreezeToken: Int {
+        get {
+            let v = defaults.integer(forKey: PersistenceKeys.streakFreezeToken)
+            return max(0, min(1, v))
+        }
+        set {
+            defaults.set(max(0, min(1, newValue)), forKey: PersistenceKeys.streakFreezeToken)
+        }
+    }
+
+    var streakFreezeLastWeek: String {
+        get { defaults.string(forKey: PersistenceKeys.streakFreezeLastWeek) ?? "" }
+        set { defaults.set(newValue, forKey: PersistenceKeys.streakFreezeLastWeek) }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }
@@ -335,8 +350,10 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
                 defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.strictModeEndAt)
             } else {
                 defaults.removeObject(forKey: PersistenceKeys.strictModeEndAt)
-                // end 가 지워지면 start 도 함께 — 시계 조작 탐지 대칭성 유지.
+                // end 가 지워지면 start + uptime + duration 도 함께 — 시계 조작 탐지 대칭성 유지.
                 defaults.removeObject(forKey: PersistenceKeys.strictModeStartAt)
+                defaults.removeObject(forKey: PersistenceKeys.strictModeStartUptime)
+                defaults.removeObject(forKey: PersistenceKeys.strictModeDurationSeconds)
             }
         }
     }
@@ -351,6 +368,34 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
                 defaults.set(date.timeIntervalSince1970, forKey: PersistenceKeys.strictModeStartAt)
             } else {
                 defaults.removeObject(forKey: PersistenceKeys.strictModeStartAt)
+            }
+        }
+    }
+
+    var strictModeStartUptime: Double? {
+        get {
+            let v = defaults.double(forKey: PersistenceKeys.strictModeStartUptime)
+            return v > 0 ? v : nil
+        }
+        set {
+            if let v = newValue {
+                defaults.set(v, forKey: PersistenceKeys.strictModeStartUptime)
+            } else {
+                defaults.removeObject(forKey: PersistenceKeys.strictModeStartUptime)
+            }
+        }
+    }
+
+    var strictModeDurationSeconds: Double? {
+        get {
+            let v = defaults.double(forKey: PersistenceKeys.strictModeDurationSeconds)
+            return v > 0 ? v : nil
+        }
+        set {
+            if let v = newValue {
+                defaults.set(v, forKey: PersistenceKeys.strictModeDurationSeconds)
+            } else {
+                defaults.removeObject(forKey: PersistenceKeys.strictModeDurationSeconds)
             }
         }
     }

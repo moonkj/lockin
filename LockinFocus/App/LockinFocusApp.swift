@@ -23,6 +23,9 @@ struct LockinFocusApp: App {
         let dailyOn = UserDefaults(suiteName: AppGroup.identifier)?
             .bool(forKey: PersistenceKeys.dailySummaryNotification) ?? false
         DailySummaryScheduler.rescheduleIfEnabled(when: dailyOn)
+
+        // 주 1회 스트릭 보존 토큰 — deps 초기화된 뒤 Dashboard onAppear 에서 호출.
+        // 앱이 월요일에 열리지 않을 수도 있으니 (매주 갱신) 매 launch 에 체크.
     }
 
     var body: some Scene {

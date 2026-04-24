@@ -89,7 +89,10 @@ struct DashboardView: View {
                         goal: deps.persistence.focusGoalScore
                     )
 
-                    StreakDotsCard(history: last7DaysHistory)
+                    StreakDotsCard(
+                        history: last7DaysHistory,
+                        freezeTokens: deps.persistence.streakFreezeToken
+                    )
 
                     AllowedAppsCard(selection: selection) {
                         activeSheet = .appPicker
@@ -128,6 +131,20 @@ struct DashboardView: View {
                 activeSheet = .weeklyReport
             case .quoteDetail:
                 activeSheet = .quoteDetail
+            case .startFocus:
+                // Siri/Shortcut "집중 시작" — 엄격 중이거나 이미 활성이면 토스트로 안내.
+                if deps.persistence.isStrictModeActive {
+                    toastMessage = "엄격 모드가 켜져 있어서 시작할 수 없어요."
+                } else if deps.startManualFocusFromIntent() {
+                    isManualFocus = true
+                    Haptics.success()
+                }
+            case .endFocus:
+                // 엄격 중이거나 안 돌고 있으면 조용히 무시.
+                if deps.endManualFocusFromIntent() {
+                    isManualFocus = false
+                    Haptics.success()
+                }
             }
             deps.consumeRoute()
         }
@@ -299,6 +316,8 @@ struct DashboardView: View {
         // 7일 히스토리는 뷰 라이프사이클 (onAppear, 시트 닫힘) 에만 재로드. body 안에서
         // 매 tick JSON 디코드하지 않도록 @State 캐시 사용.
         last7DaysHistory = deps.persistence.dailyFocusHistory(lastDays: 7)
+        // 주 1회 스트릭 보존 토큰 — 새 주가 시작됐으면 자동 지급.
+        StreakEngine.grantWeeklyTokenIfNeeded(persistence: deps.persistence)
     }
 
     /// 수동 집중 **시작** 전용. 종료는 `endManualFocus()` 가 FocusEndConfirmView 경유해서 호출.

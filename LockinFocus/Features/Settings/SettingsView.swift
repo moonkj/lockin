@@ -376,6 +376,9 @@ struct SettingsView: View {
         // start 와 end 모두 기록 — 현재 시각이 start 이전이면 시계 조작으로 판정.
         deps.persistence.strictModeStartAt = now
         deps.persistence.strictModeEndAt = end
+        // wallclock 조작에 대한 2차 방어 — uptime snapshot + duration.
+        deps.persistence.strictModeStartUptime = ProcessInfo.processInfo.systemUptime
+        deps.persistence.strictModeDurationSeconds = duration
         deps.persistence.isManualFocusActive = true
         deps.persistence.manualFocusStartedAt = now
         deps.blocking.applyWhitelist(for: selection)
@@ -392,6 +395,8 @@ struct SettingsView: View {
             allowedCount: allowedCount,
             focusScore: deps.persistence.focusScoreToday
         )
+        // 엄격 모드 완료 local notification — 사용자가 앱 밖에 있어도 만료를 포착.
+        StrictCompletionScheduler.schedule(endAt: end, durationSeconds: duration)
     }
 
     private func save() {

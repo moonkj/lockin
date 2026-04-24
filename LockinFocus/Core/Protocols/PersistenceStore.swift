@@ -18,6 +18,13 @@ protocol PersistenceStore: AnyObject {
     /// 사용자가 시스템 시계를 되돌린 것 — 엄격 모드를 활성 상태로 유지해야 한다.
     var strictModeStartAt: Date? { get set }
 
+    /// 엄격 모드 시작 시점 `ProcessInfo.systemUptime` 스냅샷. 재부팅 후엔 nil.
+    /// wallclock + uptime 양쪽이 duration 을 넘겨야 해제되도록 2중 방어.
+    var strictModeStartUptime: Double? { get set }
+
+    /// 엄격 모드 시작 시 지정된 총 duration 초. uptime 기반 검증의 임계값.
+    var strictModeDurationSeconds: Double? { get set }
+
     /// 오늘 수동 집중 종료한 횟수 (1회차 이후 사용: 10s → 30s → 60s 대기).
     var focusEndCountToday: Int { get }
 
@@ -105,11 +112,22 @@ protocol PersistenceStore: AnyObject {
 
     /// 하루 마감 요약 로컬 알림 on/off. 기본 false.
     var dailySummaryNotification: Bool { get set }
+
+    // MARK: - Streak freeze
+
+    /// 스트릭 보존 토큰 수 (0 또는 1). 주 1회 자동 지급.
+    var streakFreezeToken: Int { get set }
+
+    /// 마지막 지급 ISO 주 (`yyyy-Www`). 비었으면 미지급.
+    var streakFreezeLastWeek: String { get set }
 }
 
 extension PersistenceStore {
     /// 엄격 모드 종료 시각이 현재보다 뒤면 활성.
     /// 추가로 "시계 조작 감지": 현재 시각이 start 이전이면 활성 상태 유지.
+    /// **Uptime sentinel 추가**: 같은 부팅 세션이면 uptime 도 duration 이상 흘렀는지 함께
+    /// 검증. duration 만큼 uptime 이 안 지났으면 wallclock 이 맞아 보여도 활성 유지
+    /// (wallclock 을 미래로 밀고 복귀하는 조작 차단).
     var isStrictModeActive: Bool {
         guard let end = strictModeEndAt else { return false }
         let now = Date()
@@ -117,7 +135,22 @@ extension PersistenceStore {
             // 사용자가 시계를 start 이전으로 되돌렸다. 엄격 모드는 여전히 활성.
             return true
         }
-        return end > now
+        if end > now { return true }
+        // wallclock 만료. 같은 부팅 세션이면 uptime 검증도 통과해야.
+        if let startUptime = strictModeStartUptime,
+           let duration = strictModeDurationSeconds {
+            let uptimeNow = ProcessInfo.processInfo.systemUptime
+            // 재부팅 시 uptimeNow 가 startUptime 보다 작아져 시스템이 리셋된 걸 알 수 있다.
+            // 이 경우는 보수적으로 wallclock 신뢰 (activity 종료).
+            if uptimeNow >= startUptime {
+                let uptimeElapsed = uptimeNow - startUptime
+                if uptimeElapsed < duration {
+                    // wallclock 은 끝났다고 주장하지만 기기가 실제로 그만큼 안 돌았다 → 조작.
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     /// 남은 엄격 모드 시간 (초). 비활성이면 0.
@@ -128,6 +161,17 @@ extension PersistenceStore {
             // 시계 조작 상태 — end - start 가 원래 설정한 총 시간이므로 이를 남은 시간으로 취급.
             return max(0, end.timeIntervalSince(start))
         }
-        return max(0, end.timeIntervalSinceNow)
+        // wallclock 잔여.
+        let wallRemaining = max(0, end.timeIntervalSinceNow)
+        // uptime 잔여도 계산해 둘 중 큰 쪽을 반환 (조작 방어).
+        if let startUptime = strictModeStartUptime,
+           let duration = strictModeDurationSeconds {
+            let uptimeNow = ProcessInfo.processInfo.systemUptime
+            if uptimeNow >= startUptime {
+                let uptimeRemaining = max(0, duration - (uptimeNow - startUptime))
+                return max(wallRemaining, uptimeRemaining)
+            }
+        }
+        return wallRemaining
     }
 }
