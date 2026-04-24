@@ -208,21 +208,13 @@ final class AppDependencies: ObservableObject {
         }
     }
 
-    /// 전역 타이머 — 엄격 모드 활성 중에만 1초 해상도로 돌고,
-    /// 비활성 중에는 10초 해상도로 낮춰 배터리 부담을 최소화한다.
-    /// 이전 구현은 publish 만 throttle 했지만 Timer 자체는 매초 wake-up 했음 —
-    /// 현재는 Timer 간격 자체를 strict 상태에 맞춰 재스케줄해 스레드 wake-up 도 줄임.
-    private var tickerIsFastMode: Bool = false
-
+    /// 전역 1초 타이머. 외부(설정·테스트·실기기 strict 시작) 에서 persistence 가 변경
+    /// 됐을 때 즉각 감지해야 하므로 base interval 은 1초로 고정.
+    /// 배터리 비용은 (a) `scenePhase .background` 시 즉시 invalidate (`pauseTicker`)
+    /// 으로 차단, (b) `tick` publish 는 strict 비활성 시 10초마다만 (뷰 재렌더 폭주 방지).
     private func startGlobalTicker() {
-        scheduleTicker(fast: persistence.isStrictModeActive)
-    }
-
-    private func scheduleTicker(fast: Bool) {
         tickTimer?.invalidate()
-        tickerIsFastMode = fast
-        let interval: TimeInterval = fast ? 1 : 10
-        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.onTick()
             }
@@ -234,20 +226,15 @@ final class AppDependencies: ObservableObject {
         let now = Date()
         let currentStrict = persistence.isStrictModeActive
 
-        // 캐시된 strictActive 상태가 flip 했을 때만 @Published emission.
+        // 캐시된 strictActive 상태가 flip 했을 때만 @Published emission — 뷰 본문이
+        // UserDefaults 를 매 렌더마다 읽지 않도록.
         if currentStrict != strictActive {
             strictActive = currentStrict
         }
 
-        // strict 시작/종료에 맞춰 Timer 간격 재조정. scheduleTicker 가 기존 Timer 를 정리 후 재스케줄.
-        if currentStrict != tickerIsFastMode {
-            scheduleTicker(fast: currentStrict)
-        }
-        let strictActive = currentStrict  // 기존 지역 변수 이름 유지 위한 shadow.
-
-        // strict 때만 매초 publish, 아니면 10초 간격으로 publish (Timer 도 이제 10초 간격이므로 사실상 매 fire).
+        // strict 활성: 매초 publish (Live timer · countdown 라벨 정확도). 비활성: 10초 throttle.
         let secondsSinceLastPublish = now.timeIntervalSince(tick)
-        if strictActive || secondsSinceLastPublish >= 10 {
+        if currentStrict || secondsSinceLastPublish >= 10 {
             tick = now
         }
         if let end = persistence.strictModeEndAt, end <= now {
@@ -265,7 +252,6 @@ final class AppDependencies: ObservableObject {
             // Live Activity + 예약된 완료 알림 모두 정리 (알림은 이미 발송됐을 수 있음).
             FocusActivityService.end()
             StrictCompletionScheduler.cancel()
-            scheduleTicker(fast: false)
         }
     }
 

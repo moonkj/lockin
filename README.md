@@ -6,7 +6,7 @@
 ![Swift](https://img.shields.io/badge/Swift-5.9-F05138)
 ![UI](https://img.shields.io/badge/UI-SwiftUI-0091FF)
 ![FamilyControls](https://img.shields.io/badge/FamilyControls-individual-4B7BEC)
-![Tests](https://img.shields.io/badge/tests-469-2E7D57)
+![Tests](https://img.shields.io/badge/tests-540%2B-2E7D57)
 
 ---
 
@@ -167,7 +167,7 @@ xcodebuild test -project LockinFocus.xcodeproj \
                 -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-- 469 케이스 — Core 로직 95%+, 메인 앱 전체 ~88%.
+- 540+ 케이스 — Core 로직 95%+, 메인 앱 전체 ~88%.
 - iOS 26 + ViewInspector + `AccessibilityImageLabel` 블로커로 일부 뷰 테스트는 현재 통과 불가 (외부 라이브러리 이슈, 프로덕션 영향 없음).
 - 핵심 계약 회귀 방어:
   - `InterceptEventTests.testRawValueStability_*` — 5 키 안정성
