@@ -14,6 +14,19 @@ struct LeaderboardView: View {
     @State private var isSubmitting: Bool = false
     @State private var errorMessage: String?
     @State private var showNicknameSetup: Bool = false
+    @State private var scope: Scope = .all
+    @State private var showFriendsSheet: Bool = false
+
+    enum Scope: String, CaseIterable, Identifiable {
+        case all, friends
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .all: return "전체"
+            case .friends: return "친구"
+            }
+        }
+    }
 
     /// iCloud KV 조회가 동기라서 매 프레임 수십 번 부르면 UI 가 느려진다 —
     /// 뷰 등장 시 한 번 캐시한 뒤 재사용.
@@ -38,17 +51,32 @@ struct LeaderboardView: View {
     }
     private var myNickname: String? { deps.persistence.nickname }
 
+    /// 현재 scope (전체/친구) 에 해당하는 엔트리만 필터링.
+    /// 친구 scope 에서는 내 entry + 친구 entry 만 남기고 재정렬.
+    private var visibleEntries: [LeaderboardEntry] {
+        switch scope {
+        case .all:
+            return entries
+        case .friends:
+            let friendSet = Set(deps.persistence.friendUserIDs)
+            let allowed = friendSet.union([myUserID])
+            return entries
+                .filter { allowed.contains($0.userID) }
+                .sorted { $0.score(for: period) > $1.score(for: period) }
+        }
+    }
+
     private var myRank: Int? {
-        entries.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
+        visibleEntries.firstIndex { $0.userID == myUserID }.map { $0 + 1 }
     }
 
     private var myEntry: LeaderboardEntry? {
-        entries.first { $0.userID == myUserID }
+        visibleEntries.first { $0.userID == myUserID }
     }
 
     private var myPercentile: Int? {
-        guard let rank = myRank, !entries.isEmpty else { return nil }
-        let ratio = Double(rank) / Double(entries.count)
+        guard let rank = myRank, !visibleEntries.isEmpty else { return nil }
+        let ratio = Double(rank) / Double(visibleEntries.count)
         return max(1, min(100, Int(ceil(ratio * 100))))
     }
 
@@ -59,6 +87,7 @@ struct LeaderboardView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        scopePicker
                         periodPicker
                         topThreeSection
                         summaryStrip
@@ -73,7 +102,7 @@ struct LeaderboardView: View {
                     ProgressView().scaleEffect(1.2)
                 }
             }
-            .navigationTitle("전체 랭킹")
+            .navigationTitle(scope == .friends ? "친구 랭킹" : "전체 랭킹")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -81,14 +110,24 @@ struct LeaderboardView: View {
                         .foregroundStyle(AppColors.secondaryText)
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        Task { await submitAndRefresh() }
-                    } label: {
-                        Image(systemName: "arrow.up.circle")
-                            .foregroundStyle(AppColors.primaryText)
+                    HStack(spacing: 14) {
+                        Button {
+                            showFriendsSheet = true
+                        } label: {
+                            Image(systemName: "person.2")
+                                .foregroundStyle(AppColors.primaryText)
+                        }
+                        .accessibilityLabel("친구 관리")
+
+                        Button {
+                            Task { await submitAndRefresh() }
+                        } label: {
+                            Image(systemName: "arrow.up.circle")
+                                .foregroundStyle(AppColors.primaryText)
+                        }
+                        .disabled(isSubmitting)
+                        .accessibilityLabel("내 점수 랭킹에 등록")
                     }
-                    .disabled(isSubmitting)
-                    .accessibilityLabel("내 점수 랭킹에 등록")
                 }
             }
             .sheet(isPresented: $showNicknameSetup) {
@@ -96,6 +135,10 @@ struct LeaderboardView: View {
                     Task { await submitAndRefresh() }
                 }
                 .environmentObject(deps)
+            }
+            .sheet(isPresented: $showFriendsSheet) {
+                FriendsManagementView()
+                    .environmentObject(deps)
             }
             .task {
                 // 뷰 첫 등장 시 iCloud KV 에서 userID 를 한 번만 조회해 캐시.
@@ -111,6 +154,35 @@ struct LeaderboardView: View {
     }
 
     // MARK: - Sections
+
+    /// 전체 / 친구 범위 전환 세그먼트.
+    private var scopePicker: some View {
+        HStack(spacing: 0) {
+            ForEach(Scope.allCases) { s in
+                let isSelected = scope == s
+                Button {
+                    Haptics.selection()
+                    scope = s
+                } label: {
+                    Text(s.label)
+                        .scaledFont(13, weight: isSelected ? .semibold : .regular)
+                        .foregroundStyle(isSelected ? AppColors.primaryText : AppColors.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(isSelected ? AppColors.surface : Color.clear)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(AppColors.divider.opacity(0.3))
+        )
+    }
 
     private var periodPicker: some View {
         HStack(spacing: 8) {
@@ -146,18 +218,18 @@ struct LeaderboardView: View {
                 .foregroundStyle(AppColors.primaryText)
 
             HStack(alignment: .bottom, spacing: 20) {
-                if entries.indices.contains(1) {
-                    medalCell(rank: 2, entry: entries[1])
+                if visibleEntries.indices.contains(1) {
+                    medalCell(rank: 2, entry: visibleEntries[1])
                 } else {
                     placeholderMedal(rank: 2)
                 }
-                if entries.indices.contains(0) {
-                    medalCell(rank: 1, entry: entries[0])
+                if visibleEntries.indices.contains(0) {
+                    medalCell(rank: 1, entry: visibleEntries[0])
                 } else {
                     placeholderMedal(rank: 1)
                 }
-                if entries.indices.contains(2) {
-                    medalCell(rank: 3, entry: entries[2])
+                if visibleEntries.indices.contains(2) {
+                    medalCell(rank: 3, entry: visibleEntries[2])
                 } else {
                     placeholderMedal(rank: 3)
                 }
@@ -174,7 +246,7 @@ struct LeaderboardView: View {
 
     private var summaryStrip: some View {
         HStack(spacing: 20) {
-            summaryStat(label: "참여자", value: "\(entries.count)명")
+            summaryStat(label: "참여자", value: "\(visibleEntries.count)명")
             Divider().frame(height: 28)
             summaryStat(
                 label: "내 등수",
@@ -215,14 +287,20 @@ struct LeaderboardView: View {
                     .padding(.vertical, 4)
             }
 
-            if entries.count <= 3 {
+            if scope == .friends && deps.persistence.friendUserIDs.isEmpty {
+                Text("아직 친구가 없어요.\n오른쪽 위 사람 아이콘에서 친구 초대 링크를 공유해보세요.")
+                    .scaledFont(13)
+                    .foregroundStyle(AppColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, 40)
+            } else if visibleEntries.count <= 3 {
                 Text("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")
                     .scaledFont(13)
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.vertical, 40)
             } else {
-                ForEach(Array(entries.prefix(30).enumerated()), id: \.element.id) { index, entry in
+                ForEach(Array(visibleEntries.prefix(30).enumerated()), id: \.element.id) { index, entry in
                     if index >= 3 {
                         rankRow(rank: index + 1, entry: entry)
                     }
@@ -300,7 +378,7 @@ struct LeaderboardView: View {
     private func rankRow(rank: Int, entry: LeaderboardEntry) -> some View {
         let isMe = entry.userID == myUserID
         let score = entry.score(for: period)
-        let maxScore = Double(entries.first?.score(for: period) ?? 1)
+        let maxScore = Double(visibleEntries.first?.score(for: period) ?? 1)
         let ratio: Double = maxScore > 0 ? Double(score) / maxScore : 0
 
         return VStack(spacing: 6) {
@@ -379,6 +457,22 @@ struct LeaderboardView: View {
     // MARK: - Actions
 
     @MainActor
+    private func refreshFriendNicknameCache(from fetched: [LeaderboardEntry]) {
+        let friendSet = Set(deps.persistence.friendUserIDs)
+        guard !friendSet.isEmpty else { return }
+        var cache = deps.persistence.friendNicknameCache
+        var changed = false
+        for entry in fetched where friendSet.contains(entry.userID) {
+            if cache[entry.userID] != entry.nickname {
+                cache[entry.userID] = entry.nickname
+                changed = true
+            }
+        }
+        if changed {
+            deps.persistence.friendNicknameCache = cache
+        }
+    }
+
     private func load() async {
         isLoading = true
         errorMessage = nil
@@ -392,6 +486,8 @@ struct LeaderboardView: View {
         }
         do {
             entries = try await service.fetchRanking(period: period)
+            // 친구 닉네임 캐시 갱신 — 친구 목록에 있는 userID 의 최신 닉네임을 들고 있다가 오프라인에서도 이름을 보여주기 위함.
+            refreshFriendNicknameCache(from: entries)
             // 랭킹 로드 직후 순위 뱃지 판정 — 참가자 100명 이상이면 해당 구간·등수 뱃지 부여.
             let unlocked = BadgeEngine.onRankingFetched(
                 entries: entries,

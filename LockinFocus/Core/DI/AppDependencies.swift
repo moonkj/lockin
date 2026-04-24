@@ -27,6 +27,31 @@ final class AppDependencies: ObservableObject {
     /// 소비한 쪽이 호출. 다른 뷰의 race 를 방지하기 위한 명시적 API.
     func consumeRoute() { pendingRoute = nil }
 
+    /// 외부에서 친구 초대 링크가 들어왔을 때 임시 보관하는 payload.
+    /// 자기 자신을 추가하는 건 무의미하므로 걸러낸다.
+    @Published var pendingFriendInvite: FriendInviteLink.Payload?
+
+    func requestFriendInvite(_ payload: FriendInviteLink.Payload) {
+        guard payload.userID != persistence.leaderboardUserID else { return }
+        pendingFriendInvite = payload
+    }
+
+    func consumeFriendInvite() { pendingFriendInvite = nil }
+
+    /// 현재 payload 를 확정: 친구 목록에 추가하고 닉네임 캐시 갱신.
+    func acceptFriendInvite() {
+        guard let p = pendingFriendInvite else { return }
+        var ids = persistence.friendUserIDs
+        if !ids.contains(p.userID) {
+            ids.append(p.userID)
+            persistence.friendUserIDs = ids
+        }
+        var cache = persistence.friendNicknameCache
+        cache[p.userID] = p.nickname
+        persistence.friendNicknameCache = cache
+        pendingFriendInvite = nil
+    }
+
     /// 현재 화면에 떠 있는 축하 모달. 없으면 nil.
     @Published private(set) var currentCelebratedBadge: Badge?
 
@@ -187,6 +212,8 @@ final class PreviewPersistenceStore: PersistenceStore {
     // Leaderboard (preview)
     var nickname: String? = nil
     let leaderboardUserID: String = "preview-user"
+    var friendUserIDs: [String] = []
+    var friendNicknameCache: [String: String] = [:]
 
     func drainInterceptQueue() -> [InterceptEvent] {
         let q = interceptQueue

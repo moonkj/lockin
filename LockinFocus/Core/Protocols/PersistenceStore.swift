@@ -84,6 +84,14 @@ protocol PersistenceStore: AnyObject {
 
     /// CloudKit record 식별자. 첫 접근 시 자동 생성되도록 구현.
     var leaderboardUserID: String { get }
+
+    // MARK: - Friends (그룹 랭킹)
+
+    /// 친구로 등록한 userID 목록. 순서는 삽입 순.
+    var friendUserIDs: [String] { get set }
+
+    /// userID → 마지막으로 본 닉네임 캐시. 오프라인 상태나 상대 record 가 아직 없을 때 이름을 보여주기 위한 용도.
+    var friendNicknameCache: [String: String] { get set }
 }
 
 extension PersistenceStore {

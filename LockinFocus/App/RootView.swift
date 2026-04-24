@@ -25,6 +25,26 @@ struct RootView: View {
                 drainQueue()
             }
         }
+        .onOpenURL { url in
+            if let payload = FriendInviteLink.parse(url) {
+                deps.requestFriendInvite(payload)
+            } else if let route = RouteParser.parse(url) {
+                deps.requestRoute(route)
+            }
+        }
+        .alert(
+            "친구 추가",
+            isPresented: Binding(
+                get: { deps.pendingFriendInvite != nil },
+                set: { if !$0 { deps.consumeFriendInvite() } }
+            ),
+            presenting: deps.pendingFriendInvite
+        ) { _ in
+            Button("추가") { deps.acceptFriendInvite() }
+            Button("취소", role: .cancel) { deps.consumeFriendInvite() }
+        } message: { payload in
+            Text("\(payload.nickname)님을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
+        }
         .sheet(isPresented: $showIntercept) {
             InterceptView()
                 .environmentObject(deps)

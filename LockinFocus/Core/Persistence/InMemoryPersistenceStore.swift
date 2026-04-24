@@ -192,6 +192,8 @@ final class InMemoryPersistenceStore: PersistenceStore {
     var nickname: String?
     private var _leaderboardUserID: String = UUID().uuidString
     var leaderboardUserID: String { _leaderboardUserID }
+    var friendUserIDs: [String] = []
+    var friendNicknameCache: [String: String] = [:]
 
     private func rolloverTodayReturnPointsIfNeeded() {
         let today = Self.todayString()

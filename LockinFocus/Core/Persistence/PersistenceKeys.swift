@@ -72,4 +72,10 @@ enum PersistenceKeys {
     /// CloudKit 랭킹용.
     static let nickname = "nickname"
     static let leaderboardUserID = "leaderboardUserID"
+
+    /// 친구 userID 목록 (`[String]`). 그룹 랭킹 필터에 사용.
+    static let friendUserIDs = "friendUserIDs"
+
+    /// 친구 닉네임 캐시 (`[String: String]` userID → 최근 본 닉네임). 오프라인에서도 친구 라벨을 보여주기 위한 캐시.
+    static let friendNicknameCache = "friendNicknameCache"
 }

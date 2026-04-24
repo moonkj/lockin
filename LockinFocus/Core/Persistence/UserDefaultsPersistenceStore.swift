@@ -265,6 +265,16 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         return fresh
     }
 
+    var friendUserIDs: [String] {
+        get { defaults.stringArray(forKey: PersistenceKeys.friendUserIDs) ?? [] }
+        set { defaults.set(newValue, forKey: PersistenceKeys.friendUserIDs) }
+    }
+
+    var friendNicknameCache: [String: String] {
+        get { defaults.dictionary(forKey: PersistenceKeys.friendNicknameCache) as? [String: String] ?? [:] }
+        set { defaults.set(newValue, forKey: PersistenceKeys.friendNicknameCache) }
+    }
+
     private func appendHistory(_ entry: DailyFocus) {
         var history = readHistory()
         history.removeAll { $0.date == entry.date }
