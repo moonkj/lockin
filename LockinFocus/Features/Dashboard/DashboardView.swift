@@ -7,13 +7,43 @@ import WidgetKit
 struct DashboardView: View {
     @EnvironmentObject var deps: AppDependencies
 
-    @State private var showAppPicker: Bool = false
-    @State private var showScheduleEditor: Bool = false
-    @State private var showSettings: Bool = false
+    /// 대시보드에서 띄울 수 있는 모든 sheet 의 식별자.
+    /// `.sheet(item:)` 에 바인딩해 한 번에 하나만 뜨도록 강제한다.
+    /// 기존 @State Bool 9개 → 단일 enum 으로 정리.
+    enum ActiveSheet: Identifiable {
+        case appPicker
+        case scheduleEditor
+        case settings
+        case weeklyReport
+        case badges
+        case focusEndConfirm
+        case quoteDetail
+        case leaderboard
+        case passcodeSetup
+
+        var id: String {
+            switch self {
+            case .appPicker:       return "appPicker"
+            case .scheduleEditor:  return "scheduleEditor"
+            case .settings:        return "settings"
+            case .weeklyReport:    return "weeklyReport"
+            case .badges:          return "badges"
+            case .focusEndConfirm: return "focusEndConfirm"
+            case .quoteDetail:     return "quoteDetail"
+            case .leaderboard:     return "leaderboard"
+            case .passcodeSetup:   return "passcodeSetup"
+            }
+        }
+    }
+
+    @State private var activeSheet: ActiveSheet?
+    @State private var showEmptyAllowConfirm: Bool = false  // confirmationDialog — 별도 API
+    @State private var showStrictActiveAlert: Bool = false  // alert — 별도 API
 
     @State private var selection: FamilyActivitySelection
     @State private var schedule: Schedule
     @State private var isManualFocus: Bool
+    @State private var toastMessage: String? = nil
 
     init() {
         _selection = State(initialValue: FamilyActivitySelection())
@@ -35,16 +65,6 @@ struct DashboardView: View {
         _showStrictActiveAlert = State(initialValue: initialShowStrictActiveAlert)
         _toastMessage = State(initialValue: initialToast)
     }
-    @State private var showEmptyAllowConfirm: Bool = false
-    @State private var showStrictActiveAlert: Bool = false
-
-    @State private var showWeeklyReport: Bool = false
-    @State private var showBadges: Bool = false
-    @State private var showFocusEndConfirm: Bool = false
-    @State private var showQuoteDetail: Bool = false
-    @State private var showLeaderboard: Bool = false
-    @State private var showPasscodeSetup: Bool = false
-    @State private var toastMessage: String? = nil
 
     private var allowedCount: Int {
         selection.applicationTokens.count
@@ -64,11 +84,11 @@ struct DashboardView: View {
                     FocusScoreCard(score: deps.persistence.focusScoreToday)
 
                     AllowedAppsCard(selection: selection) {
-                        showAppPicker = true
+                        activeSheet = .appPicker
                     }
 
                     NextScheduleCard(schedule: schedule) {
-                        showScheduleEditor = true
+                        activeSheet = .scheduleEditor
                     }
 
                     manualFocusButton
@@ -80,7 +100,7 @@ struct DashboardView: View {
                             .padding(.horizontal, 4)
                     }
 
-                    DailyQuoteCard(onTap: { showQuoteDetail = true })
+                    DailyQuoteCard(onTap: { activeSheet = .quoteDetail })
 
                     Spacer(minLength: 24)
                 }
@@ -88,56 +108,61 @@ struct DashboardView: View {
             }
         }
         .onAppear(perform: load)
-        .sheet(isPresented: $showAppPicker) {
-            AppSelectionView(selection: $selection) {
-                showAppPicker = false
-                save()
-            }
-        }
-        .sheet(isPresented: $showScheduleEditor) {
-            ScheduleEditorView(schedule: $schedule) {
-                showScheduleEditor = false
-                save()
-            }
-        }
-        .sheet(isPresented: $showSettings, onDismiss: load) {
-            SettingsView()
-                .environmentObject(deps)
-        }
-        .sheet(isPresented: $showWeeklyReport) {
-            ReportView()
-                .environmentObject(deps)
-        }
-        .sheet(isPresented: $showBadges) {
-            BadgesView()
-                .environmentObject(deps)
-        }
-        .sheet(isPresented: $showFocusEndConfirm) {
-            FocusEndConfirmView(
-                ordinal: deps.persistence.focusEndCountToday + 1,
-                onConfirm: endManualFocus
-            )
-        }
-        .sheet(isPresented: $showQuoteDetail) {
-            QuoteDetailSheet()
-        }
-        .sheet(isPresented: $showLeaderboard) {
-            LeaderboardView().environmentObject(deps)
-        }
-        .sheet(isPresented: $showPasscodeSetup) {
-            AppPasscodeSetupView { _ in }
+        .sheet(item: $activeSheet, onDismiss: onSheetDismiss) { sheet in
+            sheetContent(sheet)
         }
         .toast(message: $toastMessage)
         .onChange(of: deps.pendingRoute) { route in
             guard let route else { return }
             switch route {
             case .weeklyReport:
-                showWeeklyReport = true
+                activeSheet = .weeklyReport
             case .quoteDetail:
-                showQuoteDetail = true
+                activeSheet = .quoteDetail
             }
             deps.consumeRoute()
         }
+    }
+
+    /// Sheet 라우터 — activeSheet 케이스별로 화면 반환.
+    @ViewBuilder
+    private func sheetContent(_ sheet: ActiveSheet) -> some View {
+        switch sheet {
+        case .appPicker:
+            AppSelectionView(selection: $selection) {
+                activeSheet = nil
+                save()
+            }
+        case .scheduleEditor:
+            ScheduleEditorView(schedule: $schedule) {
+                activeSheet = nil
+                save()
+            }
+        case .settings:
+            SettingsView().environmentObject(deps)
+        case .weeklyReport:
+            ReportView().environmentObject(deps)
+        case .badges:
+            BadgesView().environmentObject(deps)
+        case .focusEndConfirm:
+            FocusEndConfirmView(
+                ordinal: deps.persistence.focusEndCountToday + 1,
+                onConfirm: endManualFocus
+            )
+        case .quoteDetail:
+            QuoteDetailSheet()
+        case .leaderboard:
+            LeaderboardView().environmentObject(deps)
+        case .passcodeSetup:
+            AppPasscodeSetupView { _ in }
+        }
+    }
+
+    /// Sheet 가 닫힐 때 호출. Settings 가 닫혀 상태가 바뀌었을 수 있으니 다시 불러온다.
+    private func onSheetDismiss() {
+        // 기존엔 Settings sheet 에만 onDismiss: load 가 붙어 있었다.
+        // 통합 후엔 어떤 sheet 가 닫혔는지 알 수 없으니 항상 load — 비용은 UserDefaults 몇 번.
+        load()
     }
 
     @ViewBuilder
@@ -149,7 +174,7 @@ struct DashboardView: View {
                     showStrictActiveAlert = true
                 } else {
                     // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
-                    showFocusEndConfirm = true
+                    activeSheet = .focusEndConfirm
                 }
             } else if !AppPasscodeStore.isSet {
                 // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정이기 때문.
@@ -215,7 +240,7 @@ struct DashboardView: View {
             Spacer()
 
             Button {
-                showLeaderboard = true
+                activeSheet = .leaderboard
             } label: {
                 Image(systemName: "trophy")
                     .font(.system(size: 20))
@@ -225,7 +250,7 @@ struct DashboardView: View {
             .accessibilityLabel("랭킹 열기")
 
             Button {
-                showBadges = true
+                activeSheet = .badges
             } label: {
                 Image(systemName: "rosette")
                     .font(.system(size: 20))
@@ -235,7 +260,7 @@ struct DashboardView: View {
             .accessibilityLabel("뱃지 모음 열기")
 
             Button {
-                showWeeklyReport = true
+                activeSheet = .weeklyReport
             } label: {
                 Image(systemName: "chart.bar")
                     .font(.system(size: 20))
@@ -245,7 +270,7 @@ struct DashboardView: View {
             .accessibilityLabel("리포트 열기")
 
             Button {
-                showSettings = true
+                activeSheet = .settings
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 20))
