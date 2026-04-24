@@ -89,10 +89,13 @@ struct DashboardView: View {
                         goal: deps.persistence.focusGoalScore
                     )
 
-                    PinnedBadgesStrip(
-                        pinnedIDs: deps.persistence.pinnedBadgeIDs,
-                        onTap: { _ in activeSheet = .badges }
-                    )
+                    // 핀 고정된 뱃지가 있을 때만 표시 — 없으면 VStack spacing 도 절약.
+                    if !deps.persistence.pinnedBadgeIDs.isEmpty {
+                        PinnedBadgesStrip(
+                            pinnedIDs: deps.persistence.pinnedBadgeIDs,
+                            onTap: { _ in activeSheet = .badges }
+                        )
+                    }
 
                     StreakDotsCard(
                         history: last7DaysHistory,

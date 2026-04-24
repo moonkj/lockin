@@ -1,9 +1,11 @@
 # 락인 포커스 — 릴리스 체크리스트
 
-마지막 업데이트: 2026-04-24 (저녁)
+마지막 업데이트: 2026-04-25 (오전)
 
 **팀리더 결정**: A(출시 준비) → B(커버리지) → C(기능) → D(국제화) 순으로 진행.
 **추가 Phase**: iPad 레이아웃, Live Activity, 친구/그룹 랭킹 완료 (2번 Pomodoro 는 건너뜀).
+**자율 루프 (R1-R5, 2026-04-24 밤 ~ 04-25 오전)**: 5 라운드 팀 에이전트 병렬 리뷰 +
+팀리더 직접 구현으로 perf · battery · security · feature · a11y · i18n 다층 강화.
 
 ---
 
@@ -120,6 +122,55 @@
 - ✅ **iPad 레이아웃 최적화**: `readingWidth(520–720)` 모디파이어로 13개 상위 뷰가 iPad 에서 가독 폭 중앙 정렬. iPhone 에선 no-op.
 - ✅ **Live Activity + Dynamic Island** (iOS 16.2+): 집중 세션 활성 시 Lock Screen 카드 + Dynamic Island (compact/minimal/expanded). `FocusActivityService` 가 manual focus 토글 + strict 시작/자동만료에 훅.
 - ✅ **친구 + 그룹 랭킹**: `lockinfocus://friend?uid=X&nick=Y` 초대 링크 → RootView alert 확인 → 친구 목록 저장. LeaderboardView 의 전체/친구 scope picker 로 그룹 비교. FriendsManagementView 에서 초대/삭제.
+
+---
+
+## F. 자율 루프 R1-R5 (2026-04-24 밤 ~ 04-25 오전)
+
+5 라운드 팀 에이전트 병렬 리뷰 + 팀리더 직접 구현. 핵심 deliverables:
+
+### R1 — Perf · Battery · Security 1차
+- ✅ Timer pause/resume on `scenePhase` (background wake-up 제거)
+- ✅ `@Published strictActive` 캐시 (UserDefaults read 최소화)
+- ✅ iCloud KV observer 키 필터 (objectWillChange 노이즈 제거)
+- ✅ DateFormatter static cache (UserDefaultsPersistenceStore / LeaderboardPeriodID / DailyFocus / WidgetProvider)
+- ✅ NicknameValidator U+2066-2069 격리 bidi + newline 차단 + condensed-pass bypass 차단
+- ✅ Friend invite 1초 디바운스 + 500명 cap + cache pruning
+- ✅ 시계 되돌림 unlock count 보존
+- ✅ **새 기능: 집중 목표** (60/80/100 preset + 진척 바)
+
+### R2 — Cache · Security · Feature
+- ✅ LeaderboardView 60s TTL 캐시 (`fetchAllRaw` + period client-side filter)
+- ✅ `AppPasscodeStore` SHA256 + per-install salt + v1→v2 migration
+- ✅ **Face ID 언락** (BiometricAuth, opt-in)
+- ✅ **하루 22:00 마감 알림** (DailySummaryScheduler)
+- ✅ **주간 리포트 인사이트 배너** (5 규칙 우선순위)
+
+### R3 — Siri · 스트릭 · 시계 방어
+- ✅ **Siri App Intents**: StartFocus / EndFocus / ShowFocusScore + AppShortcutsProvider
+- ✅ **스트릭 보존권** (주 1회 자동 토큰, 0점 1일 bridge)
+- ✅ **엄격 모드 완료 알림** (UNTimeIntervalNotificationTrigger 정확도)
+- ✅ **Strict mode uptime sentinel** (wallclock + uptime 둘 다 검증)
+- ✅ LeaderboardView body `visible`/`maxScore` hoist (rankRow 30× 재계산 제거)
+
+### R4 — 위젯 · A11y · CK retry · 핀 고정
+- ✅ **위젯 smart deep-link** (FocusScoreEntry.deepLinkURL 분기)
+- ✅ **VoiceOver 카운트다운 announcement** (InterceptView + FocusEndConfirm)
+- ✅ **CloudKit exponential backoff retry** (1s→2s→4s, retryAfter 존중)
+- ✅ **뱃지 핀 고정** (Dashboard 캡슐 스트립, 최대 3개)
+- ✅ LeaderboardViewModel 확장 (cache + scope + 6 새 테스트)
+
+### R5 — i18n · Polish · Doc
+- ✅ WeeklyInsights 6 언어 i18n (5 규칙 카피 × ko/en/ja/zh-Hans/fr/hi)
+- ✅ Dashboard header 핀 strip 조건부 렌더 (빈 상태 spacing 절약)
+- ✅ ReleaseChecklist 갱신
+- 🔜 LeaderboardView VM 통합 (Round 6+ 이월; 10+ ViewInspector 테스트 영향)
+
+### 누적 통계 (R1 시작 시점 대비)
+- **테스트 수**: 430 → ~510+ 케이스 (+80)
+- **신규 모듈**: BiometricAuth · DailySummaryScheduler · StrictCompletionScheduler · StreakEngine · FocusIntents · WeeklyInsights · PinnedBadgesStrip
+- **신규 PersistenceKey**: focusGoalScore · useBiometricForPasscode · dailySummaryNotification · streakFreezeToken · streakFreezeLastWeek · pinnedBadgeIDs · strictModeStartUptime · strictModeDurationSeconds · pendingIntentRoute (9개)
+- **i18n 키**: +20+ across 6 languages
 
 ---
 
