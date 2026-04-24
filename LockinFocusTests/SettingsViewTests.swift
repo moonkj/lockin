@@ -12,28 +12,28 @@ final class SettingsViewTests: XCTestCase {
 
     func testSettingsView_rendersNavigationTitle() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(button: "닫기"))
+        XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }
 
     func testSettingsView_rendersBlockingSection() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "허용 앱"))
-        XCTAssertNoThrow(try view.inspect().find(text: "스케줄"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("스케줄")))
     }
 
     func testSettingsView_rendersStrictModeSection() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "엄격 모드"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("엄격 모드")))
     }
 
     func testSettingsView_rendersPasscodeRow() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "앱 비밀번호 설정"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호 설정")))
     }
 
     func testSettingsView_rendersNicknameRow() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "닉네임"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("닉네임")))
     }
 
     func testSettingsView_rendersRankingFooter() throws {
@@ -45,29 +45,29 @@ final class SettingsViewTests: XCTestCase {
 
     func testSettingsView_rendersVersionLabel() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "버전"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("버전")))
     }
 
     func testSettingsView_rendersAppInfoHeader() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "앱 정보"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("앱 정보")))
     }
 
     func testSettingsView_strictInactive_showsStartButton() throws {
         // strictModeEndAt nil 상태 (기본) → "엄격 모드 시작" 버튼.
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "엄격 모드 시작"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("엄격 모드 시작")))
     }
 
     func testSettingsView_strictActive_showsRemainingTime() throws {
         let deps = makeDeps()
         deps.persistence.strictModeEndAt = Date().addingTimeInterval(1800)
         let view = SettingsView().environmentObject(deps)
-        XCTAssertNoThrow(try view.inspect().find(text: "활성 중"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("활성 중")))
     }
 
     func testSettingsView_nicknameMissing_showsWarningText() throws {
         let view = SettingsView().environmentObject(makeDeps())
-        XCTAssertNoThrow(try view.inspect().find(text: "미설정"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("미설정")))
     }
 }

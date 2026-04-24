@@ -14,7 +14,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onDone: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "허용 앱"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱")))
     }
 
     func testAppSelectionView_hasCloseButton() throws {
@@ -22,7 +22,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onDone: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(button: "닫기"))
+        XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }
 
     func testAppSelectionView_hasSaveButton() throws {
@@ -30,7 +30,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onDone: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "저장"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("저장")))
     }
 
     // MARK: - ScheduleEditorView
@@ -48,7 +48,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             schedule: .constant(.weekdayWorkHours),
             onSave: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(button: "취소"))
+        XCTAssertNoThrow(try view.inspect().find(button: L("취소")))
     }
 
     func testScheduleEditorView_hasSaveButton() throws {
@@ -56,7 +56,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             schedule: .constant(.weekdayWorkHours),
             onSave: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "저장"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("저장")))
     }
 
     func testScheduleEditorView_rendersSections() throws {
@@ -64,7 +64,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
             schedule: .constant(.weekdayWorkHours),
             onSave: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "요일"))
-        XCTAssertNoThrow(try view.inspect().find(text: "시간"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("요일")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("시간")))
     }
 }

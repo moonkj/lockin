@@ -35,7 +35,7 @@ final class DashboardAlertsTests: XCTestCase {
     func testDashboard_manualFocusActive_labelSwapsToEnd() throws {
         let view = DashboardView(initialIsManualFocus: true)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "집중 종료"))
-        XCTAssertThrowsError(try view.inspect().find(text: "지금 집중 시작"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("집중 종료")))
+        XCTAssertThrowsError(try view.inspect().find(text: L("지금 집중 시작")))
     }
 }

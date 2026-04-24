@@ -8,32 +8,32 @@ final class DashboardViewTests: XCTestCase {
 
     func testDashboardView_rendersHeaderTitle() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "락인 포커스"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("락인 포커스")))
     }
 
     func testDashboardView_rendersFocusScoreCard() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "오늘의 집중"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("오늘의 집중")))
     }
 
     func testDashboardView_rendersAllowedAppsSection() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "허용 앱"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱")))
     }
 
     func testDashboardView_rendersStartButton() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "지금 집중 시작"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("지금 집중 시작")))
     }
 
     func testDashboardView_rendersNextScheduleSection() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "다음 스케줄"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("다음 스케줄")))
     }
 
     func testDashboardView_rendersQuoteCard() throws {
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "오늘의 명언"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("오늘의 명언")))
     }
 
     func testDashboardView_emptyAllowedApps_showsHint() throws {

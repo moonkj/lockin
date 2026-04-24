@@ -8,8 +8,8 @@ final class SettingsViewBranchTests: XCTestCase {
 
     func testSettings_hasSelectionAppsRow() throws {
         let view = SettingsView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "허용 앱"))
-        XCTAssertNoThrow(try view.inspect().find(text: "스케줄"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("스케줄")))
     }
 
     func testSettings_strictFooterExplainsPasscode() throws {
@@ -23,7 +23,7 @@ final class SettingsViewBranchTests: XCTestCase {
         let deps = AppDependencies.preview()
         deps.persistence.strictModeEndAt = nil
         let view = SettingsView().environmentObject(deps)
-        XCTAssertNoThrow(try view.inspect().find(text: "엄격 모드 시작"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("엄격 모드 시작")))
         XCTAssertNoThrow(try view.inspect().find(
             text: "설정한 시간 동안은 어떤 방법으로도 해제할 수 없어요."
         ))
@@ -33,11 +33,11 @@ final class SettingsViewBranchTests: XCTestCase {
         let deps = AppDependencies.preview()
         deps.persistence.strictModeEndAt = Date().addingTimeInterval(3600)
         let view = SettingsView().environmentObject(deps)
-        XCTAssertThrowsError(try view.inspect().find(text: "엄격 모드 시작"))
+        XCTAssertThrowsError(try view.inspect().find(text: L("엄격 모드 시작")))
     }
 
     func testSettings_hasAppInfoVersion() throws {
         let view = SettingsView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "버전"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("버전")))
     }
 }

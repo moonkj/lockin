@@ -8,22 +8,22 @@ final class ScheduleStepViewTests: XCTestCase {
 
     func testScheduleStepView_rendersHeadline() throws {
         let view = ScheduleStepView(schedule: .constant(.weekdayWorkHours), onNext: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "집중 시간대를 골라주세요"))
-        XCTAssertNoThrow(try view.inspect().find(text: "나중에 언제든 바꿀 수 있어요."))
+        XCTAssertNoThrow(try view.inspect().find(text: L("집중 시간대를 골라주세요")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("나중에 언제든 바꿀 수 있어요.")))
     }
 
     func testScheduleStepView_rendersAllPresets() throws {
         let view = ScheduleStepView(schedule: .constant(.weekdayWorkHours), onNext: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "지금부터"))
-        XCTAssertNoThrow(try view.inspect().find(text: "평일 09:00 – 17:00"))
-        XCTAssertNoThrow(try view.inspect().find(text: "직접 설정"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("지금부터")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("평일 09:00 – 17:00")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("직접 설정")))
     }
 
     func testScheduleStepView_rendersSubtitles() throws {
         let view = ScheduleStepView(schedule: .constant(.weekdayWorkHours), onNext: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "수동으로 끄기 전까지 계속"))
-        XCTAssertNoThrow(try view.inspect().find(text: "월 – 금, 업무 시간대"))
-        XCTAssertNoThrow(try view.inspect().find(text: "요일과 시간을 직접 고르기"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("수동으로 끄기 전까지 계속")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("월 – 금, 업무 시간대")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("요일과 시간을 직접 고르기")))
     }
 
     func testScheduleStepView_nextButton_triggersCallback() throws {
@@ -33,7 +33,7 @@ final class ScheduleStepViewTests: XCTestCase {
             set: { _ in }
         )
         let view = ScheduleStepView(schedule: binding, onNext: { next = true })
-        try view.inspect().find(button: "다음").tap()
+        try view.inspect().find(button: L("다음")).tap()
         XCTAssertTrue(next)
     }
 

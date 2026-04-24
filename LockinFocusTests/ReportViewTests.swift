@@ -11,33 +11,33 @@ final class ReportViewTests: XCTestCase {
     func testReportView_dailyInitial_rendersTabs() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "일간"))
-        XCTAssertNoThrow(try view.inspect().find(text: "주간"))
-        XCTAssertNoThrow(try view.inspect().find(text: "월간"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("일간")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("주간")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("월간")))
     }
 
     func testReportView_hasCloseButton() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(button: "닫기"))
+        XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }
 
     func testReportView_daily_rendersGoalLabel() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "남은 목표"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("남은 목표")))
     }
 
     func testReportView_daily_rendersBadgeProgress() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "획득 뱃지"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("획득 뱃지")))
     }
 
     func testReportView_daily_rendersCumulativeReturns() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "누적 집중 지킴"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("누적 집중 지킴")))
     }
 
     func testReportView_range_allCases() {
@@ -65,20 +65,20 @@ final class ReportViewTests: XCTestCase {
     func testReportView_weeklyInitial_rendersAverageCard() throws {
         let view = ReportView(initialRange: .weekly)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "최근 7일 평균"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("최근 7일 평균")))
     }
 
     func testReportView_monthlyInitial_rendersStatsStrip() throws {
         let view = ReportView(initialRange: .monthly)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "기록 일수"))
-        XCTAssertNoThrow(try view.inspect().find(text: "총점"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("기록 일수")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("총점")))
     }
 
     func testReportView_range_tapSwitchesState() throws {
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
         // 탭 버튼 3개 중 첫 버튼(일간) tap 시 에러 없이 동작.
-        XCTAssertNoThrow(try view.inspect().find(button: "일간").tap())
+        XCTAssertNoThrow(try view.inspect().find(button: L("일간")).tap())
     }
 }

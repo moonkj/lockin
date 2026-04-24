@@ -34,13 +34,13 @@ final class ExtendedViewTests: XCTestCase {
         let deps = AppDependencies.preview()
         deps.persistence.isManualFocusActive = false
         let view = DashboardView().environmentObject(deps)
-        XCTAssertNoThrow(try view.inspect().find(text: "지금 집중 시작"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("지금 집중 시작")))
     }
 
     func testDashboardView_injectedManualFocus_showsEndButton() throws {
         let view = DashboardView(initialIsManualFocus: true)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "집중 종료"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("집중 종료")))
     }
 
     // MARK: - BadgesView branches
@@ -50,7 +50,7 @@ final class ExtendedViewTests: XCTestCase {
         deps.persistence.earnedBadgeIDs = Set(Badge.allCases.map(\.id))
         let view = BadgesView().environmentObject(deps)
         // 모든 뱃지 획득 시 "아직 잠겨 있어요" 표시는 없어야 함.
-        XCTAssertThrowsError(try view.inspect().find(text: "아직 잠겨 있어요"))
+        XCTAssertThrowsError(try view.inspect().find(text: L("아직 잠겨 있어요")))
     }
 
     func testBadgesView_showsCountWhenPartiallyEarned() throws {
@@ -61,7 +61,7 @@ final class ExtendedViewTests: XCTestCase {
             Badge.streak3Days.id
         ]
         let view = BadgesView().environmentObject(deps)
-        XCTAssertNoThrow(try view.inspect().find(text: "3 / 26 획득"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("3 / 26 획득")))
     }
 
     // MARK: - NicknameSetupView branches
@@ -69,7 +69,7 @@ final class ExtendedViewTests: XCTestCase {
     func testNicknameSetupView_hasPlaceholder() throws {
         let view = NicknameSetupView { _ in }
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "랭킹에서 다른 사용자에게 이렇게 보여요.\n2~20자."))
+        XCTAssertNoThrow(try view.inspect().find(text: L("랭킹에서 다른 사용자에게 이렇게 보여요.\n2~20자.")))
     }
 
     func testNicknameSetupView_withInitialName_rendersText() throws {
@@ -86,7 +86,7 @@ final class ExtendedViewTests: XCTestCase {
             initialNickname: "시발",
             initialError: "허용되지 않은 단어가 포함돼 있어요."
         ).environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "허용되지 않은 단어가 포함돼 있어요."))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용되지 않은 단어가 포함돼 있어요.")))
     }
 
     // MARK: - FamilyActivitySelection+Display

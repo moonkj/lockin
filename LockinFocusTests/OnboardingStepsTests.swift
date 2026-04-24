@@ -31,7 +31,7 @@ final class OnboardingStepsTests: XCTestCase {
             onAuthorize: {},
             onOpenSettings: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "먼저 권한이 필요해요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("먼저 권한이 필요해요")))
     }
 
     func testAuthorizationStepView_deniedState_showsRecovery() throws {
@@ -50,7 +50,7 @@ final class OnboardingStepsTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onNext: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "허용할 앱을 골라주세요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용할 앱을 골라주세요")))
     }
 
     func testAppPickerStepView_rendersPickerButton() throws {
@@ -58,7 +58,7 @@ final class OnboardingStepsTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onNext: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "허용 앱 고르기"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱 고르기")))
     }
 
     func testAppPickerStepView_nextButton_triggersCallback() throws {
@@ -67,7 +67,7 @@ final class OnboardingStepsTests: XCTestCase {
             selection: .constant(FamilyActivitySelection()),
             onNext: { next = true }
         )
-        try view.inspect().find(button: "다음").tap()
+        try view.inspect().find(button: L("다음")).tap()
         XCTAssertTrue(next)
     }
 
@@ -81,7 +81,7 @@ final class OnboardingStepsTests: XCTestCase {
     func testSystemPresetStepView_nextButton_triggersCallback() throws {
         var next = false
         let view = SystemPresetStepView { next = true }
-        try view.inspect().find(button: "다음").tap()
+        try view.inspect().find(button: L("다음")).tap()
         XCTAssertTrue(next)
     }
 
@@ -92,20 +92,20 @@ final class OnboardingStepsTests: XCTestCase {
             schedule: .constant(.weekdayWorkHours),
             onNext: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "집중 시간대를 골라주세요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("집중 시간대를 골라주세요")))
     }
 
     // MARK: - PasscodeStepView
 
     func testPasscodeStepView_renders_firstStep() throws {
         let view = PasscodeStepView(onNext: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "앱 비밀번호를 정해주세요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호를 정해주세요")))
     }
 
     func testPasscodeStepView_skipButton_triggersOnNext() throws {
         var advanced = false
         let view = PasscodeStepView { advanced = true }
-        try view.inspect().find(button: "건너뛰기").tap()
+        try view.inspect().find(button: L("건너뛰기")).tap()
         XCTAssertTrue(advanced)
     }
 }

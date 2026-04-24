@@ -10,7 +10,7 @@ final class SharedButtonTests: XCTestCase {
 
     func testPrimaryButton_rendersLabel() throws {
         let view = PrimaryButton("시작하기", action: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "시작하기"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("시작하기")))
     }
 
     func testPrimaryButton_tap_triggersAction() throws {
@@ -24,7 +24,7 @@ final class SharedButtonTests: XCTestCase {
 
     func testSecondaryLinkButton_rendersLabel() throws {
         let view = SecondaryLinkButton("건너뛰기", action: {})
-        XCTAssertNoThrow(try view.inspect().find(text: "건너뛰기"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("건너뛰기")))
     }
 
     func testSecondaryLinkButton_tap_triggersWhenEnabled() throws {

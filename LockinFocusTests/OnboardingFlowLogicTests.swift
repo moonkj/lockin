@@ -36,7 +36,7 @@ final class OnboardingFlowLogicTests: XCTestCase {
 
     func testContainer_initialStep_noBackButton() throws {
         let view = OnboardingContainerView().environmentObject(makeDeps())
-        XCTAssertThrowsError(try view.inspect().find(text: "뒤로"))
+        XCTAssertThrowsError(try view.inspect().find(text: L("뒤로")))
     }
 
     func testContainer_hasDotIndicator() throws {

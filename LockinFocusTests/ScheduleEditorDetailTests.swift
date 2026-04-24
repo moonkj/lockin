@@ -25,14 +25,14 @@ final class ScheduleEditorDetailTests: XCTestCase {
             schedule: .constant(.weekdayWorkHours),
             onSave: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "이 스케줄 사용"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("이 스케줄 사용")))
     }
 
     func testScheduleEditor_saveButtonTriggersCallback() throws {
         var saved = false
         let binding = Binding<Schedule>(get: { .weekdayWorkHours }, set: { _ in })
         let view = ScheduleEditorView(schedule: binding, onSave: { saved = true })
-        try view.inspect().find(button: "저장").tap()
+        try view.inspect().find(button: L("저장")).tap()
         XCTAssertTrue(saved)
     }
 
@@ -43,6 +43,6 @@ final class ScheduleEditorDetailTests: XCTestCase {
             schedule: .constant(disabled),
             onSave: {}
         )
-        XCTAssertNoThrow(try view.inspect().find(text: "이 스케줄 사용"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("이 스케줄 사용")))
     }
 }

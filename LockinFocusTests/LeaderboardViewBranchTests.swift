@@ -21,7 +21,7 @@ final class LeaderboardViewBranchTests: XCTestCase {
         let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         // 1등 자리에 엔트리 렌더, 2/3 등은 placeholder.
-        XCTAssertNoThrow(try view.inspect().find(text: "첫째"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("첫째")))
     }
 
     func testLeaderboard_twoEntries_thirdSlotPlaceholder() throws {
@@ -31,14 +31,14 @@ final class LeaderboardViewBranchTests: XCTestCase {
         ]
         let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "일등"))
-        XCTAssertNoThrow(try view.inspect().find(text: "이등"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("일등")))
+        XCTAssertNoThrow(try view.inspect().find(text: L("이등")))
     }
 
     func testLeaderboard_emptyEntries_rendersPlaceholder() throws {
         let view = LeaderboardView(initialPeriod: .daily, initialEntries: [])
             .environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요."))
+        XCTAssertNoThrow(try view.inspect().find(text: L("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")))
     }
 
     func testLeaderboard_percentileRendering() throws {
@@ -52,7 +52,7 @@ final class LeaderboardViewBranchTests: XCTestCase {
             initialMyUserID: "me"
         ).environmentObject(AppDependencies.preview())
         // rank 10 / 100 → percentile 10%
-        XCTAssertNoThrow(try view.inspect().find(text: "10등"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("10등")))
         XCTAssertNoThrow(try view.inspect().find(text: "10%"))
     }
 }

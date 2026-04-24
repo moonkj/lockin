@@ -9,19 +9,19 @@ final class ToastTests: XCTestCase {
     func testToast_rendersMessageWhenNotNil() throws {
         let binding = Binding<String?>(wrappedValue: "안녕하세요")
         let view = Text("base").toast(message: binding)
-        XCTAssertNoThrow(try view.inspect().find(text: "안녕하세요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("안녕하세요")))
     }
 
     func testToast_hiddenWhenNil() throws {
         let binding = Binding<String?>(wrappedValue: nil)
         let view = Text("base").toast(message: binding)
-        XCTAssertThrowsError(try view.inspect().find(text: "안녕하세요"))
+        XCTAssertThrowsError(try view.inspect().find(text: L("안녕하세요")))
     }
 
     func testToast_rendersCustomMessage() throws {
         let binding = Binding<String?>(wrappedValue: "비밀번호를 먼저 설정해주세요")
         let view = Text("base").toast(message: binding)
-        XCTAssertNoThrow(try view.inspect().find(text: "비밀번호를 먼저 설정해주세요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("비밀번호를 먼저 설정해주세요")))
     }
 
     func testToastModifier_appliedToAnyView() throws {

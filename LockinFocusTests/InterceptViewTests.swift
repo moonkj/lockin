@@ -8,18 +8,18 @@ final class InterceptViewTests: XCTestCase {
 
     func testInterceptView_rendersHeadline() throws {
         let view = InterceptView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "잠깐 기다려봐요"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("잠깐 기다려봐요")))
     }
 
     func testInterceptView_rendersReflectionPrompt() throws {
         let view = InterceptView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: "이 앱이 지금 꼭 필요한가요?"))
+        XCTAssertNoThrow(try view.inspect().find(text: L("이 앱이 지금 꼭 필요한가요?")))
     }
 
     func testInterceptView_rendersReturnButton() throws {
         let view = InterceptView().environmentObject(AppDependencies.preview())
         // "돌아가기" 버튼이 존재.
-        XCTAssertNoThrow(try view.inspect().find(button: "돌아가기"))
+        XCTAssertNoThrow(try view.inspect().find(button: L("돌아가기")))
     }
 
     func testInterceptView_rendersOpenAnywayLabel() throws {
