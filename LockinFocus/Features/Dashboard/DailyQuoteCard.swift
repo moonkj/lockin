@@ -20,22 +20,22 @@ struct DailyQuoteCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Image(systemName: "quote.bubble")
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(12, weight: .medium)
                     .foregroundStyle(AppColors.secondaryText)
                     .accessibilityHidden(true)
                 Text("오늘의 명언")
-                    .font(.system(size: 12, weight: .medium))
+                    .scaledFont(12, weight: .medium)
                     .foregroundStyle(AppColors.secondaryText)
             }
 
             // 큰 opening-quote glyph — 위젯과 동일.
             Text("\u{201C}")
-                .font(.system(size: 44, weight: .bold, design: .serif))
+                .scaledFont(44, weight: .bold, design: .serif)
                 .foregroundStyle(AppColors.secondaryText.opacity(0.7))
                 .frame(height: 28, alignment: .top)
 
             Text(quote.text)
-                .font(.system(size: 18))
+                .scaledFont(18)
                 .italic()
                 .foregroundStyle(AppColors.primaryText)
                 .lineSpacing(4)
@@ -44,7 +44,7 @@ struct DailyQuoteCard: View {
 
             if let author = quote.author {
                 Text("— \(author)")
-                    .font(.system(size: 14))
+                    .scaledFont(14)
                     .italic()
                     .foregroundStyle(AppColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .trailing)

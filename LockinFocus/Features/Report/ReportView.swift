@@ -32,7 +32,7 @@ struct ReportView: View {
                                 range = r
                             } label: {
                                 Text(r.rawValue)
-                                    .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                                    .scaledFont(14, weight: isSelected ? .semibold : .regular)
                                     .foregroundStyle(isSelected ? Color.white : AppColors.secondaryText)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 36)
@@ -86,11 +86,11 @@ private struct DailyReport: View {
                 VStack(spacing: 14) {
                     treeCircle
                     Text(score == 0 ? "—" : "\(score)")
-                        .font(.system(size: 48, weight: .semibold, design: .rounded))
+                        .scaledFont(48, weight: .semibold, design: .rounded)
                         .foregroundStyle(AppColors.primaryText)
                         .monospacedDigit()
                     Text(score == 0 ? "오늘이 시작이에요" : stage.label)
-                        .font(.system(size: 13))
+                        .scaledFont(13)
                         .foregroundStyle(AppColors.secondaryText)
                 }
                 .frame(maxWidth: .infinity)
@@ -116,7 +116,7 @@ private struct DailyReport: View {
                 .fill(stage.accentColor.opacity(0.16))
                 .frame(width: 84, height: 84)
             Image(systemName: stage.symbolName)
-                .font(.system(size: 36))
+                .scaledFont(36)
                 .foregroundStyle(stage.accentColor)
                 .symbolRenderingMode(.hierarchical)
         }
@@ -140,10 +140,10 @@ private struct WeeklyReport: View {
             card {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("최근 7일 평균")
-                        .font(.system(size: 12))
+                        .scaledFont(12)
                         .foregroundStyle(AppColors.secondaryText)
                     Text("\(average) / 100")
-                        .font(.system(size: 30, weight: .semibold, design: .rounded))
+                        .scaledFont(30, weight: .semibold, design: .rounded)
                         .foregroundStyle(AppColors.primaryText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -214,7 +214,7 @@ private struct MonthlyReport: View {
                 card {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("최근 30일")
-                            .font(.system(size: 12))
+                            .scaledFont(12)
                             .foregroundStyle(AppColors.secondaryText)
                         Chart(history) { item in
                             BarMark(
@@ -240,10 +240,10 @@ private struct MonthlyReport: View {
     private func stat(title: String, value: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .scaledFont(24, weight: .semibold, design: .rounded)
                 .foregroundStyle(AppColors.primaryText)
             Text(title)
-                .font(.system(size: 11))
+                .scaledFont(11)
                 .foregroundStyle(AppColors.secondaryText)
         }
         .frame(maxWidth: .infinity)
@@ -265,11 +265,11 @@ private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some 
 private func summaryRow(_ title: String, value: String) -> some View {
     HStack {
         Text(title)
-            .font(.system(size: 14))
+            .scaledFont(14)
             .foregroundStyle(AppColors.secondaryText)
         Spacer()
         Text(value)
-            .font(.system(size: 14, weight: .medium))
+            .scaledFont(14, weight: .medium)
             .foregroundStyle(AppColors.primaryText)
     }
 }

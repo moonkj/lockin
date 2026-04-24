@@ -27,6 +27,10 @@ struct LockinFocusApp: App {
                 // 앱 전체 흰색 테마 유지. FamilyActivityPicker 같은 시스템 뷰도
                 // 기기 다크 모드를 따라가지 않고 라이트 스킨으로 렌더링된다.
                 .preferredColorScheme(.light)
+                // Dynamic Type 지원: .xSmall ~ .accessibility2 범위로 제한해
+                // 레이아웃이 극단적 크기에서 깨지는 것을 방지. scaledFont 가 이 범위를
+                // 따라 배율 적용.
+                .dynamicTypeSize(.xSmall ... .accessibility2)
         }
     }
 }

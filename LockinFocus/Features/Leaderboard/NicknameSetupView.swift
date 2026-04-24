@@ -37,17 +37,17 @@ struct NicknameSetupView: View {
 
                 VStack(alignment: .leading, spacing: 20) {
                     Text("닉네임 만들기")
-                        .font(.system(size: 26, weight: .semibold))
+                        .scaledFont(26, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
                     Text("랭킹에서 다른 사용자에게 이렇게 보여요.\n2~20자.")
-                        .font(.system(size: 14))
+                        .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
 
                     TextField("예: 집중러", text: $nickname)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                        .font(.system(size: 18, weight: .medium))
+                        .scaledFont(18, weight: .medium)
                         .foregroundStyle(AppColors.primaryText)
                         .tint(AppColors.primaryText)
                         .padding(14)
@@ -67,7 +67,7 @@ struct NicknameSetupView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 12))
+                            .scaledFont(12)
                             .foregroundStyle(AppColors.error)
                     }
 

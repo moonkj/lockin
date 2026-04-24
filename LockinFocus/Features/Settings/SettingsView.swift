@@ -88,16 +88,16 @@ struct SettingsView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
                                     Text("활성 중")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .scaledFont(16, weight: .semibold)
                                         .foregroundStyle(AppColors.primaryText)
                                     Spacer()
                                     Text(strictRemainingText)
-                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        .scaledFont(15, weight: .semibold, design: .rounded)
                                         .foregroundStyle(AppColors.accent)
                                         .monospacedDigit()
                                 }
                                 Text("설정한 시간이 끝나기 전에는 어떤 방법으로도 해제할 수 없어요.")
-                                    .font(.system(size: 12))
+                                    .scaledFont(12)
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                             .listRowBackground(AppColors.surface)
@@ -109,10 +109,10 @@ struct SettingsView: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("엄격 모드 시작")
-                                        .font(.system(size: 16, weight: .medium))
+                                        .scaledFont(16, weight: .medium)
                                         .foregroundStyle(AppColors.primaryText)
                                     Text("설정한 시간 동안은 어떤 방법으로도 해제할 수 없어요.")
-                                        .font(.system(size: 12))
+                                        .scaledFont(12)
                                         .foregroundStyle(AppColors.secondaryText)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,7 +130,7 @@ struct SettingsView: View {
                                 Text(passcodeIsSet ? "설정됨" : "미설정")
                                     .foregroundStyle(passcodeIsSet ? AppColors.secondaryText : AppColors.warning)
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .scaledFont(12, weight: .semibold)
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
@@ -139,7 +139,7 @@ struct SettingsView: View {
                         sectionHeader("엄격 모드")
                     } footer: {
                         Text("앱 비밀번호는 일반 모드의 하루 첫 해제 때만 쓰여요. 엄격 모드는 시간이 지나기 전에는 어떤 방법으로도 풀 수 없어요.")
-                            .font(.system(size: 12))
+                            .scaledFont(12)
                             .foregroundStyle(AppColors.secondaryText)
                     }
 
@@ -154,7 +154,7 @@ struct SettingsView: View {
                                     .foregroundStyle(nickname == nil ? AppColors.warning : AppColors.secondaryText)
                                     .lineLimit(1)
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .scaledFont(12, weight: .semibold)
                                     .foregroundStyle(AppColors.secondaryText)
                             }
                         }
@@ -163,7 +163,7 @@ struct SettingsView: View {
                         sectionHeader("랭킹")
                     } footer: {
                         Text("랭킹에서 다른 사용자에게 보이는 이름이에요. 욕설·성적 단어는 차단돼요.")
-                            .font(.system(size: 12))
+                            .scaledFont(12)
                             .foregroundStyle(AppColors.secondaryText)
                     }
 
@@ -243,7 +243,7 @@ struct SettingsView: View {
     /// 직접 primaryText + 중간 weight 로 지정해 가독성을 확보.
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
-            .font(.system(size: 13, weight: .semibold))
+            .scaledFont(13, weight: .semibold)
             .foregroundStyle(AppColors.primaryText)
             .textCase(nil)
     }
@@ -254,7 +254,7 @@ struct SettingsView: View {
             Spacer()
             Text(trailing).foregroundStyle(AppColors.secondaryText)
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .scaledFont(12, weight: .semibold)
                 .foregroundStyle(AppColors.secondaryText)
         }
     }

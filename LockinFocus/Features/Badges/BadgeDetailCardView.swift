@@ -19,25 +19,25 @@ struct BadgeDetailCardView: View {
 
             VStack(spacing: 18) {
                 Text("획득한 뱃지")
-                    .font(.system(size: 12, weight: .semibold))
+                    .scaledFont(12, weight: .semibold)
                     .tracking(2)
                     .foregroundStyle(.white.opacity(0.7))
 
                 card
 
                 Text(badge.title)
-                    .font(.system(size: 20, weight: .semibold))
+                    .scaledFont(20, weight: .semibold)
                     .foregroundStyle(.white)
 
                 Text(badge.detail)
-                    .font(.system(size: 14))
+                    .scaledFont(14)
                     .foregroundStyle(.white.opacity(0.75))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
 
                 Button(action: onClose) {
                     Text("닫기")
-                        .font(.system(size: 15, weight: .semibold))
+                        .scaledFont(15, weight: .semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 28)
                         .padding(.vertical, 10)
@@ -88,12 +88,12 @@ struct BadgeDetailCardView: View {
                     .frame(width: 140, height: 140)
                     .overlay(
                         Image(systemName: badge.symbol)
-                            .font(.system(size: 64, weight: .semibold))
+                            .scaledFont(64, weight: .semibold)
                             .foregroundStyle(.white)
                     )
 
                 Text(badge.title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .scaledFont(15, weight: .semibold)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 18)

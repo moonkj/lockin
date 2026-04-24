@@ -119,7 +119,7 @@ struct LeaderboardView: View {
                     period = p
                 } label: {
                     Text(p.label)
-                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .scaledFont(14, weight: isSelected ? .semibold : .regular)
                         .foregroundStyle(isSelected ? Color.white : AppColors.secondaryText)
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
@@ -141,7 +141,7 @@ struct LeaderboardView: View {
     private var topThreeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("\(period.label) Top 3")
-                .font(.system(size: 13, weight: .semibold))
+                .scaledFont(13, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
             HStack(alignment: .bottom, spacing: 20) {
@@ -196,10 +196,10 @@ struct LeaderboardView: View {
     private func summaryStat(label: String, value: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .scaledFont(15, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
             Text(label)
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(AppColors.secondaryText)
         }
         .frame(maxWidth: .infinity)
@@ -209,14 +209,14 @@ struct LeaderboardView: View {
         VStack(spacing: 8) {
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.system(size: 12))
+                    .scaledFont(12)
                     .foregroundStyle(AppColors.error)
                     .padding(.vertical, 4)
             }
 
             if entries.count <= 3 {
                 Text("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")
-                    .font(.system(size: 13))
+                    .scaledFont(13)
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.vertical, 40)
@@ -232,7 +232,7 @@ struct LeaderboardView: View {
             if let rank = myRank, rank > 30, let me = myEntry {
                 Divider().padding(.vertical, 6)
                 Text("내 순위")
-                    .font(.system(size: 12, weight: .semibold))
+                    .scaledFont(12, weight: .semibold)
                     .foregroundStyle(AppColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 rankRow(rank: rank, entry: me)
@@ -251,22 +251,22 @@ struct LeaderboardView: View {
                     .frame(width: size, height: size)
                     .shadow(color: medalColor(for: rank).opacity(0.35), radius: 6, x: 0, y: 3)
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: rank == 1 ? 26 : 22, weight: .semibold))
+                    .scaledFont(rank == 1 ? 26 : 22, weight: .semibold)
                     .foregroundStyle(.white)
             }
 
             Text("\(rank)등")
-                .font(.system(size: 11, weight: .semibold))
+                .scaledFont(11, weight: .semibold)
                 .foregroundStyle(medalColor(for: rank))
 
             Text(entry.nickname)
-                .font(.system(size: 12, weight: rank == 1 ? .semibold : .medium))
+                .scaledFont(12, weight: rank == 1 ? .semibold : .medium)
                 .foregroundStyle(AppColors.primaryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             Text("\(entry.score(for: period))점")
-                .font(.system(size: 11, weight: .medium))
+                .scaledFont(11, weight: .medium)
                 .foregroundStyle(AppColors.secondaryText)
                 .monospacedDigit()
         }
@@ -281,17 +281,17 @@ struct LeaderboardView: View {
                     .fill(AppColors.divider)
                     .frame(width: size, height: size)
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: rank == 1 ? 26 : 22, weight: .semibold))
+                    .scaledFont(rank == 1 ? 26 : 22, weight: .semibold)
                     .foregroundStyle(AppColors.secondaryText.opacity(0.5))
             }
             Text("\(rank)등")
-                .font(.system(size: 11, weight: .semibold))
+                .scaledFont(11, weight: .semibold)
                 .foregroundStyle(AppColors.secondaryText)
             Text("—")
-                .font(.system(size: 12))
+                .scaledFont(12)
                 .foregroundStyle(AppColors.secondaryText)
             Text(" ")
-                .font(.system(size: 11))
+                .scaledFont(11)
         }
         .frame(maxWidth: .infinity)
     }
@@ -309,18 +309,18 @@ struct LeaderboardView: View {
                         .stroke(medalColor(for: rank), lineWidth: 1.5)
                         .frame(width: 28, height: 28)
                     Text("\(rank)")
-                        .font(.system(size: 13, weight: .semibold))
+                        .scaledFont(13, weight: .semibold)
                         .foregroundStyle(medalColor(for: rank))
                 }
 
                 Text(entry.nickname)
-                    .font(.system(size: 15, weight: isMe ? .semibold : .regular))
+                    .scaledFont(15, weight: isMe ? .semibold : .regular)
                     .foregroundStyle(AppColors.primaryText)
                     .lineLimit(1)
 
                 if isMe {
                     Text("나")
-                        .font(.system(size: 10, weight: .semibold))
+                        .scaledFont(10, weight: .semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -330,7 +330,7 @@ struct LeaderboardView: View {
                 Spacer()
 
                 Text("\(score)점")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .scaledFont(14, weight: .semibold, design: .rounded)
                     .foregroundStyle(medalColor(for: rank))
                     .monospacedDigit()
             }

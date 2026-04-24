@@ -35,7 +35,7 @@ private struct ToastBanner: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 14, weight: .medium))
+            .scaledFont(14, weight: .medium)
             .foregroundStyle(Color.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

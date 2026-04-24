@@ -13,12 +13,12 @@ struct AuthorizationStepView: View {
 
             VStack(spacing: 16) {
                 Text("먼저 권한이 필요해요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
                     .multilineTextAlignment(.center)
 
                 Text("Apple의 스크린타임 기능을 사용하려면\n권한이 필요해요.\n이 권한은 이 기기 안에서만 쓰입니다.")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
@@ -30,7 +30,7 @@ struct AuthorizationStepView: View {
             VStack(spacing: 8) {
                 if denied {
                     Text("권한이 꺼져 있어요. 설정에서 허용을 켜주세요.")
-                        .font(.system(size: 13))
+                        .scaledFont(13)
                         .foregroundStyle(AppColors.secondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)

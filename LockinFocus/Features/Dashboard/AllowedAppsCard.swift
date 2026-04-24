@@ -20,16 +20,16 @@ struct AllowedAppsCard: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("허용 앱")
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(14, weight: .medium)
                         .foregroundStyle(AppColors.secondaryText)
 
                     Text(headline)
-                        .font(.system(size: 20, weight: .semibold))
+                        .scaledFont(20, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
                     if hasCategory {
                         Text("카테고리는 안의 모든 앱이 허용돼요.")
-                            .font(.system(size: 11))
+                            .scaledFont(11)
                             .foregroundStyle(AppColors.secondaryText)
                     }
                 }
@@ -38,10 +38,10 @@ struct AllowedAppsCard: View {
 
                 HStack(spacing: 4) {
                     Text("편집")
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(14, weight: .medium)
                         .foregroundStyle(AppColors.primaryText)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .scaledFont(12, weight: .semibold)
                         .foregroundStyle(AppColors.secondaryText)
                 }
             }

@@ -29,11 +29,11 @@ struct InterceptView: View {
                 Spacer().frame(height: 40)
 
                 Text("잠깐 기다려봐요")
-                    .font(.system(size: 22, weight: .semibold))
+                    .scaledFont(22, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
                 Text("이 앱이 지금 꼭 필요한가요?")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .padding(.top, 8)
 
@@ -75,7 +75,7 @@ struct InterceptView: View {
                 .animation(.linear(duration: 0.3), value: remaining)
 
             Text("\(remaining)")
-                .font(.system(size: 48, weight: .semibold, design: .rounded))
+                .scaledFont(48, weight: .semibold, design: .rounded)
                 .foregroundStyle(AppColors.primaryText)
                 .monospacedDigit()
         }

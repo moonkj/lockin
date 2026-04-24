@@ -24,12 +24,12 @@ struct QuoteDetailSheet: View {
                     Spacer()
 
                     Text("\u{201C}")
-                        .font(.system(size: 72, weight: .bold, design: .serif))
+                        .scaledFont(72, weight: .bold, design: .serif)
                         .foregroundStyle(AppColors.secondaryText.opacity(0.7))
                         .frame(height: 42, alignment: .top)
 
                     Text(quote.text)
-                        .font(.system(size: 24, weight: .regular))
+                        .scaledFont(24, weight: .regular)
                         .italic()
                         .foregroundStyle(AppColors.primaryText)
                         .lineSpacing(6)
@@ -38,7 +38,7 @@ struct QuoteDetailSheet: View {
 
                     if let author = quote.author {
                         Text("— \(author)")
-                            .font(.system(size: 16))
+                            .scaledFont(16)
                             .italic()
                             .foregroundStyle(AppColors.secondaryText)
                             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -51,7 +51,7 @@ struct QuoteDetailSheet: View {
                             Image(systemName: "square.and.arrow.up")
                             Text("공유하기")
                         }
-                        .font(.system(size: 15, weight: .medium))
+                        .scaledFont(15, weight: .medium)
                         .foregroundStyle(AppColors.primaryText)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)

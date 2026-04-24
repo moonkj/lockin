@@ -52,7 +52,7 @@ struct OnboardingContainerView: View {
                         Image(systemName: "chevron.left")
                         Text("뒤로")
                     }
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                 }
                 .buttonStyle(.plain)

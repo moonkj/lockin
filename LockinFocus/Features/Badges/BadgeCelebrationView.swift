@@ -29,7 +29,7 @@ struct BadgeCelebrationView: View {
 
             VStack(spacing: 20) {
                 Text("뱃지 획득")
-                    .font(.system(size: 13, weight: .semibold))
+                    .scaledFont(13, weight: .semibold)
                     .tracking(2)
                     .foregroundStyle(.white.opacity(0.7))
 
@@ -37,12 +37,12 @@ struct BadgeCelebrationView: View {
 
                 VStack(spacing: 8) {
                     Text(badge.title)
-                        .font(.system(size: 22, weight: .semibold))
+                        .scaledFont(22, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
                         .multilineTextAlignment(.center)
 
                     Text(badge.detail)
-                        .font(.system(size: 14))
+                        .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 12)
@@ -50,7 +50,7 @@ struct BadgeCelebrationView: View {
 
                 Button(action: onConfirm) {
                     Text("확인")
-                        .font(.system(size: 16, weight: .semibold))
+                        .scaledFont(16, weight: .semibold)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
@@ -97,7 +97,7 @@ struct BadgeCelebrationView: View {
                 .shadow(color: badge.accentColor.opacity(0.4), radius: 16, x: 0, y: 6)
 
             Image(systemName: badge.symbol)
-                .font(.system(size: 42, weight: .semibold))
+                .scaledFont(42, weight: .semibold)
                 .foregroundStyle(.white)
         }
         .frame(width: 180, height: 180)

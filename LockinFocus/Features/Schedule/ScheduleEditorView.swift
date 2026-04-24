@@ -25,7 +25,7 @@ struct ScheduleEditorView: View {
                     VStack(alignment: .leading, spacing: 24) {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("요일")
-                                .font(.system(size: 14, weight: .medium))
+                                .scaledFont(14, weight: .medium)
                                 .foregroundStyle(AppColors.secondaryText)
 
                             HStack(spacing: 8) {
@@ -35,7 +35,7 @@ struct ScheduleEditorView: View {
                                         toggleWeekday(pair.0)
                                     } label: {
                                         Text(pair.1)
-                                            .font(.system(size: 14, weight: .medium))
+                                            .scaledFont(14, weight: .medium)
                                             .frame(maxWidth: .infinity)
                                             .frame(height: 40)
                                             .foregroundStyle(active ? Color.white : AppColors.primaryText)
@@ -51,7 +51,7 @@ struct ScheduleEditorView: View {
 
                         VStack(alignment: .leading, spacing: 12) {
                             Text("시간")
-                                .font(.system(size: 14, weight: .medium))
+                                .scaledFont(14, weight: .medium)
                                 .foregroundStyle(AppColors.secondaryText)
 
                             VStack(spacing: 0) {
@@ -80,7 +80,7 @@ struct ScheduleEditorView: View {
                             set: { schedule.isEnabled = $0 }
                         )) {
                             Text("이 스케줄 사용")
-                                .font(.system(size: 15))
+                                .scaledFont(15)
                                 .foregroundStyle(AppColors.primaryText)
                         }
                         .tint(AppColors.primaryText)

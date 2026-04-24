@@ -36,18 +36,18 @@ struct AppPasscodeSetupView: View {
                 AppColors.background.ignoresSafeArea()
                 VStack(alignment: .leading, spacing: 20) {
                     Text(step == .first ? "앱 비밀번호 설정" : "비밀번호 다시 입력")
-                        .font(.system(size: 26, weight: .semibold))
+                        .scaledFont(26, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
                     Text(step == .first
                          ? "엄격 모드를 해제할 때 쓸 6자리 숫자 비번을 정해주세요. iPhone 잠금 암호와는 별개예요."
                          : "확인을 위해 한 번 더 입력해주세요.")
-                        .font(.system(size: 14))
+                        .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
 
                     SecureField("숫자 6자리", text: step == .first ? $first : $second)
                         .keyboardType(.numberPad)
-                        .font(.system(size: 28, weight: .medium, design: .rounded))
+                        .scaledFont(28, weight: .medium, design: .rounded)
                         .monospacedDigit()
                         .foregroundStyle(AppColors.primaryText)
                         .tint(AppColors.primaryText)
@@ -67,7 +67,7 @@ struct AppPasscodeSetupView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 13))
+                            .scaledFont(13)
                             .foregroundStyle(AppColors.error)
                     }
 

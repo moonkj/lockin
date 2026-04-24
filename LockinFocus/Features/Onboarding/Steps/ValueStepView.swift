@@ -11,12 +11,12 @@ struct ValueStepView: View {
 
             VStack(spacing: 16) {
                 Text("조금 쉬었다 갈까요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
                     .multilineTextAlignment(.center)
 
                 Text("충동과 선택 사이에\n10초의 쉼을 드려요.")
-                    .font(.system(size: 17))
+                    .scaledFont(17)
                     .foregroundStyle(AppColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)

@@ -10,31 +10,31 @@ struct FocusScoreCard: View {
     var body: some View {
         VStack(spacing: 14) {
             Text("오늘의 집중")
-                .font(.system(size: 14, weight: .medium))
+                .scaledFont(14, weight: .medium)
                 .foregroundStyle(AppColors.secondaryText)
 
             tree
 
             HStack(spacing: 8) {
                 Text(score == 0 ? "—" : "\(score)")
-                    .font(.system(size: 48, weight: .semibold, design: .rounded))
+                    .scaledFont(48, weight: .semibold, design: .rounded)
                     .foregroundStyle(AppColors.primaryText)
                     .monospacedDigit()
 
                 if score > 0 {
                     Text("/ 100")
-                        .font(.system(size: 17))
+                        .scaledFont(17)
                         .foregroundStyle(AppColors.secondaryText)
                         .baselineOffset(6)
                 }
             }
 
             Text(score == 0 ? "오늘이 시작이에요" : stage.label)
-                .font(.system(size: 13))
+                .scaledFont(13)
                 .foregroundStyle(AppColors.secondaryText)
 
             Text("돌아가기 +5 (3분 쿨다운) · 집중 15분 완주 +15 · 하루 첫 실행 +5")
-                .font(.system(size: 11))
+                .scaledFont(11)
                 .foregroundStyle(AppColors.secondaryText.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 8)
@@ -55,7 +55,7 @@ struct FocusScoreCard: View {
                 .frame(width: 72, height: 72)
 
             Image(systemName: stage.symbolName)
-                .font(.system(size: 32, weight: .regular))
+                .scaledFont(32, weight: .regular)
                 .foregroundStyle(stage.accentColor)
                 .symbolRenderingMode(.hierarchical)
         }

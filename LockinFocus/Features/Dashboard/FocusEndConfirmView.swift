@@ -106,13 +106,13 @@ struct FocusEndConfirmView: View {
             Spacer().frame(height: 32)
 
             Text("정말 종료할까요?")
-                .font(.system(size: 24, weight: .semibold))
+                .scaledFont(24, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
             Text(isFirstToday
                  ? "오늘 첫 해제예요. 잠시 숨을 고르고 다음 단계로 넘어가요."
                  : "잠시 숨을 고르면서 한 번 더 생각해봐요.")
-                .font(.system(size: 14))
+                .scaledFont(14)
                 .foregroundStyle(AppColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -155,11 +155,11 @@ struct FocusEndConfirmView: View {
     private var sentenceStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("이 문장을 그대로 써주세요")
-                .font(.system(size: 22, weight: .semibold))
+                .scaledFont(22, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
             Text("\"\(targetSentence)\"")
-                .font(.system(size: 16, weight: .medium))
+                .scaledFont(16, weight: .medium)
                 .foregroundStyle(AppColors.secondaryText)
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -172,7 +172,7 @@ struct FocusEndConfirmView: View {
                 .lineLimit(2, reservesSpace: true)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
-                .font(.system(size: 18, weight: .medium))
+                .scaledFont(18, weight: .medium)
                 .foregroundStyle(AppColors.primaryText)
                 .tint(AppColors.primaryText)
                 .padding(14)
@@ -186,7 +186,7 @@ struct FocusEndConfirmView: View {
 
             if !trimmedTyped.isEmpty && !sentenceMatches {
                 Text("문장이 달라요. 예시대로 정확히 써야 해요.")
-                    .font(.system(size: 12))
+                    .scaledFont(12)
                     .foregroundStyle(AppColors.error)
             }
 
@@ -250,7 +250,7 @@ struct FocusEndConfirmView: View {
                     .frame(width: 96, height: 96)
 
                 Text("\(remaining)")
-                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                    .scaledFont(40, weight: .semibold, design: .rounded)
                     .foregroundStyle(AppColors.primaryText)
                     .monospacedDigit()
             }

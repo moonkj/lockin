@@ -17,13 +17,13 @@ struct PasscodeStepView: View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(step == .first ? "앱 비밀번호를 정해주세요" : "다시 한 번 입력해주세요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
                 Text(step == .first
                      ? "하루 첫 집중 해제 때 확인용으로 써요. iPhone 잠금 암호와는 별개예요."
                      : "확인을 위해 방금 정한 6자리를 한 번 더 입력해주세요.")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
             }
             .padding(.horizontal, 24)
@@ -31,7 +31,7 @@ struct PasscodeStepView: View {
 
             SecureField("숫자 6자리", text: step == .first ? $first : $second)
                 .keyboardType(.numberPad)
-                .font(.system(size: 28, weight: .medium, design: .rounded))
+                .scaledFont(28, weight: .medium, design: .rounded)
                 .monospacedDigit()
                 .foregroundStyle(AppColors.primaryText)
                 .tint(AppColors.primaryText)
@@ -55,7 +55,7 @@ struct PasscodeStepView: View {
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.system(size: 13))
+                    .scaledFont(13)
                     .foregroundStyle(AppColors.error)
                     .padding(.horizontal, 24)
             }
@@ -64,7 +64,7 @@ struct PasscodeStepView: View {
 
             VStack(spacing: 10) {
                 Button("건너뛰기") { onNext() }
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
             }
             .padding(.bottom, 16)

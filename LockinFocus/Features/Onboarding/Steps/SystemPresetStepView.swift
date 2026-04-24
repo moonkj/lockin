@@ -33,11 +33,11 @@ struct SystemPresetStepView: View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("핵심 시스템 앱은 iOS 가 보호해요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
                 Text("전화·메시지·설정은 아무것도 안 고르셔도 iOS 가 자동 보호합니다.\n카메라·지도처럼 ⚠️ 표시된 앱은 다음 단계에서 꼭 체크해주세요.")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
             }
@@ -48,12 +48,12 @@ struct SystemPresetStepView: View {
                 ForEach(items) { item in
                     HStack(spacing: 14) {
                         Image(systemName: item.symbol)
-                            .font(.system(size: 18))
+                            .scaledFont(18)
                             .foregroundStyle(AppColors.primaryText)
                             .frame(width: 28)
 
                         Text(item.name)
-                            .font(.system(size: 16))
+                            .scaledFont(16)
                             .foregroundStyle(AppColors.primaryText)
 
                         Spacer()
@@ -90,7 +90,7 @@ struct SystemPresetStepView: View {
         switch kind {
         case .iosProtected:
             Text("iOS 자동 보호")
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(12, weight: .medium)
                 .foregroundStyle(AppColors.success)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
@@ -100,7 +100,7 @@ struct SystemPresetStepView: View {
                 )
         case .needsManual:
             Text("⚠️ 직접 체크")
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(12, weight: .medium)
                 .foregroundStyle(AppColors.warning)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)

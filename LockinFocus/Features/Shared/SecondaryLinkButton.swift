@@ -17,7 +17,7 @@ struct SecondaryLinkButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 15, weight: .regular))
+                .scaledFont(15, weight: .regular)
                 .foregroundStyle(isEnabled ? AppColors.secondaryText : AppColors.secondaryText.opacity(0.4))
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .contentShape(Rectangle())

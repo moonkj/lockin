@@ -34,11 +34,11 @@ struct ScheduleStepView: View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("집중 시간대를 골라주세요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
                 Text("나중에 언제든 바꿀 수 있어요.")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
             }
             .padding(.horizontal, 24)
@@ -86,10 +86,10 @@ struct ScheduleStepView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(preset.title)
-                        .font(.system(size: 16, weight: .medium))
+                        .scaledFont(16, weight: .medium)
                         .foregroundStyle(AppColors.primaryText)
                     Text(preset.subtitle)
-                        .font(.system(size: 13))
+                        .scaledFont(13)
                         .foregroundStyle(AppColors.secondaryText)
                 }
 

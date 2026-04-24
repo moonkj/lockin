@@ -22,11 +22,11 @@ struct AppPickerStepView: View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("허용할 앱을 골라주세요")
-                    .font(.system(size: 28, weight: .semibold))
+                    .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
                 Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카메라·지도·시계도 필요하면 체크하세요.")
-                    .font(.system(size: 15))
+                    .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)
             }
@@ -39,11 +39,11 @@ struct AppPickerStepView: View {
                 } label: {
                     HStack {
                         Text("허용 앱 고르기")
-                            .font(.system(size: 16, weight: .medium))
+                            .scaledFont(16, weight: .medium)
                             .foregroundStyle(AppColors.primaryText)
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                            .scaledFont(13, weight: .semibold)
                             .foregroundStyle(AppColors.secondaryText)
                     }
                     .padding(.horizontal, 16)
@@ -58,7 +58,7 @@ struct AppPickerStepView: View {
                 Text(selectedCount == 0
                      ? "아무것도 안 고르면 시스템 자동 보호 앱 외 모두 잠겨요. 건너뛰어도 돼요."
                      : "현재 선택: \(selectedSummary)")
-                    .font(.system(size: 14))
+                    .scaledFont(14)
                     .foregroundStyle(AppColors.secondaryText)
             }
             .padding(.horizontal, 24)

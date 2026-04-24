@@ -95,7 +95,7 @@ struct DashboardView: View {
 
                     if allowedCount == 0 {
                         Text("허용 앱이 0개예요. 집중을 시작하면 시스템 자동 보호 앱(전화·메시지·설정) 외 대부분 앱이 잠깁니다.")
-                            .font(.system(size: 13))
+                            .scaledFont(13)
                             .foregroundStyle(AppColors.secondaryText)
                             .padding(.horizontal, 4)
                     }
@@ -187,9 +187,9 @@ struct DashboardView: View {
         } label: {
             HStack {
                 Image(systemName: isManualFocus ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 20))
+                    .scaledFont(20)
                 Text(isManualFocus ? "집중 종료" : "지금 집중 시작")
-                    .font(.system(size: 17, weight: .semibold))
+                    .scaledFont(17, weight: .semibold)
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -234,7 +234,7 @@ struct DashboardView: View {
     private var header: some View {
         HStack(spacing: 12) {
             Text("락인 포커스")
-                .font(.system(size: 20, weight: .semibold))
+                .scaledFont(20, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 
             Spacer()
@@ -243,7 +243,7 @@ struct DashboardView: View {
                 activeSheet = .leaderboard
             } label: {
                 Image(systemName: "trophy")
-                    .font(.system(size: 20))
+                    .scaledFont(20)
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
@@ -253,7 +253,7 @@ struct DashboardView: View {
                 activeSheet = .badges
             } label: {
                 Image(systemName: "rosette")
-                    .font(.system(size: 20))
+                    .scaledFont(20)
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
@@ -263,7 +263,7 @@ struct DashboardView: View {
                 activeSheet = .weeklyReport
             } label: {
                 Image(systemName: "chart.bar")
-                    .font(.system(size: 20))
+                    .scaledFont(20)
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)
@@ -273,7 +273,7 @@ struct DashboardView: View {
                 activeSheet = .settings
             } label: {
                 Image(systemName: "gearshape")
-                    .font(.system(size: 20))
+                    .scaledFont(20)
                     .foregroundStyle(AppColors.primaryText)
             }
             .buttonStyle(.plain)

@@ -16,11 +16,11 @@ struct StrictDurationPickerView: View {
 
                 VStack(alignment: .leading, spacing: 20) {
                     Text("얼마나 집중할까요?")
-                        .font(.system(size: 26, weight: .semibold))
+                        .scaledFont(26, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
                     Text("고른 시간이 지나기 전까지는 비밀번호를 알아도 풀 수 없어요.")
-                        .font(.system(size: 14))
+                        .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
 
                     VStack(spacing: 10) {
@@ -31,12 +31,12 @@ struct StrictDurationPickerView: View {
                             } label: {
                                 HStack {
                                     Text(preset.label)
-                                        .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
+                                        .scaledFont(17, weight: isSelected ? .semibold : .regular)
                                         .foregroundStyle(isSelected ? Color.white : AppColors.primaryText)
                                     Spacer()
                                     if isSelected {
                                         Image(systemName: "checkmark")
-                                            .font(.system(size: 14, weight: .semibold))
+                                            .scaledFont(14, weight: .semibold)
                                             .foregroundStyle(.white)
                                             .accessibilityHidden(true)
                                     }

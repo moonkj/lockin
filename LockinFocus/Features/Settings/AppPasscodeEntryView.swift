@@ -29,16 +29,16 @@ struct AppPasscodeEntryView: View {
                 AppColors.background.ignoresSafeArea()
                 VStack(alignment: .leading, spacing: 20) {
                     Text("앱 비밀번호 입력")
-                        .font(.system(size: 26, weight: .semibold))
+                        .scaledFont(26, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
                     Text("설정한 6자리 비번을 입력하세요.")
-                        .font(.system(size: 14))
+                        .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
 
                     SecureField("숫자 6자리", text: $input)
                         .keyboardType(.numberPad)
-                        .font(.system(size: 28, weight: .medium, design: .rounded))
+                        .scaledFont(28, weight: .medium, design: .rounded)
                         .monospacedDigit()
                         .foregroundStyle(AppColors.primaryText)
                         .tint(AppColors.primaryText)
@@ -58,7 +58,7 @@ struct AppPasscodeEntryView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 13))
+                            .scaledFont(13)
                             .foregroundStyle(AppColors.error)
                     }
 

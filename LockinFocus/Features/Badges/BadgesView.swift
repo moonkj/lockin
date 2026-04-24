@@ -35,7 +35,7 @@ struct BadgesView: View {
                         }
 
                         Text("순위 뱃지는 참가자 100명 이상인 랭킹에서만 획득할 수 있어요.")
-                            .font(.system(size: 12))
+                            .scaledFont(12)
                             .foregroundStyle(AppColors.secondaryText)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
@@ -71,11 +71,11 @@ struct BadgesView: View {
     private var summary: some View {
         HStack {
             Text("\(earned.count) / \(all.count) 획득")
-                .font(.system(size: 15, weight: .medium))
+                .scaledFont(15, weight: .medium)
                 .foregroundStyle(AppColors.primaryText)
             Spacer()
             Text("집중 지킴 \(deps.persistence.totalReturnCount)회")
-                .font(.system(size: 12))
+                .scaledFont(12)
                 .foregroundStyle(AppColors.secondaryText)
         }
         .padding(.bottom, 4)
@@ -89,20 +89,20 @@ struct BadgesView: View {
                     .fill((unlocked ? badge.accentColor : AppColors.divider).opacity(unlocked ? 0.14 : 0.4))
                     .frame(width: 68, height: 68)
                 Image(systemName: unlocked ? badge.symbol : "lock.fill")
-                    .font(.system(size: 28))
+                    .scaledFont(28)
                     .foregroundStyle(unlocked ? badge.accentColor : AppColors.secondaryText)
                     .symbolRenderingMode(.hierarchical)
             }
 
             Text(badge.title)
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(12, weight: .medium)
                 .foregroundStyle(unlocked ? AppColors.primaryText : AppColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.9)
 
             Text(unlocked ? badge.detail : "아직 잠겨 있어요")
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(AppColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)

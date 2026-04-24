@@ -25,16 +25,16 @@ struct NextScheduleCard: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("다음 스케줄")
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(14, weight: .medium)
                         .foregroundStyle(AppColors.secondaryText)
 
                     if schedule.isEnabled {
                         Text("\(weekdaysLabel) · \(timeRange)")
-                            .font(.system(size: 18, weight: .semibold))
+                            .scaledFont(18, weight: .semibold)
                             .foregroundStyle(AppColors.primaryText)
                     } else {
                         Text("꺼짐")
-                            .font(.system(size: 18, weight: .semibold))
+                            .scaledFont(18, weight: .semibold)
                             .foregroundStyle(AppColors.secondaryText)
                     }
                 }
@@ -43,10 +43,10 @@ struct NextScheduleCard: View {
 
                 HStack(spacing: 4) {
                     Text("편집")
-                        .font(.system(size: 14, weight: .medium))
+                        .scaledFont(14, weight: .medium)
                         .foregroundStyle(AppColors.primaryText)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .scaledFont(12, weight: .semibold)
                         .foregroundStyle(AppColors.secondaryText)
                 }
             }
