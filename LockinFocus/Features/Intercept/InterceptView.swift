@@ -53,6 +53,7 @@ struct InterceptView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
             }
+            .readingWidth(520)
         }
         .onAppear(perform: startCountdown)
         .onDisappear { timer?.invalidate() }

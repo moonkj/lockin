@@ -52,13 +52,17 @@ struct ReportView: View {
                     .padding(.top, 8)
 
                     ScrollView {
-                        switch range {
-                        case .daily:   DailyReport()
-                        case .weekly:  WeeklyReport()
-                        case .monthly: MonthlyReport()
+                        Group {
+                            switch range {
+                            case .daily:   DailyReport()
+                            case .weekly:  WeeklyReport()
+                            case .monthly: MonthlyReport()
+                            }
                         }
+                        .readingWidth()
                     }
                 }
+                .readingWidth()
             }
             .navigationTitle("리포트")
             .navigationBarTitleDisplayMode(.inline)

@@ -78,6 +78,7 @@ struct NicknameSetupView: View {
                         .opacity(canSubmit ? 1 : 0.4)
                 }
                 .padding(24)
+                .readingWidth(560)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

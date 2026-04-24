@@ -74,6 +74,7 @@ struct AppPasscodeSetupView: View {
                     Spacer()
                 }
                 .padding(20)
+                .readingWidth(560)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

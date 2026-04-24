@@ -45,6 +45,7 @@ struct BadgesView: View {
                         Spacer(minLength: 12)
                     }
                     .padding(20)
+                    .readingWidth(720)
                 }
 
                 if let selectedBadge {

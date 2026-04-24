@@ -97,6 +97,7 @@ struct ScheduleEditorView: View {
                         }
                     }
                     .padding(20)
+                    .readingWidth()
                 }
             }
             .navigationTitle("스케줄")

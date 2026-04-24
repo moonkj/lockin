@@ -37,6 +37,7 @@ struct OnboardingContainerView: View {
                 stepIndicator
                     .padding(.bottom, 24)
             }
+            .readingWidth(560)
         }
     }
 

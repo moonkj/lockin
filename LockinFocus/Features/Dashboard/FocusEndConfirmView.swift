@@ -83,11 +83,14 @@ struct FocusEndConfirmView: View {
         ZStack {
             AppColors.background.ignoresSafeArea()
 
-            switch step {
-            case .wave:     waveStep
-            case .sentence: sentenceStep
-            case .passcode: passcodeStep
+            Group {
+                switch step {
+                case .wave:     waveStep
+                case .sentence: sentenceStep
+                case .passcode: passcodeStep
+                }
             }
+            .readingWidth(560)
         }
         .onAppear(perform: startCountdown)
         .onDisappear { timer?.invalidate() }

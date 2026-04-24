@@ -66,6 +66,7 @@ struct StrictDurationPickerView: View {
                     }
                 }
                 .padding(24)
+                .readingWidth(560)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -190,6 +190,7 @@ struct SettingsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .background(AppColors.background)
+                .readingWidth(720)
             }
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)

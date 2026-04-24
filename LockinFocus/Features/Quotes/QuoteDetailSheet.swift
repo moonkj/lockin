@@ -63,6 +63,7 @@ struct QuoteDetailSheet: View {
                     .padding(.bottom, 16)
                 }
                 .padding(.horizontal, 28)
+                .readingWidth(560)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

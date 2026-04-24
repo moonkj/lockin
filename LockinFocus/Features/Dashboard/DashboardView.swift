@@ -107,6 +107,7 @@ struct DashboardView: View {
                     Spacer(minLength: 24)
                 }
                 .padding(.horizontal, 20)
+                .readingWidth()
             }
         }
         .onAppear(perform: load)
