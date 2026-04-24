@@ -38,8 +38,10 @@ final class LeaderboardViewModelTests: XCTestCase {
         }
 
         var deletedUserIDs: [String] = []
-        func deleteRecord(userID: String) async throws {
+        @discardableResult
+        func deleteRecord(userID: String) async throws -> Bool {
             deletedUserIDs.append(userID)
+            return true
         }
     }
 

@@ -107,14 +107,16 @@ final class CloudKitLeaderboardService: ObservableObject {
     }
 
     /// 특정 userID 의 record 를 Public DB 에서 삭제.
-    /// 테스트 데이터 정리 / 사용자 요청 기반 기록 삭제에 사용.
-    func deleteRecord(userID: String) async throws {
+    /// 반환값: true = 실제로 지웠음, false = 애초에 없었음.
+    /// 호출부가 "삭제 완료" vs "이미 없음" 메시지를 구분해 보여줄 수 있도록.
+    @discardableResult
+    func deleteRecord(userID: String) async throws -> Bool {
         let recordID = CKRecord.ID(recordName: userID)
         do {
             _ = try await database.deleteRecord(withID: recordID)
+            return true
         } catch let error as CKError where error.code == .unknownItem {
-            // 이미 없음 — 성공 처리.
-            return
+            return false
         } catch {
             throw mapError(error)
         }

@@ -19,7 +19,9 @@ protocol LeaderboardServiceProtocol: AnyObject {
     func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry]
 
     /// 특정 userID 의 record 를 Public DB 에서 삭제.
-    func deleteRecord(userID: String) async throws
+    /// 반환값: true = 실제로 지웠음, false = 애초에 record 가 없었음.
+    @discardableResult
+    func deleteRecord(userID: String) async throws -> Bool
 }
 
 /// default-argument helpers. 호출부 편의를 위해 extension 에 구현.
