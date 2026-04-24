@@ -116,6 +116,9 @@ struct BadgesView: View {
 
         if unlocked {
             Button {
+                // 이미 획득한 뱃지를 탭해 상세 카드를 열 때 — 가벼운 selection tick.
+                // 최초 획득 순간(축하 모달)의 .success 진동과 구분돼 의미 유지.
+                Haptics.selection()
                 withAnimation(.easeIn(duration: 0.15)) {
                     selectedBadge = badge
                 }
