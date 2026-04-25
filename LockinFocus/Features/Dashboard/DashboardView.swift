@@ -373,12 +373,23 @@ struct DashboardView: View {
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
 
+        // 스케줄 활성 구간 안에 있을 때만 shield 즉시 적용.
+        // (수동 집중 모드 토글이 별도로 동작하므로 isManualFocus 도 고려해야 하지만
+        //  여기서는 스케줄 변경에 한정한 처리. 수동이 켜져 있으면 toggleManualFocus
+        //  쪽이 이미 shield 를 켜둔 상태라 영향 없음.)
         if schedule.isEnabled {
-            deps.blocking.applyWhitelist(for: selection)
             try? deps.monitoring.startSchedule(schedule, name: "block_main")
+            if schedule.isCurrentlyActive() {
+                deps.blocking.applyWhitelist(for: selection)
+            } else if !isManualFocus {
+                // 수동 집중 중이 아니고 스케줄도 비활성 시간대 → shield 클리어.
+                deps.blocking.clearShield()
+            }
         } else {
-            deps.blocking.clearShield()
             deps.monitoring.stopMonitoring(name: "block_main")
+            if !isManualFocus {
+                deps.blocking.clearShield()
+            }
         }
     }
 }

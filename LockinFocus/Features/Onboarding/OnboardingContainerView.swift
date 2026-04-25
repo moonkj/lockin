@@ -150,11 +150,18 @@ struct OnboardingContainerView: View {
         deps.persistence.schedule = scheduleToSave
         deps.persistence.hasCompletedOnboarding = true
 
-        // 스케줄이 꺼진 상태로 온보딩을 끝내면 shield 를 적용하지 않는다.
-        // 허용 앱 0개인 경우에도 BlockingEngine 이 내부적으로 clearShield 로 폴백.
+        // **버그 수정 (2026-04-25)**: 이전 코드는 스케줄 토글이 켜져있기만 하면 즉시
+        // applyWhitelist 했으나, 그러면 토요일에 평일(월-금) 스케줄을 등록하면 토요일에도
+        // shield 가 켜져 잠겨버렸다. 이제 "현재 시각이 스케줄 활성 구간 안에 있을 때만"
+        // shield 적용. 그 외엔 DeviceActivity 에 등록만 해두고 Extension 이 활성 시간에
+        // 자동으로 켜고/끄도록 위임.
         if scheduleToSave.isEnabled {
-            deps.blocking.applyWhitelist(for: draftSelection)
             try? deps.monitoring.startSchedule(scheduleToSave, name: "block_main")
+            if scheduleToSave.isCurrentlyActive() {
+                deps.blocking.applyWhitelist(for: draftSelection)
+            } else {
+                deps.blocking.clearShield()
+            }
         } else {
             deps.blocking.clearShield()
             deps.monitoring.stopMonitoring(name: "block_main")
