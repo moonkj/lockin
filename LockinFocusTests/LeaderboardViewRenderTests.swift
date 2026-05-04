@@ -23,7 +23,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
             entry(userID: "b", nickname: "둘째", daily: 90),
             entry(userID: "c", nickname: "셋째", daily: 80)
         ]
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("첫째")))
         XCTAssertNoThrow(try view.inspect().find(text: L("둘째")))
@@ -36,7 +36,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
             entry(userID: "b", nickname: "둘째", daily: 90),
             entry(userID: "c", nickname: "셋째", daily: 80)
         ]
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("100점")))
         XCTAssertNoThrow(try view.inspect().find(text: L("90점")))
@@ -47,7 +47,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
         let entries = [
             entry(userID: "a", nickname: "주간왕", daily: 50)
         ]
-        let view = LeaderboardView(initialPeriod: .weekly, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .weekly, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         // weekly = daily * 7 = 350.
         XCTAssertNoThrow(try view.inspect().find(text: L("주간 Top 3")))
@@ -55,7 +55,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
 
     func testLeaderboard_monthlyPeriod_showsMonthlyHeader() throws {
         let entries = [entry(userID: "a", nickname: "x", daily: 10)]
-        let view = LeaderboardView(initialPeriod: .monthly, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .monthly, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("월간 Top 3")))
     }
@@ -65,7 +65,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
         for i in 0..<10 {
             entries.append(entry(userID: "u-\(i)", nickname: "유저\(i)", daily: 100 - i * 5))
         }
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         // 4위부터 10위까지 rank row 가 렌더. 닉네임 샘플로 확인.
         XCTAssertNoThrow(try view.inspect().find(text: L("유저3")))
@@ -110,7 +110,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
             entry(userID: "a", nickname: "a", daily: 1),
             entry(userID: "b", nickname: "b", daily: 2)
         ]
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("2명")))
     }

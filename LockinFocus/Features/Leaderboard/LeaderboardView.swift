@@ -2,9 +2,55 @@ import SwiftUI
 
 /// CloudKit 기반 랭킹 — 일간/주간/월간 탭 + Top 3 메달 + 4~30위 리스트 + 내 순위.
 ///
-/// 모든 비즈니스 로직 (cache · filter · load · submit) 은 `LeaderboardViewModel` 에
-/// 위치한다. View 는 vm.@Published 상태를 관찰해서 렌더만 한다.
+/// 이 컨테이너는 `@EnvironmentObject deps` 만 받아서, deps 가 갖춰진 시점에 `LeaderboardContent`
+/// 를 만들어 VM 을 init 에서 즉시 실제 서비스/persistence 로 구성한다 — stub+connect hack 제거.
+/// 모든 비즈니스 로직 (cache · filter · load · submit) 은 `LeaderboardViewModel` 위치.
 struct LeaderboardView: View {
+    @EnvironmentObject var deps: AppDependencies
+
+    /// 외부 호환 — VM 의 Scope 노출.
+    typealias Scope = LeaderboardViewModel.Scope
+
+    /// 테스트 전용 — 미리 만들어진 entries/period 를 가진 child 를 직접 띄운다.
+    /// 런타임 경로면 nil 로 두고 deps 기반 child 를 만든다.
+    private let testInitialPeriod: LeaderboardPeriod?
+    private let testInitialEntries: [LeaderboardEntry]
+    private let testInitialMyUserID: String
+
+    init() {
+        self.testInitialPeriod = nil
+        self.testInitialEntries = []
+        self.testInitialMyUserID = ""
+    }
+
+    /// 테스트 전용 init — `LeaderboardContent` 의 stub init 으로 forward.
+    init(
+        initialPeriod: LeaderboardPeriod,
+        initialEntries: [LeaderboardEntry],
+        initialMyUserID: String = ""
+    ) {
+        self.testInitialPeriod = initialPeriod
+        self.testInitialEntries = initialEntries
+        self.testInitialMyUserID = initialMyUserID
+    }
+
+    var body: some View {
+        if let period = testInitialPeriod {
+            LeaderboardContent(
+                initialPeriod: period,
+                initialEntries: testInitialEntries,
+                initialMyUserID: testInitialMyUserID
+            )
+        } else {
+            LeaderboardContent(deps: deps)
+        }
+    }
+}
+
+/// LeaderboardView 의 child — VM 을 `init` 에서 실제 service+persistence 로 만든다.
+/// container+child 패턴: container 가 deps 가 갖춰진 뒤에 child 를 한 번 인스턴스화하므로
+/// child 의 `@StateObject` 는 첫 init 에서 곧장 실제 의존성을 받는다.
+struct LeaderboardContent: View {
     @EnvironmentObject var deps: AppDependencies
     @Environment(\.dismiss) private var dismiss
 
@@ -14,16 +60,16 @@ struct LeaderboardView: View {
 
     typealias Scope = LeaderboardViewModel.Scope
 
-    /// 기본 init — 런타임 사용 경로. VM 은 stub 으로 시작하고 .task 에서 실제 deps 와 reconnect.
-    init() {
+    /// 런타임 — container 에서 deps 주입.
+    init(deps: AppDependencies) {
         _vm = StateObject(wrappedValue: LeaderboardViewModel(
-            service: _StubLeaderboardService(),
-            persistence: InMemoryPersistenceStore()
+            service: deps.leaderboardService,
+            persistence: deps.persistence
         ))
     }
 
     /// 테스트 전용 init — 초기 entries/period/userID 주입해 medal/rankRow 렌더 분기 검증.
-    /// VM 의 stub service / InMemoryPersistenceStore 를 만들고 entries 를 직접 채운다.
+    /// In-memory persistence + Stub service 로 격리된 환경.
     init(
         initialPeriod: LeaderboardPeriod,
         initialEntries: [LeaderboardEntry],
@@ -107,7 +153,6 @@ struct LeaderboardView: View {
                     .environmentObject(deps)
             }
             .task {
-                vm.connect(service: deps.leaderboardService, persistence: deps.persistence)
                 vm.badgeAwardHandler = { [weak deps] badges in
                     deps?.celebrate(badges)
                 }
@@ -474,8 +519,8 @@ struct LeaderboardView: View {
 
 // MARK: - Stub service
 
-/// LeaderboardView 의 init 들이 VM 을 즉시 만들어야 하는 SwiftUI 제약 때문에 사용하는
-/// no-op service. 실제 deps 는 `.task` 에서 `vm.connect(...)` 로 주입된다.
+/// 테스트 init 에서만 사용하는 no-op service.
+/// 런타임 경로는 container 가 deps.leaderboardService 를 직접 주입하므로 stub 불필요.
 private final class _StubLeaderboardService: LeaderboardServiceProtocol {
     func accountAvailable() async -> Bool { false }
     func submit(

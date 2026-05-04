@@ -18,7 +18,7 @@ final class LeaderboardViewBranchTests: XCTestCase {
 
     func testLeaderboard_onlyOneEntry_showsFirstPlaceholderOthers() throws {
         let entries = [entry(userID: "a", nickname: "첫째", score: 100)]
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         // 1등 자리에 엔트리 렌더, 2/3 등은 placeholder.
         XCTAssertNoThrow(try view.inspect().find(text: L("첫째")))
@@ -29,14 +29,14 @@ final class LeaderboardViewBranchTests: XCTestCase {
             entry(userID: "a", nickname: "일등", score: 100),
             entry(userID: "b", nickname: "이등", score: 90)
         ]
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: entries)
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: entries)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("일등")))
         XCTAssertNoThrow(try view.inspect().find(text: L("이등")))
     }
 
     func testLeaderboard_emptyEntries_rendersPlaceholder() throws {
-        let view = LeaderboardView(initialPeriod: .daily, initialEntries: [])
+        let view = LeaderboardContent(initialPeriod: .daily, initialEntries: [])
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("아직 등록된 기록이 많지 않아요.\n오른쪽 위 ↑ 버튼으로 내 점수를 등록해보세요.")))
     }
