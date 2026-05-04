@@ -153,6 +153,9 @@ struct DashboardView: View {
                     isManualFocus = false
                     Haptics.success()
                 }
+            case .showFocusScore:
+                // Siri "집중 점수 보여줘" — Dashboard 가 이미 점수를 보여주므로 추가 동작 없음.
+                break
             }
             deps.consumeRoute()
         }

@@ -12,68 +12,40 @@ final class AppDependencies: ObservableObject {
     /// 프로덕션은 CloudKitLeaderboardService.shared.
     let leaderboardService: LeaderboardServiceProtocol
 
-    /// 위젯 탭 같은 외부 deep link 가 열렸을 때 갱신된다.
-    /// 일회성 값 — `requestRoute(_:)` 로 쓰고 `consumeRoute()` 로 비운다.
-    @Published private(set) var pendingRoute: Route?
+    /// 라우팅 + 친구 초대 pending state — 별도 ObservableObject (RouterStore) 로 분리.
+    /// AppDependencies 는 forwarding 만 보유 (호환).
+    /// init 시점엔 persistence 가 위쪽에 선언돼 있어야 — lazy 로 첫 접근 시 생성.
+    private(set) lazy var router: RouterStore = {
+        RouterStore(persistence: persistence) { [weak self] in
+            self?.persistence.leaderboardUserID ?? ""
+        }
+    }()
 
-    /// 네비게이션 타깃. 추후 파라미터가 필요하면 associated value 로 확장.
-    enum Route: String, Equatable {
-        case weeklyReport
-        case quoteDetail
-        case startFocus  // Siri/Shortcut 에서 "집중 시작" intent.
-        case endFocus    // Siri/Shortcut 에서 "집중 종료" intent.
+    /// (호환 alias) AppDependencies.Route → RouterStore.Route.
+    typealias Route = RouterStore.Route
+
+    /// (호환) 기존 호출자가 그대로 쓰던 API — router 로 위임.
+    var pendingRoute: Route? { router.pendingRoute }
+    func requestRoute(_ route: Route) { router.requestRoute(route) }
+    func consumeRoute() { router.consumeRoute() }
+
+    var pendingFriendInvite: FriendInviteLink.Payload? {
+        get { router.pendingFriendInvite }
+        set { router.pendingFriendInvite = newValue }
     }
-
-    /// deep link 진입점.
-    func requestRoute(_ route: Route) { pendingRoute = route }
-
-    /// 소비한 쪽이 호출. 다른 뷰의 race 를 방지하기 위한 명시적 API.
-    func consumeRoute() { pendingRoute = nil }
-
-    /// 외부에서 친구 초대 링크가 들어왔을 때 임시 보관하는 payload.
-    /// 자기 자신을 추가하는 건 무의미하므로 걸러낸다.
-    @Published var pendingFriendInvite: FriendInviteLink.Payload?
-
-    /// 연속 호출 (악성 링크 스팸 · universal link 리다이렉트 반복) 을 방어하기 위한
-    /// 레이트 리미터.
-    /// - 같은 UID 가 1초 이내 반복: 무시 (이전 동작)
-    /// - 어떤 UID 든 200ms 이내 연속 호출: 무시 (다른 UID 폭주 공격 방어)
-    private var lastInviteRequestAt: Date?
-    private var lastInviteRequestUID: String?
-
-    /// 친구 목록 상한. 끝없이 append 하는 DoS 방지 + iOS UserDefaults 어레이 성능 가드.
-    static let maxFriendCount = 500
-
     func requestFriendInvite(_ payload: FriendInviteLink.Payload) {
-        guard payload.userID != persistence.leaderboardUserID else { return }
-        let now = Date()
-        if let lastAt = lastInviteRequestAt {
-            // 글로벌 throttle: 다른 UID 라도 200ms 이내 연속 호출은 무시.
-            if now.timeIntervalSince(lastAt) < 0.2 { return }
-            // 같은 UID 1초 이내 중복 무시.
-            if let lastUID = lastInviteRequestUID,
-               lastUID == payload.userID,
-               now.timeIntervalSince(lastAt) < 1.0 {
-                return
-            }
-        }
-        lastInviteRequestAt = now
-        lastInviteRequestUID = payload.userID
-        pendingFriendInvite = payload
+        router.requestFriendInvite(payload)
     }
+    func consumeFriendInvite() { router.consumeFriendInvite() }
+    func acceptFriendInvite() { router.acceptFriendInvite() }
 
-    /// 표시 안전한 닉네임 — alert · 친구 목록 · 랭킹 행 등 외부 노출 시 항상 이 함수를 거친다.
-    /// NicknameValidator 통과면 cleaned, 실패면 위치 기반 익명 라벨 ("친구 N").
-    /// `position` 은 1-based; 알 수 없으면 nil 로 두면 그냥 "친구".
+    /// (호환) AppDependencies.safeDisplayName(...) 정적 호출 — 새로는 RouterStore.safeDisplayName 권장.
     static func safeDisplayName(for raw: String, position: Int? = nil) -> String {
-        if case .success(let cleaned) = NicknameValidator.validate(raw) {
-            return cleaned
-        }
-        if let position { return "친구 \(position)" }
-        return "친구"
+        RouterStore.safeDisplayName(for: raw, position: position)
     }
 
-    func consumeFriendInvite() { pendingFriendInvite = nil }
+    /// (호환) maxFriendCount 상수 — 새로는 RouterStore.maxFriendCount.
+    static var maxFriendCount: Int { RouterStore.maxFriendCount }
 
     // MARK: - Shared focus toggle (Siri App Intent 와 Dashboard 공유)
 
@@ -128,28 +100,8 @@ final class AppDependencies: ObservableObject {
         return true
     }
 
-    /// 현재 payload 를 확정: 친구 목록에 추가하고 닉네임 캐시 갱신.
-    /// 캐시 닉네임은 항상 `safeDisplayName(for:position:)` 을 거친 값만 저장.
-    func acceptFriendInvite() {
-        guard let p = pendingFriendInvite else { return }
-        var ids = persistence.friendUserIDs
-        if !ids.contains(p.userID) {
-            // 상한 도달 시 가장 오래된 항목을 밀어낸다 — append 무한 증가 방지.
-            if ids.count >= Self.maxFriendCount {
-                ids.removeFirst(ids.count - Self.maxFriendCount + 1)
-            }
-            ids.append(p.userID)
-            persistence.friendUserIDs = ids
-        }
-        var cache = persistence.friendNicknameCache
-        let position = (ids.firstIndex(of: p.userID) ?? 0) + 1
-        cache[p.userID] = Self.safeDisplayName(for: p.nickname, position: position)
-        // 캐시도 친구 목록에 실제 있는 키만 유지.
-        let allowed = Set(ids)
-        cache = cache.filter { allowed.contains($0.key) }
-        persistence.friendNicknameCache = cache
-        pendingFriendInvite = nil
-    }
+    // 친구 초대 accept 는 RouterStore.acceptFriendInvite() 가 처리.
+    // AppDependencies.acceptFriendInvite() 는 위에서 forwarding.
 
     /// 뱃지 축하 큐 — 별도 ObservableObject 로 분리. AppDependencies 는 위임만.
     /// 직접 구독은 `RootView` 가 `@EnvironmentObject` 또는 `@ObservedObject` 로 가능.
@@ -160,30 +112,46 @@ final class AppDependencies: ObservableObject {
     func celebrate(_ badges: [Badge]) { celebrations.celebrate(badges) }
     func dismissCelebratedBadge() { celebrations.dismiss() }
 
-    /// 전역 1초 타이머에서 fire 하는 값. 시간 기반 상태(특히 엄격 모드 만료)를
-    /// 관찰하는 뷰가 이 값을 읽으면 자동으로 매초 재렌더링된다.
-    @Published private(set) var tick: Date = Date()
+    /// 전역 1초 타이머 — 별도 ObservableObject (ClockTicker) 로 분리.
+    /// AppDependencies 는 forwarding + strict 만료 핸들러 등록만.
+    private(set) lazy var ticker: ClockTicker = {
+        let t = ClockTicker(
+            initialStrictActive: persistence.isStrictModeActive,
+            isStrictActiveProvider: { [weak self] in
+                self?.persistence.isStrictModeActive ?? false
+            }
+        )
+        t.afterTick = { [weak self] in self?.cleanupStrictIfExpired() }
+        return t
+    }()
 
-    /// 엄격 모드 활성 상태 캐시 — `persistence.isStrictModeActive` 는 매 호출마다
-    /// UserDefaults 2 읽기 + Date 비교를 한다. 뷰 body 가 매 tick 이걸 여러 번 부르면
-    /// syscall 폭주 — `@Published` 캐시에 두고 상태가 flip 한 때만 emission.
-    @Published private(set) var strictActive: Bool = false
+    /// (호환) 기존 호출자가 그대로 쓰던 API — ticker 로 위임.
+    var tick: Date { ticker.tick }
+    var strictActive: Bool { ticker.strictActive }
 
-    private var tickTimer: Timer?
     private var kvObserver: NSObjectProtocol?
 
-    /// 앱이 백그라운드로 갔을 때 Timer 를 정지해 wake-up 을 0으로. 포그라운드 복귀 시 재개.
-    /// RootView 의 scenePhase onChange 에서 호출한다.
-    func pauseTicker() {
-        tickTimer?.invalidate()
-        tickTimer = nil
-    }
+    /// scenePhase 백그라운드 시 호출.
+    func pauseTicker() { ticker.pause() }
 
-    func resumeTicker() {
-        guard tickTimer == nil else { return }
-        // 복귀 직후 strict 만료 체크가 늦지 않도록 한 번 즉시 실행.
-        onTick()
-        startGlobalTicker()
+    /// scenePhase 포그라운드 복귀 시 호출.
+    func resumeTicker() { ticker.resume() }
+
+    /// strict 만료 시 정리 (Haptic + celebrate + Live Activity + 알림).
+    /// ClockTicker.afterTick 이 매초 부르고, 진짜 만료일 때만 진입.
+    private func cleanupStrictIfExpired() {
+        let now = Date()
+        guard let end = persistence.strictModeEndAt,
+              end <= now,
+              !persistence.isStrictModeActive
+        else { return }
+        // sentinel 통과 → 진짜 만료. wallclock + uptime 둘 다 만료 확인됨.
+        persistence.strictModeEndAt = nil
+        persistence.strictModeStartAt = nil
+        Haptics.success()
+        celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
+        FocusActivityService.end()
+        StrictCompletionScheduler.cancel()
     }
 
     /// CelebrationCenter 변경을 deps 관찰자에게도 전파 (기존 `deps.currentCelebratedBadge`
@@ -200,74 +168,37 @@ final class AppDependencies: ObservableObject {
         self.blocking = blocking
         self.monitoring = monitoring
         self.leaderboardService = leaderboardService
-        // strictActive 초기 상태 — onTick 가 돌기 전에도 뷰가 올바른 값을 읽도록.
-        self.strictActive = persistence.isStrictModeActive
-        startGlobalTicker()
         observeICloudKVChanges()
         // celebrations 변경을 self 의 objectWillChange 로 전파.
         celebrationsCancellable = celebrations.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
+        // router · ticker (lazy) 도 같은 식으로 forwarding.
+        _ = router
+        routerCancellable = router.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+        _ = ticker
+        tickerCancellable = ticker.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+        ticker.start()
     }
 
+    private var routerCancellable: AnyCancellable?
+    private var tickerCancellable: AnyCancellable?
+
     deinit {
-        tickTimer?.invalidate()
+        // ticker 는 main actor 에 묶여 있으나 Timer.invalidate 자체는 thread-safe.
         if let kvObserver {
             NotificationCenter.default.removeObserver(kvObserver)
         }
     }
 
-    /// 전역 1초 타이머. 외부(설정·테스트·실기기 strict 시작) 에서 persistence 가 변경
-    /// 됐을 때 즉각 감지해야 하므로 base interval 은 1초로 고정.
-    /// 배터리 비용은 (a) `scenePhase .background` 시 즉시 invalidate (`pauseTicker`)
-    /// 으로 차단, (b) `tick` publish 는 strict 비활성 시 10초마다만 (뷰 재렌더 폭주 방지).
-    private func startGlobalTicker() {
-        tickTimer?.invalidate()
-        let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.onTick()
-            }
-        }
-        tickTimer = timer
-    }
-
-    private func onTick() {
-        let now = Date()
-        let currentStrict = persistence.isStrictModeActive
-
-        // 캐시된 strictActive 상태가 flip 했을 때만 @Published emission — 뷰 본문이
-        // UserDefaults 를 매 렌더마다 읽지 않도록.
-        if currentStrict != strictActive {
-            strictActive = currentStrict
-        }
-
-        // strict 활성: 매초 publish (Live timer · countdown 라벨 정확도). 비활성: 10초 throttle.
-        let secondsSinceLastPublish = now.timeIntervalSince(tick)
-        if currentStrict || secondsSinceLastPublish >= 10 {
-            tick = now
-        }
-        // **CRITICAL fix (R7)**: 이전 코드는 wallclock (`end <= now`) 만 보고
-        // strictModeEndAt/StartAt 을 정리했음. 사용자가 시계를 +2h 미래로 이동하면
-        // 1초 안에 ticker 가 만료로 판단해 키를 모두 지우고, 시계를 정상으로 되돌려도
-        // strict mode 가 영구 해제되는 우회 가능. R3 의 uptime sentinel
-        // (`isStrictModeActive` 안에 wallclock 만료 + uptime 미달 처리) 이 view 차원에서는
-        // active 를 유지했지만 ticker 가 그 효과를 매초 무력화.
-        // 수정: protocol 의 isStrictModeActive 를 신뢰. 그 값이 false 일 때만 정리.
-        if let end = persistence.strictModeEndAt,
-           end <= now,
-           !persistence.isStrictModeActive {
-            // sentinel 통과 → 진짜 만료. wallclock + uptime 둘 다 만료 확인됨.
-            persistence.strictModeEndAt = nil
-            persistence.strictModeStartAt = nil
-            // 엄격 모드 완주 — 긍정 햅틱.
-            Haptics.success()
-            celebrate(BadgeEngine.onStrictSurvived(persistence: persistence))
-            // Live Activity + 예약된 완료 알림 모두 정리 (알림은 이미 발송됐을 수 있음).
-            FocusActivityService.end()
-            StrictCompletionScheduler.cancel()
-        }
-    }
+    // 전역 1초 타이머 + onTick → ClockTicker 로 이동. cleanupStrictIfExpired 는 위에 있음.
 
     /// iCloud KV 가 다른 기기에서 바뀌었다는 알림을 받으면 로컬 캐시를 맞춰준다.
     /// split-brain 수렴 메커니즘: 두 기기가 동시에 앱을 처음 실행해 각자 UUID 를
