@@ -7,11 +7,23 @@ import Foundation
 /// - secondary: ShieldConfiguration 에서 의도적으로 노출하지 않음. 자동 포그라운드화
 ///   불가능 (Apple 제약) 으로 인한 사용자 혼동 방지. 도달 시 안전 처리만.
 class ShieldActionExtensionHandler: ShieldActionDelegate {
+
+    override init() {
+        super.init()
+        // Extension 프로세스가 launching 됐다는 사실 자체를 진단 마커로 남긴다.
+        // AdminPanel 의 "Shield 즉시 점수" 섹션에서 lastShieldExtensionLaunchAt 노출.
+        // 이게 비어 있으면 OS 가 ShieldActionExtension 자체를 한 번도 띄우지 않은 것.
+        if let d = UserDefaults(suiteName: AppGroup.identifier) {
+            d.set(Date().timeIntervalSince1970, forKey: "lastShieldExtensionLaunchAt")
+        }
+    }
+
     override func handle(
         action: ShieldAction,
         for application: ApplicationToken,
         completionHandler: @escaping (ShieldActionResponse) -> Void
     ) {
+        recordHandleEntry(kind: "application", action: action)
         switch action {
         case .primaryButtonPressed:
             enqueue(type: "returned", subjectKind: "application")
@@ -30,6 +42,7 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
         for category: ActivityCategoryToken,
         completionHandler: @escaping (ShieldActionResponse) -> Void
     ) {
+        recordHandleEntry(kind: "category", action: action)
         switch action {
         case .primaryButtonPressed:
             enqueue(type: "returned", subjectKind: "category")
@@ -46,6 +59,7 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
         for webDomain: WebDomainToken,
         completionHandler: @escaping (ShieldActionResponse) -> Void
     ) {
+        recordHandleEntry(kind: "webDomain", action: action)
         switch action {
         case .primaryButtonPressed:
             enqueue(type: "returned", subjectKind: "webDomain")
@@ -55,6 +69,20 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
         @unknown default:
             completionHandler(.none)
         }
+    }
+
+    /// 진단 — 어느 분기 (application/category/webDomain) + 어느 action (primary/secondary)
+    /// 이 트리거됐는지 기록. AdminPanel 에서 노출.
+    private func recordHandleEntry(kind: String, action: ShieldAction) {
+        guard let d = UserDefaults(suiteName: AppGroup.identifier) else { return }
+        d.set(Date().timeIntervalSince1970, forKey: "lastShieldHandleAt")
+        let actionStr: String
+        switch action {
+        case .primaryButtonPressed: actionStr = "primary"
+        case .secondaryButtonPressed: actionStr = "secondary"
+        @unknown default: actionStr = "unknown"
+        }
+        d.set("\(kind)/\(actionStr)", forKey: "lastShieldHandleKind")
     }
 
     private func enqueue(type: String, subjectKind: String) {
