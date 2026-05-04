@@ -210,7 +210,9 @@ final class AppDependencies: ObservableObject {
     private func observeICloudKVChanges() {
         let relevantKeys: Set<String> = [
             ICloudKeyValueStore.Keys.leaderboardUserID,
-            ICloudKeyValueStore.Keys.nickname
+            ICloudKeyValueStore.Keys.nickname,
+            ICloudKeyValueStore.Keys.friendUserIDs,
+            ICloudKeyValueStore.Keys.friendNicknameCache
         ]
         kvObserver = NotificationCenter.default.addObserver(
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
@@ -224,9 +226,11 @@ final class AppDependencies: ObservableObject {
             if !changedKeys.isEmpty && changedSet.isDisjoint(with: relevantKeys) {
                 return
             }
-            // 닉네임·userID 모두 getter 내부에서 iCloud 우선으로 로컬을 재동기화한다.
+            // 닉네임·userID·친구 모두 getter 내부에서 iCloud merge 후 로컬 재동기화.
             _ = self.persistence.leaderboardUserID
             _ = self.persistence.nickname
+            _ = self.persistence.friendUserIDs
+            _ = self.persistence.friendNicknameCache
             self.objectWillChange.send()
         }
     }

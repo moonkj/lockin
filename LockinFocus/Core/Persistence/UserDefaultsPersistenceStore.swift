@@ -290,20 +290,61 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         return fresh
     }
 
+    /// 친구 목록 — iCloud KV 와 UserDefaults 병합 후 반환. setter 는 양쪽에 쓴다.
+    /// merge 정책 (getter): 두 기기에서 동시 친구 추가 시 union — 양쪽 추가가 모두 보존됨.
+    /// 삭제 reconciliation 은 별도 라운드에서 구현 (현재는 마지막 setter 가 KV 에 sync).
     var friendUserIDs: [String] {
-        get { defaults.stringArray(forKey: PersistenceKeys.friendUserIDs) ?? [] }
-        set { defaults.set(newValue, forKey: PersistenceKeys.friendUserIDs) }
+        get {
+            let local = defaults.stringArray(forKey: PersistenceKeys.friendUserIDs) ?? []
+            let remote = ICloudKeyValueStore.stringArray(for: ICloudKeyValueStore.Keys.friendUserIDs) ?? []
+            // union — 한 기기에서 추가한 친구가 다른 기기에서도 보이도록.
+            // 순서 보존: local 먼저, 그 다음 remote 의 새 항목.
+            var seen = Set(local)
+            var merged = local
+            for id in remote where !seen.contains(id) {
+                merged.append(id)
+                seen.insert(id)
+            }
+            // 양쪽 sync 갱신 — 다음 호출부터 같은 값.
+            if merged != local {
+                defaults.set(merged, forKey: PersistenceKeys.friendUserIDs)
+            }
+            if merged != remote {
+                ICloudKeyValueStore.setStringArray(merged, for: ICloudKeyValueStore.Keys.friendUserIDs)
+            }
+            return merged
+        }
+        set {
+            defaults.set(newValue, forKey: PersistenceKeys.friendUserIDs)
+            ICloudKeyValueStore.setStringArray(newValue, for: ICloudKeyValueStore.Keys.friendUserIDs)
+        }
     }
 
+    /// 친구 닉네임 캐시 — KV merge 후 반환. setter 는 양쪽 동기화.
+    /// merge: 같은 키는 remote 가 우선 (다른 기기에서 더 최근 닉네임 본 가능성).
     var friendNicknameCache: [String: String] {
         get {
             // `as? [String: String]` 캐스트는 값 중 하나라도 String 이 아니면 전체 nil 을
             // 반환해 누적된 친구 닉네임이 통째로 날아간다. compactMapValues 로 String 값만
             // 살려 부분 손상에도 복구 가능하도록.
-            guard let raw = defaults.dictionary(forKey: PersistenceKeys.friendNicknameCache) else { return [:] }
-            return raw.compactMapValues { $0 as? String }
+            let raw = defaults.dictionary(forKey: PersistenceKeys.friendNicknameCache) ?? [:]
+            let local = raw.compactMapValues { $0 as? String }
+            let remote = ICloudKeyValueStore.stringDictionary(for: ICloudKeyValueStore.Keys.friendNicknameCache) ?? [:]
+            // remote 우선 merge — 다른 기기에서 본 최신 닉네임 우선.
+            var merged = local
+            for (k, v) in remote { merged[k] = v }
+            if merged != local {
+                defaults.set(merged, forKey: PersistenceKeys.friendNicknameCache)
+            }
+            if merged != remote {
+                ICloudKeyValueStore.setStringDictionary(merged, for: ICloudKeyValueStore.Keys.friendNicknameCache)
+            }
+            return merged
         }
-        set { defaults.set(newValue, forKey: PersistenceKeys.friendNicknameCache) }
+        set {
+            defaults.set(newValue, forKey: PersistenceKeys.friendNicknameCache)
+            ICloudKeyValueStore.setStringDictionary(newValue, for: ICloudKeyValueStore.Keys.friendNicknameCache)
+        }
     }
 
     var focusGoalScore: Int {
