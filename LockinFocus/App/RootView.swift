@@ -11,6 +11,9 @@ struct RootView: View {
     /// 직전 drain 한 큐의 returned 이벤트 중 하나라도 Extension 이 이미 +5 부여했으면 true.
     /// InterceptView 의 "돌아가기" 가 같은 행위에 점수를 다시 주지 않도록 전달.
     @State private var lastDrainHadScoredReturn: Bool = false
+    /// 마지막으로 .background 로 빠진 시각. .active 복귀 시 차단된 앱을 보고 돌아온
+    /// 패턴인지 추정해 fallback 점수를 부여.
+    @State private var lastBackgroundedAt: Date?
 
     /// `hasCompletedOnboarding` 이 true 라도 FamilyControls 권한이 미부여 (`.notDetermined`)
     /// 라면 차단 자체가 작동하지 않으므로 온보딩으로 강제 회귀.
@@ -44,6 +47,7 @@ struct RootView: View {
                 deps.resumeTicker()
                 drainQueue()
                 drainPendingIntentRoute()
+                awardReturnPointIfRecentBackground()
                 // ShieldExtension 이 백그라운드에서 점수 등 App Group UserDefaults 를
                 // 갱신했더라도 메인 앱 SwiftUI 는 자동 갱신 안 됨. 포그라운드 복귀 시
                 // 한 번 강제 재평가해서 DashboardView 의 점수 표시 등이 stale 한 채로
@@ -54,6 +58,7 @@ struct RootView: View {
                 // (Live Activity / DeviceActivity / 로컬 알림 이 이미 설치돼 있어
                 // strict 만료 등은 그쪽 경로로 사용자에게 노출된다).
                 deps.pauseTicker()
+                lastBackgroundedAt = Date()
             case .inactive:
                 break
             @unknown default:
@@ -101,6 +106,24 @@ struct RootView: View {
                 deps.dismissCelebratedBadge()
             }
         }
+    }
+
+    /// ShieldActionExtension 이 OS 차원에서 launching 안 되는 환경 (특정 iOS 빌드 / 캐시
+    /// 이슈) fallback. 메인 앱이 .background 로 빠져 30초~5분 사이에 .active 로 돌아오면
+    /// "차단된 앱을 보고 돌아왔다" 로 추정해 awardReturnPoint 호출. 점수 규칙 B (3분
+    /// 쿨다운 + 하루 40점 한도) 가 동일 적용되어 grind 방지.
+    ///
+    /// 사용자 환경에 ShieldExtension 이 정상 동작하면 큐에 returned 이벤트가 쌓이고
+    /// 그쪽이 먼저 점수 부여 → 이 fallback 은 쿨다운에 걸려 false 반환 (이중 지급 안 됨).
+    private func awardReturnPointIfRecentBackground() {
+        guard let bg = lastBackgroundedAt else { return }
+        let elapsed = Date().timeIntervalSince(bg)
+        // 30초 미만 = Control Center / 알림 등 잠깐 inactive — 차단 시도로 보기 어려움.
+        // 5분 초과 = 다른 일 하다 돌아온 것 — 차단 시도와 무관할 가능성.
+        guard elapsed >= 30 && elapsed <= 5 * 60 else { return }
+        deps.persistence.awardReturnPoint()
+        // 한 번 처리한 background 시각은 비워서 같은 background 에 중복 부여 안 함.
+        lastBackgroundedAt = nil
     }
 
     private func drainQueue() {

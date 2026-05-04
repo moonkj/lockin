@@ -109,7 +109,7 @@ struct DashboardView: View {
                         activeSheet = .appPicker
                     }
 
-                    NextScheduleCard(schedule: schedule) {
+                    NextScheduleCard(schedule: schedule, now: deps.tick) {
                         activeSheet = .scheduleEditor
                     }
 
