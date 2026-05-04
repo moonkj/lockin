@@ -47,4 +47,34 @@ final class InterceptEventTests: XCTestCase {
         let fromRaw = InterceptEvent.EventType(rawValue: "interceptRequested")
         XCTAssertEqual(fromRaw, .interceptRequested)
     }
+
+    /// alreadyScored 는 hybrid 점수 (Extension 즉시 +5) 이후 추가된 필드. 이전 빌드가 쓴
+    /// codable 큐엔 키가 누락되어 있을 수 있으므로 init(from:) 에서 decodeIfPresent 폴백.
+    /// 본 테스트는 그 forward-compat 동작을 fixate.
+    func testCodable_decodeWithoutAlreadyScoredField_fallsBackToFalse() throws {
+        let legacyJSON = """
+        {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "timestamp": 770000000,
+            "type": "returned",
+            "subjectKind": "application"
+        }
+        """.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(InterceptEvent.self, from: legacyJSON)
+        XCTAssertEqual(decoded.type, .returned)
+        XCTAssertEqual(decoded.subjectKind, .application)
+        XCTAssertFalse(decoded.alreadyScored, "키 누락 시 false 폴백")
+    }
+
+    /// 신규 빌드가 쓴 큐는 alreadyScored=true 를 정확히 보존.
+    func testCodable_alreadyScoredTrue_preservedRoundTrip() throws {
+        let original = InterceptEvent(
+            type: .returned,
+            subjectKind: .application,
+            alreadyScored: true
+        )
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(InterceptEvent.self, from: data)
+        XCTAssertTrue(decoded.alreadyScored)
+    }
 }

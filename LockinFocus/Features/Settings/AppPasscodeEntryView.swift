@@ -101,14 +101,39 @@ struct AppPasscodeEntryView: View {
     }
 
     private func verify() {
+        // 사전 점검 — 이미 lockout 상태면 verify 호출 안 하고 안내만.
+        if AppPasscodeStore.isLockedOut() {
+            errorMessage = lockoutMessage()
+            input = ""
+            return
+        }
         if AppPasscodeStore.verify(input) {
             onSuccess()
             dismiss()
         } else {
             attempts += 1
-            errorMessage = "비밀번호가 달라요. 다시 입력해주세요."
+            // verify() 내부에서 lockout 진입했을 가능성 — 별도 안내 카피.
+            if AppPasscodeStore.isLockedOut() {
+                errorMessage = lockoutMessage()
+            } else {
+                errorMessage = "비밀번호가 달라요. 다시 입력해주세요."
+            }
             input = ""
         }
+    }
+
+    /// lockout 잔여 시간을 분/초로 보여주는 카피.
+    private func lockoutMessage() -> String {
+        let remaining = Int(AppPasscodeStore.lockoutRemainingSeconds().rounded(.up))
+        if remaining <= 0 {
+            return "비밀번호가 달라요. 다시 입력해주세요."
+        }
+        let m = remaining / 60
+        let s = remaining % 60
+        if m > 0 {
+            return "5회 연속 틀려서 잠시 잠겼어요. \(m)분 \(s)초 뒤에 다시 시도해주세요."
+        }
+        return "5회 연속 틀려서 잠시 잠겼어요. \(s)초 뒤에 다시 시도해주세요."
     }
 }
 

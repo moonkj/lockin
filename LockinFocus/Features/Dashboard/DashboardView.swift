@@ -438,6 +438,23 @@ struct DashboardView: View {
     /// 수동 집중 **시작** 전용. 종료는 `endManualFocus()` 가 FocusEndConfirmView 경유해서 호출.
     private func toggleManualFocus() {
         guard !isManualFocus else { return }
+        // showStartConfirm dialog 떠 있는 사이 시간 경계 도달로 strict / 스케줄이 활성된
+        // 케이스 방어 — confirm 누른 시점에 다시 검증해서 혼동을 막는다.
+        if deps.persistence.isStrictModeActive {
+            showStrictActiveAlert = true
+            return
+        }
+        if schedule.isCurrentlyActive(at: deps.tick) {
+            // 이미 스케줄로 차단 중 — manual 시작 불필요. 종료 시각 안내.
+            if let next = schedule.nextStateChange(from: deps.tick) {
+                let f = DateFormatter()
+                f.dateFormat = "HH:mm"
+                toastMessage = "이미 스케줄로 \(f.string(from: next))까지 집중 중이에요."
+            } else {
+                toastMessage = "이미 스케줄로 집중 중이에요."
+            }
+            return
+        }
         let now = Date()
         deps.blocking.applyWhitelist(for: selection)
         deps.persistence.isManualFocusActive = true
