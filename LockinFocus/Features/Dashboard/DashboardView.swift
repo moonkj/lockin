@@ -211,32 +211,92 @@ struct DashboardView: View {
         load()
     }
 
+    /// 스케줄 자동 차단이 활성 중인지. 매 tick 갱신.
+    private var scheduleActive: Bool {
+        schedule.isCurrentlyActive(at: deps.tick)
+    }
+
+    private func focusButtonIcon(_ state: FocusButtonState) -> String {
+        switch state {
+        case .strict: return "lock.fill"
+        case .scheduleActive: return "clock.fill"
+        case .manualActive: return "pause.circle.fill"
+        case .idle: return "play.circle.fill"
+        }
+    }
+
+    private func focusButtonLabel(_ state: FocusButtonState) -> String {
+        switch state {
+        case .strict: return "엄격 모드 집중 중"
+        case .scheduleActive:
+            if let next = schedule.nextStateChange(from: deps.tick) {
+                let f = DateFormatter()
+                f.dateFormat = "HH:mm"
+                return "스케줄로 \(f.string(from: next))까지 집중 중"
+            }
+            return "스케줄로 집중 중"
+        case .manualActive: return "집중 종료"
+        case .idle: return "지금 집중 시작"
+        }
+    }
+
+    private func focusButtonColor(_ state: FocusButtonState) -> Color {
+        switch state {
+        case .strict, .scheduleActive: return AppColors.secondaryText  // 회색 = 자동 / 못 끔
+        case .manualActive, .idle: return AppColors.primaryText
+        }
+    }
+
+    /// 버튼 상태 — 우선순위: strict > 스케줄 > manual > idle.
+    private enum FocusButtonState {
+        case strict          // 엄격 모드 활성 — 어떤 방법으로도 못 풀음
+        case scheduleActive  // 스케줄 자동 차단 중 — 종료 시각까지 자동 풀림
+        case manualActive    // 수동 집중 중 — 종료 누르면 풀림
+        case idle            // 차단 안 함 — 시작 가능
+    }
+
+    private var focusButtonState: FocusButtonState {
+        if deps.persistence.isStrictModeActive { return .strict }
+        if scheduleActive { return .scheduleActive }
+        if isManualFocus { return .manualActive }
+        return .idle
+    }
+
     @ViewBuilder
     private var manualFocusButton: some View {
+        let state = focusButtonState
         Button {
-            // 엄격 모드가 활성 중이면 어떤 버튼 상태에서든 strict 경고가 최우선.
-            // (isManualFocus 플래그가 race 로 false 인 상태에서 user 가 다시 start 를
-            // 누르면 이전 구조에선 비번 토스트가 떠버리는 UX 버그가 있었다.)
-            if deps.persistence.isStrictModeActive {
+            switch state {
+            case .strict:
                 showStrictActiveAlert = true
-            } else if isManualFocus {
+            case .scheduleActive:
+                // 스케줄 자동 차단은 사용자가 못 끔 — 끝 시각까지 기다려야. 토스트 안내.
+                if let next = schedule.nextStateChange(from: deps.tick) {
+                    let f = DateFormatter()
+                    f.dateFormat = "HH:mm"
+                    toastMessage = "스케줄로 \(f.string(from: next))까지 집중 중이에요."
+                } else {
+                    toastMessage = "스케줄로 집중 중이에요."
+                }
+            case .manualActive:
                 // 바로 종료하지 않고 10초 심호흡 확인 뷰를 거친다.
                 activeSheet = .focusEndConfirm
-            } else if !AppPasscodeStore.isSet {
-                // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정.
-                // 토스트로 안내하고 바로 비번 설정 시트를 띄워 2-step 마찰 제거.
-                toastMessage = "앱 비밀번호를 먼저 설정해주세요."
-                activeSheet = .passcodeSetup
-            } else if allowedCount == 0 {
-                showEmptyAllowConfirm = true
-            } else {
-                toggleManualFocus()
+            case .idle:
+                if !AppPasscodeStore.isSet {
+                    // 앱 비번이 없으면 잠금을 시작할 수 없다 — 하루 첫 해제 때 비번 입력이 필수 과정.
+                    toastMessage = "앱 비밀번호를 먼저 설정해주세요."
+                    activeSheet = .passcodeSetup
+                } else if allowedCount == 0 {
+                    showEmptyAllowConfirm = true
+                } else {
+                    toggleManualFocus()
+                }
             }
         } label: {
             HStack {
-                Image(systemName: isManualFocus ? "pause.circle.fill" : "play.circle.fill")
+                Image(systemName: focusButtonIcon(state))
                     .scaledFont(20)
-                Text(isManualFocus ? "집중 종료" : "지금 집중 시작")
+                Text(focusButtonLabel(state))
                     .scaledFont(17, weight: .semibold)
                 Spacer()
             }
@@ -245,7 +305,7 @@ struct DashboardView: View {
             .foregroundStyle(Color.white)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(AppColors.primaryText)
+                    .fill(focusButtonColor(state))
             )
         }
         .buttonStyle(.plain)
