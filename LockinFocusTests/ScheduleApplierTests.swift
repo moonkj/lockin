@@ -161,4 +161,118 @@ final class ScheduleApplierTests: XCTestCase {
         XCTAssertEqual(blocking.clearCount, 0)
         XCTAssertEqual(monitoring.stopCount, 1)
     }
+
+    // MARK: - 자기 위반 회피 방어 (이전 스케줄 활성 중에 변경)
+
+    /// 사용자가 평일 09–17 차단 활성 시간 (월 11시) 에 스케줄을 18–19 로 옮겨 즉시
+    /// 풀려고 시도. ScheduleApplier 가 이전 활성 차단을 유지해야 함.
+    func testApply_changeDuringActiveSession_keepsBlockedAndDeferred() {
+        let blocking = RecordingBlockingEngine()
+        let monitoring = RecordingMonitoringEngine()
+        let mon11 = date(2026, 4, 27, 11, 0)
+        var newSchedule = weekdayWork
+        newSchedule.startHour = 18
+        newSchedule.endHour = 19  // 11시는 비활성
+
+        let action = ScheduleApplier.apply(
+            schedule: newSchedule,
+            selection: FamilyActivitySelection(),
+            blocking: blocking,
+            monitoring: monitoring,
+            manualFocusActive: false,
+            previousSchedule: weekdayWork,  // 이전: 09–17, 11시는 활성
+            now: mon11
+        )
+
+        XCTAssertEqual(action, .deferredAwaitingScheduleEnd)
+        XCTAssertEqual(blocking.applyCount, 1, "이전 활성 유지를 위해 shield 적용")
+        XCTAssertEqual(blocking.clearCount, 0, "shield 해제 안 함 — 회피 방어")
+        XCTAssertEqual(monitoring.startCount, 1, "새 스케줄도 OS 에 등록")
+    }
+
+    /// 같은 활성 → 활성 변경은 shield 유지하되 .applied 반환 (deferred 아님).
+    func testApply_changeWithinActive_normalApply() {
+        let blocking = RecordingBlockingEngine()
+        let monitoring = RecordingMonitoringEngine()
+        let mon11 = date(2026, 4, 27, 11, 0)
+        var newSchedule = weekdayWork
+        newSchedule.endHour = 18  // 11시 여전히 활성
+
+        let action = ScheduleApplier.apply(
+            schedule: newSchedule,
+            selection: FamilyActivitySelection(),
+            blocking: blocking,
+            monitoring: monitoring,
+            manualFocusActive: false,
+            previousSchedule: weekdayWork,
+            now: mon11
+        )
+
+        XCTAssertEqual(action, .applied)
+        XCTAssertEqual(blocking.applyCount, 1)
+    }
+
+    /// 비활성 → 비활성 변경은 종전대로 .clearedAwaitingSchedule.
+    func testApply_changeWhileInactive_clearsNormally() {
+        let blocking = RecordingBlockingEngine()
+        let monitoring = RecordingMonitoringEngine()
+        let saturday = date(2026, 4, 25, 11, 0)
+        var newSchedule = weekdayWork
+        newSchedule.weekdays = [1]  // 일요일만
+
+        let action = ScheduleApplier.apply(
+            schedule: newSchedule,
+            selection: FamilyActivitySelection(),
+            blocking: blocking,
+            monitoring: monitoring,
+            manualFocusActive: false,
+            previousSchedule: weekdayWork,  // 이전: 평일, 토요일은 비활성
+            now: saturday
+        )
+
+        XCTAssertEqual(action, .clearedAwaitingSchedule)
+        XCTAssertEqual(blocking.clearCount, 1)
+    }
+
+    /// 활성 차단 중 사용자가 스케줄 자체를 끔 → 끄기도 즉시 반영하지 않고 차단 유지.
+    func testApply_disableDuringActiveSession_keepsBlocked() {
+        let blocking = RecordingBlockingEngine()
+        let monitoring = RecordingMonitoringEngine()
+        let mon11 = date(2026, 4, 27, 11, 0)
+        var disabled = weekdayWork
+        disabled.isEnabled = false
+
+        let action = ScheduleApplier.apply(
+            schedule: disabled,
+            selection: FamilyActivitySelection(),
+            blocking: blocking,
+            monitoring: monitoring,
+            manualFocusActive: false,
+            previousSchedule: weekdayWork,  // 이전: 활성
+            now: mon11
+        )
+
+        XCTAssertEqual(action, .deferredAwaitingScheduleEnd)
+        XCTAssertEqual(blocking.clearCount, 0, "스케줄 끔에도 차단 유지")
+        XCTAssertEqual(monitoring.stopCount, 0, "OS 모니터링도 유지")
+    }
+
+    /// previousSchedule nil (온보딩 첫 호출) — 회피 검사 안 함.
+    func testApply_nilPreviousSchedule_noAvoidanceCheck() {
+        let blocking = RecordingBlockingEngine()
+        let monitoring = RecordingMonitoringEngine()
+        let saturday = date(2026, 4, 25, 11, 0)
+
+        let action = ScheduleApplier.apply(
+            schedule: weekdayWork,
+            selection: FamilyActivitySelection(),
+            blocking: blocking,
+            monitoring: monitoring,
+            manualFocusActive: false,
+            previousSchedule: nil,
+            now: saturday
+        )
+
+        XCTAssertEqual(action, .clearedAwaitingSchedule)
+    }
 }

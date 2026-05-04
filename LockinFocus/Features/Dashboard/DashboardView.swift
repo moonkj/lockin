@@ -106,11 +106,33 @@ struct DashboardView: View {
                     )
 
                     AllowedAppsCard(selection: selection) {
-                        activeSheet = .appPicker
+                        // 집중 구동 중 (수동/스케줄/엄격) 에는 허용 앱 변경으로 즉시 우회
+                        // 가능하므로 잠금. 토스트로 안내.
+                        switch focusButtonState {
+                        case .strict:
+                            toastMessage = "엄격 모드 중에는 허용 앱을 바꿀 수 없어요."
+                        case .scheduleActive:
+                            toastMessage = "스케줄로 차단 중에는 허용 앱을 바꿀 수 없어요."
+                        case .manualActive:
+                            toastMessage = "집중 중에는 허용 앱을 바꿀 수 없어요. 종료 후 변경해주세요."
+                        case .idle:
+                            activeSheet = .appPicker
+                        }
                     }
 
                     NextScheduleCard(schedule: schedule, now: deps.tick) {
-                        activeSheet = .scheduleEditor
+                        switch focusButtonState {
+                        case .strict:
+                            toastMessage = "엄격 모드 중에는 스케줄을 바꿀 수 없어요."
+                        case .scheduleActive, .manualActive:
+                            // 스케줄 변경은 회피 방어 거치므로 진입은 허용 — 저장 시
+                            // ScheduleApplier 가 deferred 처리. 사용자가 이전 차단 시간
+                            // 끝까지 유지된다는 사실을 토스트로 미리 안내.
+                            activeSheet = .scheduleEditor
+                            toastMessage = "변경해도 현재 차단은 끝까지 유지돼요."
+                        case .idle:
+                            activeSheet = .scheduleEditor
+                        }
                     }
 
                     manualFocusButton
@@ -443,15 +465,27 @@ struct DashboardView: View {
     }
 
     private func save() {
+        let previousSchedule = deps.persistence.schedule
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
-        ScheduleApplier.apply(
+        let result = ScheduleApplier.apply(
             schedule: schedule,
             selection: selection,
             blocking: deps.blocking,
             monitoring: deps.monitoring,
-            manualFocusActive: isManualFocus
+            manualFocusActive: isManualFocus,
+            previousSchedule: previousSchedule
         )
+        // 자기 위반 회피 방어 발동 — 사용자에게 명확히 안내.
+        if result == .deferredAwaitingScheduleEnd {
+            if let endAt = previousSchedule.nextStateChange(from: deps.tick) {
+                let f = DateFormatter()
+                f.dateFormat = "HH:mm"
+                toastMessage = "현재 차단은 \(f.string(from: endAt))까지 유지돼요. 새 스케줄은 그 다음부터 적용."
+            } else {
+                toastMessage = "현재 차단이 끝난 뒤 새 스케줄이 적용돼요."
+            }
+        }
     }
 }
 

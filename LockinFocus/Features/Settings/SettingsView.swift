@@ -22,6 +22,28 @@ struct SettingsView: View {
     @State private var dailySummaryOn: Bool = false
     @State private var biometricOn: Bool = false
     @State private var showNotificationDeniedAlert: Bool = false
+    /// 자기 위반 회피 방어 — 현재 차단 중에 스케줄 변경 시 안내 alert.
+    @State private var deferredScheduleEndAt: Date? = nil
+    /// 집중 중 허용 앱 / 스케줄 변경 시도 시 사유 alert.
+    @State private var blockedEditReason: String? = nil
+
+    /// 차단 활성 상태 — 허용 앱/스케줄 편집 잠금 판단용.
+    private var isAnyFocusActive: Bool {
+        if deps.persistence.isStrictModeActive { return true }
+        if deps.persistence.isManualFocusActive { return true }
+        if deps.persistence.schedule.isCurrentlyActive() { return true }
+        return false
+    }
+
+    private func currentFocusReason() -> String {
+        if deps.persistence.isStrictModeActive {
+            return "엄격 모드 중에는 변경할 수 없어요."
+        }
+        if deps.persistence.isManualFocusActive {
+            return "집중 중에는 변경할 수 없어요. 종료 후 다시 시도해주세요."
+        }
+        return "스케줄로 차단 중에는 변경할 수 없어요. 차단이 끝난 뒤 다시 시도해주세요."
+    }
 
     #if ADMIN_TOOLS_ENABLED
     @State private var versionTaps: Int = 0
@@ -58,14 +80,22 @@ struct SettingsView: View {
                 List {
                     Section {
                         Button {
-                            showAppPicker = true
+                            if isAnyFocusActive {
+                                blockedEditReason = currentFocusReason()
+                            } else {
+                                showAppPicker = true
+                            }
                         } label: {
                             row(title: "허용 앱", trailing: allowedCountLabel)
                         }
                         .listRowBackground(AppColors.surface)
 
                         Button {
-                            showScheduleEditor = true
+                            if isAnyFocusActive {
+                                blockedEditReason = currentFocusReason()
+                            } else {
+                                showScheduleEditor = true
+                            }
                         } label: {
                             row(title: "스케줄", trailing: scheduleLabel)
                         }
@@ -350,6 +380,37 @@ struct SettingsView: View {
         } message: {
             Text("설정 → 알림에서 권한을 켜야 하루 마감 알림을 받을 수 있어요.")
         }
+        .alert(
+            "현재 차단이 끝난 뒤 적용돼요",
+            isPresented: Binding(
+                get: { deferredScheduleEndAt != nil },
+                set: { if !$0 { deferredScheduleEndAt = nil } }
+            )
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(deferredScheduleMessage)
+        }
+        .alert(
+            "변경할 수 없어요",
+            isPresented: Binding(
+                get: { blockedEditReason != nil },
+                set: { if !$0 { blockedEditReason = nil } }
+            )
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(blockedEditReason ?? "")
+        }
+    }
+
+    private var deferredScheduleMessage: String {
+        guard let end = deferredScheduleEndAt else {
+            return "진행 중인 차단이 끝난 뒤 새 스케줄이 적용돼요."
+        }
+        let f = DateFormatter()
+        f.dateFormat = "M월 d일 HH:mm"
+        return "진행 중인 차단은 \(f.string(from: end))까지 유지돼요. 새 스케줄은 그 다음부터 적용돼요."
     }
 
     /// 기본 iOS secondaryLabel 은 흰 배경 위에서 거의 안 보일 만큼 연해서
@@ -426,15 +487,20 @@ struct SettingsView: View {
     }
 
     private func save() {
+        let previousSchedule = deps.persistence.schedule
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
-        ScheduleApplier.apply(
+        let result = ScheduleApplier.apply(
             schedule: schedule,
             selection: selection,
             blocking: deps.blocking,
             monitoring: deps.monitoring,
-            manualFocusActive: deps.persistence.isManualFocusActive
+            manualFocusActive: deps.persistence.isManualFocusActive,
+            previousSchedule: previousSchedule
         )
+        if result == .deferredAwaitingScheduleEnd {
+            deferredScheduleEndAt = previousSchedule.nextStateChange()
+        }
     }
 
 }
