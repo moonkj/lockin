@@ -1,6 +1,7 @@
 import Foundation
 import FamilyControls
 import ManagedSettings
+import Combine
 
 @MainActor
 final class AppDependencies: ObservableObject {
@@ -150,32 +151,14 @@ final class AppDependencies: ObservableObject {
         pendingFriendInvite = nil
     }
 
-    /// 현재 화면에 떠 있는 축하 모달. 없으면 nil.
-    @Published private(set) var currentCelebratedBadge: Badge?
+    /// 뱃지 축하 큐 — 별도 ObservableObject 로 분리. AppDependencies 는 위임만.
+    /// 직접 구독은 `RootView` 가 `@EnvironmentObject` 또는 `@ObservedObject` 로 가능.
+    let celebrations = CelebrationCenter()
 
-    /// 아직 안 보여준 뱃지 대기열. 동시에 여러 개 해제되면 하나씩 순차 표시.
-    private var badgeQueue: [Badge] = []
-
-    /// BadgeEngine 이 반환한 해제 뱃지를 축하 큐에 넣는다. 빈 배열은 무시.
-    func celebrate(_ badges: [Badge]) {
-        guard !badges.isEmpty else { return }
-        if currentCelebratedBadge == nil {
-            var rest = badges
-            currentCelebratedBadge = rest.removeFirst()
-            badgeQueue.append(contentsOf: rest)
-        } else {
-            badgeQueue.append(contentsOf: badges)
-        }
-    }
-
-    /// 축하 모달 "확인" 에서 호출. 대기열이 남아 있으면 다음 뱃지로.
-    func dismissCelebratedBadge() {
-        if badgeQueue.isEmpty {
-            currentCelebratedBadge = nil
-        } else {
-            currentCelebratedBadge = badgeQueue.removeFirst()
-        }
-    }
+    /// (호환) 기존 호출자가 그대로 쓰던 API — celebrations 로 위임.
+    var currentCelebratedBadge: Badge? { celebrations.currentBadge }
+    func celebrate(_ badges: [Badge]) { celebrations.celebrate(badges) }
+    func dismissCelebratedBadge() { celebrations.dismiss() }
 
     /// 전역 1초 타이머에서 fire 하는 값. 시간 기반 상태(특히 엄격 모드 만료)를
     /// 관찰하는 뷰가 이 값을 읽으면 자동으로 매초 재렌더링된다.
@@ -203,6 +186,10 @@ final class AppDependencies: ObservableObject {
         startGlobalTicker()
     }
 
+    /// CelebrationCenter 변경을 deps 관찰자에게도 전파 (기존 `deps.currentCelebratedBadge`
+    /// 패턴 호환). 분리는 했지만 호출부 마이그레이션 시까지 forwarding.
+    private var celebrationsCancellable: AnyCancellable?
+
     init(
         persistence: PersistenceStore,
         blocking: BlockingEngine,
@@ -217,6 +204,11 @@ final class AppDependencies: ObservableObject {
         self.strictActive = persistence.isStrictModeActive
         startGlobalTicker()
         observeICloudKVChanges()
+        // celebrations 변경을 self 의 objectWillChange 로 전파.
+        celebrationsCancellable = celebrations.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
     }
 
     deinit {

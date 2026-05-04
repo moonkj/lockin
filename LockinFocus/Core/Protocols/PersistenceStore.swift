@@ -1,58 +1,65 @@
 import FamilyControls
 import Foundation
 
-/// 앱 상태 저장 추상화. 실구현은 App Group UserDefaults 기반(UserDefaultsPersistenceStore),
-/// 시뮬레이터/테스트는 InMemoryPersistenceStore 로 주입한다.
-protocol PersistenceStore: AnyObject {
+// MARK: - Sub-protocols (ISP 분해)
+//
+// 이전엔 PersistenceStore 한 protocol 에 30+ properties / 12+ functions 가 모여
+// 새 라운드마다 mock 깨짐. 도메인별 sub-protocol 로 쪼개고 `PersistenceStore` 를
+// composition typealias 로 재정의 — 외부 callsite (모두 `PersistenceStore` 타입으로
+// 받음) 영향 0. 새 모듈/테스트는 필요한 sub-protocol 만 의존하면 mock 표면이 작아짐.
+
+/// 차단 관련 — 허용 앱 selection + 스케줄 + 수동 집중 토글.
+protocol BlockingStateStore: AnyObject {
     var selection: FamilyActivitySelection { get set }
     var schedule: Schedule { get set }
-    var focusScoreToday: Int { get set }
     var hasCompletedOnboarding: Bool { get set }
     var isManualFocusActive: Bool { get set }
+    var manualFocusStartedAt: Date? { get set }
+}
 
-    /// 엄격 모드가 자동 해제되는 시각. nil 이면 엄격 모드 꺼짐.
-    /// 이 시각 전까지는 수단을 막론하고 집중을 풀 수 없다.
+/// 엄격 모드 관련 — wallclock + uptime sentinel.
+protocol StrictModeStore: AnyObject {
     var strictModeEndAt: Date? { get set }
-
-    /// 엄격 모드 시작 시점의 wall clock. 현재 시각이 여기보다 이전이면
-    /// 사용자가 시스템 시계를 되돌린 것 — 엄격 모드를 활성 상태로 유지해야 한다.
     var strictModeStartAt: Date? { get set }
-
-    /// 엄격 모드 시작 시점 `ProcessInfo.systemUptime` 스냅샷. 재부팅 후엔 nil.
-    /// wallclock + uptime 양쪽이 duration 을 넘겨야 해제되도록 2중 방어.
     var strictModeStartUptime: Double? { get set }
-
-    /// 엄격 모드 시작 시 지정된 총 duration 초. uptime 기반 검증의 임계값.
     var strictModeDurationSeconds: Double? { get set }
+}
 
-    /// 오늘 수동 집중 종료한 횟수 (1회차 이후 사용: 10s → 30s → 60s 대기).
-    var focusEndCountToday: Int { get }
-
-    /// 수동 집중 종료를 1회 기록. 오늘 첫 기록이면 내일 자정까지 0 유지.
-    func recordManualFocusEnd()
-
-    var interceptQueue: [InterceptEvent] { get set }
-
-    /// Extension 이 쓴 원본 큐 (`[[String: Any]]`) 를 `[InterceptEvent]` 로 디코딩.
-    /// 처리 후 큐를 비운다.
-    func drainInterceptQueue() -> [InterceptEvent]
-
-    /// 지연 해제 점증: 다음 intercept 에서 사용할 카운트다운 초.
-    /// 1회차 10초, 2회차 30초, 3회 이상 60초. 자정에 리셋.
-    func currentUnlockDelaySeconds() -> Int
-
-    /// "그래도 열기" 확정 시 호출. 오늘 카운트 +1.
-    func recordManualUnlock()
-
-    /// 게이미피케이션: 오늘 집중 점수에 정해진 값 더하기 (최대 100 고정).
-    /// Intercept 에서 "돌아가기" 를 누르는 것 같은 좋은 행동을 보상하는 데 쓴다.
-    /// 자정 리셋 로직은 구현체가 담당.
+/// 점수 + 일별 기록 + 보상 규칙 (B).
+protocol FocusScoreStore: AnyObject {
+    var focusScoreToday: Int { get set }
     func addFocusPoints(_ points: Int)
-
-    /// 주간 리포트용 최근 N일치 집중 기록. 오늘 점수 리셋 시점에 자동 축적된다.
     func dailyFocusHistory(lastDays: Int) -> [DailyFocus]
 
-    // MARK: - Badges
+    /// 돌아가기 보상 (3분 쿨다운 + 하루 40점 한도).
+    @discardableResult
+    func awardReturnPoint() -> Bool
+
+    /// 수동 집중 종료 시 세션 길이 기반 보너스(15분 이상 → +15점).
+    @discardableResult
+    func awardSessionCompletionIfEligible(now: Date) -> Bool
+
+    /// 하루 첫 앱 실행 보상(+5).
+    @discardableResult
+    func awardDailyLoginIfNew() -> Bool
+
+    /// 관리자 전용: 주간 리포트 원천 기록 덮어쓰기.
+    func debugSetDailyFocusHistory(_ entries: [DailyFocus])
+}
+
+/// Intercept 큐 + 지연 해제 카운터 + "그래도 열기" 카운트.
+protocol InterceptStore: AnyObject {
+    var interceptQueue: [InterceptEvent] { get set }
+    var focusEndCountToday: Int { get }
+
+    func recordManualFocusEnd()
+    func drainInterceptQueue() -> [InterceptEvent]
+    func currentUnlockDelaySeconds() -> Int
+    func recordManualUnlock()
+}
+
+/// 뱃지 + 누적 카운터.
+protocol BadgeStore: AnyObject {
     var earnedBadgeIDs: Set<String> { get set }
     var totalReturnCount: Int { get set }
     var totalStrictSurvived: Int { get set }
@@ -62,95 +69,64 @@ protocol PersistenceStore: AnyObject {
     /// 아직 없는 뱃지면 적재 후 true. 이미 있으면 false.
     func awardBadgeIfNew(_ id: String) -> Bool
 
-    // MARK: - Score rule B
-
-    /// 돌아가기 보상 (3분 쿨다운 + 하루 40점 한도). 실제 적립되면 true.
-    @discardableResult
-    func awardReturnPoint() -> Bool
-
-    /// 수동 집중 세션 시작 시각 기록 (또는 종료 시 nil).
-    var manualFocusStartedAt: Date? { get set }
-
-    /// 수동 집중 종료 시 세션 길이 기반 보너스(15분 이상 → +15점). 실제 적립되면 true.
-    @discardableResult
-    func awardSessionCompletionIfEligible(now: Date) -> Bool
-
-    /// 하루 첫 앱 실행 보상(+5). 실제 적립되면 true.
-    @discardableResult
-    func awardDailyLoginIfNew() -> Bool
-
-    // MARK: - Admin / Debug tools
-
-    /// 관리자 전용: 주간 리포트 원천 기록을 통째로 덮어쓴다.
-    func debugSetDailyFocusHistory(_ entries: [DailyFocus])
-
-    // MARK: - Leaderboard
-
-    /// 사용자가 설정한 닉네임. nil 이면 아직 미설정.
-    var nickname: String? { get set }
-
-    /// CloudKit record 식별자. 첫 접근 시 자동 생성되도록 구현.
-    var leaderboardUserID: String { get }
-
-    // MARK: - Friends (그룹 랭킹)
-
-    /// 친구로 등록한 userID 목록. 순서는 삽입 순.
-    var friendUserIDs: [String] { get set }
-
-    /// userID → 마지막으로 본 닉네임 캐시. 오프라인 상태나 상대 record 가 아직 없을 때 이름을 보여주기 위한 용도.
-    var friendNicknameCache: [String: String] { get set }
-
-    // MARK: - Focus goal
-
-    /// 오늘 집중 목표 점수 (0…100). 기본 80. Dashboard 에서 진척 라벨에 쓰인다.
-    var focusGoalScore: Int { get set }
-
-    // MARK: - Toggles
-
-    /// 비밀번호 입력 시 Face ID / Touch ID 대체 허용 여부. 기본 false.
-    var useBiometricForPasscode: Bool { get set }
-
-    /// 하루 마감 요약 로컬 알림 on/off. 기본 false.
-    var dailySummaryNotification: Bool { get set }
-
-    // MARK: - Streak freeze
-
-    /// 스트릭 보존 토큰 수 (0 또는 1). 주 1회 자동 지급.
-    var streakFreezeToken: Int { get set }
-
-    /// 마지막 지급 ISO 주 (`yyyy-Www`). 비었으면 미지급.
-    var streakFreezeLastWeek: String { get set }
-
-    // MARK: - Pinned badges
-
-    /// 대시보드에 고정된 뱃지 id 목록. 최대 3개. 순서는 사용자 pin 순.
+    /// 대시보드 핀 고정 뱃지 (최대 3).
     var pinnedBadgeIDs: [String] { get set }
 }
 
-extension PersistenceStore {
-    /// 엄격 모드 종료 시각이 현재보다 뒤면 활성.
-    /// 추가로 "시계 조작 감지": 현재 시각이 start 이전이면 활성 상태 유지.
-    /// **Uptime sentinel 추가**: 같은 부팅 세션이면 uptime 도 duration 이상 흘렀는지 함께
-    /// 검증. duration 만큼 uptime 이 안 지났으면 wallclock 이 맞아 보여도 활성 유지
-    /// (wallclock 을 미래로 밀고 복귀하는 조작 차단).
+/// 리더보드 정체성 + 친구 목록 + 캐시.
+protocol LeaderboardIdentityStore: AnyObject {
+    var nickname: String? { get set }
+    var leaderboardUserID: String { get }
+
+    var friendUserIDs: [String] { get set }
+    var friendNicknameCache: [String: String] { get set }
+}
+
+/// 사용자 토글·선호.
+protocol UserSettingsStore: AnyObject {
+    var focusGoalScore: Int { get set }
+    var useBiometricForPasscode: Bool { get set }
+    var dailySummaryNotification: Bool { get set }
+    var streakFreezeToken: Int { get set }
+    var streakFreezeLastWeek: String { get set }
+}
+
+// MARK: - Composed PersistenceStore
+
+/// 앱 상태 저장 추상화. 실구현은 App Group UserDefaults 기반(UserDefaultsPersistenceStore),
+/// 시뮬레이터/테스트는 InMemoryPersistenceStore.
+///
+/// **ISP 분해 (R7+)**: 도메인별 sub-protocol 들의 composition. 새 모듈은 필요한 부분만
+/// 의존하면 mock 부담 줄어듦. 기존 callsite 는 `PersistenceStore` 타입을 그대로 사용.
+typealias PersistenceStore = BlockingStateStore
+    & StrictModeStore
+    & FocusScoreStore
+    & InterceptStore
+    & BadgeStore
+    & LeaderboardIdentityStore
+    & UserSettingsStore
+
+// MARK: - Strict mode helpers (sentinel logic)
+
+extension StrictModeStore {
+    /// 엄격 모드 활성 여부. wallclock + uptime sentinel + clock-rewind 방어.
+    /// - 시계 되돌림 (now < start): 활성 유지
+    /// - wallclock 만료 + uptime 미달 (시계 미래 조작): 활성 유지
+    /// - wallclock 만료 + uptime 도달: 비활성
+    /// - 재부팅 (uptimeNow < startUptime): 보수적으로 wallclock 신뢰
     var isStrictModeActive: Bool {
         guard let end = strictModeEndAt else { return false }
         let now = Date()
         if let start = strictModeStartAt, now < start {
-            // 사용자가 시계를 start 이전으로 되돌렸다. 엄격 모드는 여전히 활성.
             return true
         }
         if end > now { return true }
-        // wallclock 만료. 같은 부팅 세션이면 uptime 검증도 통과해야.
         if let startUptime = strictModeStartUptime,
            let duration = strictModeDurationSeconds {
             let uptimeNow = ProcessInfo.processInfo.systemUptime
-            // 재부팅 시 uptimeNow 가 startUptime 보다 작아져 시스템이 리셋된 걸 알 수 있다.
-            // 이 경우는 보수적으로 wallclock 신뢰 (activity 종료).
             if uptimeNow >= startUptime {
                 let uptimeElapsed = uptimeNow - startUptime
                 if uptimeElapsed < duration {
-                    // wallclock 은 끝났다고 주장하지만 기기가 실제로 그만큼 안 돌았다 → 조작.
                     return true
                 }
             }
@@ -158,17 +134,14 @@ extension PersistenceStore {
         return false
     }
 
-    /// 남은 엄격 모드 시간 (초). 비활성이면 0.
+    /// 남은 엄격 모드 시간 (초). wallclock vs uptime 잔여 중 큰 값 반환.
     var strictModeRemainingSeconds: TimeInterval {
         guard let end = strictModeEndAt else { return 0 }
         let now = Date()
         if let start = strictModeStartAt, now < start {
-            // 시계 조작 상태 — end - start 가 원래 설정한 총 시간이므로 이를 남은 시간으로 취급.
             return max(0, end.timeIntervalSince(start))
         }
-        // wallclock 잔여.
         let wallRemaining = max(0, end.timeIntervalSinceNow)
-        // uptime 잔여도 계산해 둘 중 큰 쪽을 반환 (조작 방어).
         if let startUptime = strictModeStartUptime,
            let duration = strictModeDurationSeconds {
             let uptimeNow = ProcessInfo.processInfo.systemUptime
