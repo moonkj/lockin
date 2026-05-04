@@ -32,16 +32,71 @@ enum AppPasscodeStore {
     }
 
     /// 입력값이 저장된 비번과 일치하는지. legacy 평문도 허용 (자동 migration).
+    /// Brute-force 방어: 5회 연속 실패 시 5분 lockout. lockout 중 호출은 항상 false.
     static func verify(_ input: String) -> Bool {
+        if isLockedOut() { return false }
         guard let stored = readRaw() else { return false }
+        let ok: Bool
         if stored.hasPrefix(hashPrefix) {
-            return verifyHash(input: input, payload: stored)
+            ok = verifyHash(input: input, payload: stored)
         } else {
             // v1 legacy: constant-time 비교 후 성공 시 hash 로 re-save.
-            let ok = constantTimeEquals(stored, input)
-            if ok { _ = save(input) }
-            return ok
+            let legacyMatch = constantTimeEquals(stored, input)
+            if legacyMatch { _ = save(input) }
+            ok = legacyMatch
         }
+        if ok {
+            resetFailureCount()
+        } else {
+            recordFailure()
+        }
+        return ok
+    }
+
+    // MARK: - Brute-force lockout
+
+    /// 누적 실패 횟수 + lockout 만료 timestamp 를 App Group UserDefaults 에 보관.
+    /// Keychain 보다 UserDefaults 가 적합 — 사용자가 앱 삭제 시 함께 사라져도 문제 없음
+    /// (실패 카운터가 사라져도 보안 약화 아님 — 비번 자체는 keychain 에).
+    private enum LockoutKeys {
+        static let failureCount = "appPasscodeFailureCount"
+        static let lockoutUntil = "appPasscodeLockoutUntil"
+    }
+    static let maxFailuresBeforeLockout = 5
+    static let lockoutSeconds: TimeInterval = 5 * 60
+
+    /// 현재 lockout 중이면 true. 만료 시각이 지났으면 자동으로 false (정리는 다음 verify 시).
+    static func isLockedOut(now: Date = Date()) -> Bool {
+        guard let d = sharedDefaults() else { return false }
+        let until = d.double(forKey: LockoutKeys.lockoutUntil)
+        return until > now.timeIntervalSince1970
+    }
+
+    /// lockout 까지 남은 초. 0 이하면 풀림.
+    static func lockoutRemainingSeconds(now: Date = Date()) -> TimeInterval {
+        guard let d = sharedDefaults() else { return 0 }
+        let until = d.double(forKey: LockoutKeys.lockoutUntil)
+        return max(0, until - now.timeIntervalSince1970)
+    }
+
+    private static func recordFailure(now: Date = Date()) {
+        guard let d = sharedDefaults() else { return }
+        let count = d.integer(forKey: LockoutKeys.failureCount) + 1
+        d.set(count, forKey: LockoutKeys.failureCount)
+        if count >= maxFailuresBeforeLockout {
+            d.set(now.timeIntervalSince1970 + lockoutSeconds, forKey: LockoutKeys.lockoutUntil)
+            d.set(0, forKey: LockoutKeys.failureCount)  // lockout 진입 후 카운터 reset
+        }
+    }
+
+    private static func resetFailureCount() {
+        guard let d = sharedDefaults() else { return }
+        d.set(0, forKey: LockoutKeys.failureCount)
+        d.removeObject(forKey: LockoutKeys.lockoutUntil)
+    }
+
+    private static func sharedDefaults() -> UserDefaults? {
+        UserDefaults(suiteName: "group.com.moonkj.LockinFocus")
     }
 
     /// 비번 삭제.

@@ -42,6 +42,7 @@ struct DashboardView: View {
     @State private var activeSheet: ActiveSheet?
     @State private var showEmptyAllowConfirm: Bool = false  // confirmationDialog — 별도 API
     @State private var showStrictActiveAlert: Bool = false  // alert — 별도 API
+    @State private var showStartConfirm: Bool = false       // 충동 회피 방어 — 시작 직전 1회 확인
 
     @State private var selection: FamilyActivitySelection
     @State private var schedule: Schedule
@@ -311,7 +312,8 @@ struct DashboardView: View {
                 } else if allowedCount == 0 {
                     showEmptyAllowConfirm = true
                 } else {
-                    toggleManualFocus()
+                    // 충동적으로 켰다 끄기를 막기 위한 1회 확인.
+                    showStartConfirm = true
                 }
             }
         } label: {
@@ -331,6 +333,16 @@ struct DashboardView: View {
             )
         }
         .buttonStyle(.plain)
+        .confirmationDialog(
+            "지금 집중 시작할까요?",
+            isPresented: $showStartConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("시작") { toggleManualFocus() }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("시작하면 허용 앱 외에는 잠겨요. 종료하려면 10초 카운트다운 + 문장 입력 + 비밀번호 단계를 거쳐야 해요.")
+        }
         .confirmationDialog(
             "허용 앱 0개로 집중 시작",
             isPresented: $showEmptyAllowConfirm,

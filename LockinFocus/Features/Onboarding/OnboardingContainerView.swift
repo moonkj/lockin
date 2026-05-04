@@ -146,6 +146,10 @@ struct OnboardingContainerView: View {
             scheduleToSave.isEnabled = false
         }
 
+        // 회피 방어: onboarding 재진입 케이스 (권한 회수 후 재허용 등) 일 수도 있다.
+        // 이전 스케줄을 캡처해서 ScheduleApplier 가 활성 차단 중 변경 회피를 처리하게.
+        let previousSchedule = deps.persistence.schedule
+
         deps.persistence.selection = draftSelection
         deps.persistence.schedule = scheduleToSave
         deps.persistence.hasCompletedOnboarding = true
@@ -157,7 +161,8 @@ struct OnboardingContainerView: View {
             selection: draftSelection,
             blocking: deps.blocking,
             monitoring: deps.monitoring,
-            manualFocusActive: deps.persistence.isManualFocusActive
+            manualFocusActive: deps.persistence.isManualFocusActive,
+            previousSchedule: previousSchedule
         )
 
         // 주간 리포트 로컬 알림 등록 (권한 요청 포함).
