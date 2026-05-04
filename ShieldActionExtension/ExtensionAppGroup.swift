@@ -8,4 +8,8 @@ enum AppGroup {
 
 enum SharedKeys {
     static let interceptQueue = "interceptQueue"
+    /// 메인 앱이 다음 포그라운드 진입 시 RootView.drainPendingIntentRoute() 가 읽고
+    /// RouterStore.requestRoute(...) 로 전달. ShieldExtension secondary 누름 처리에 사용.
+    /// 메인 앱의 PersistenceKeys.pendingIntentRoute 와 정확히 같은 값이어야 함.
+    static let pendingIntentRoute = "pendingIntentRoute"
 }

@@ -48,7 +48,7 @@ class ShieldConfigurationProvider: ShieldConfigurationDataSource {
             subtitle: ShieldConfiguration.Label(text: subtitle, color: .darkGray),
             primaryButtonLabel: ShieldConfiguration.Label(text: "돌아가기", color: .white),
             primaryButtonBackgroundColor: .black,
-            secondaryButtonLabel: ShieldConfiguration.Label(text: "10초 기다리고 계속", color: .darkGray)
+            secondaryButtonLabel: ShieldConfiguration.Label(text: "메인 앱에서 풀기", color: .darkGray)
         )
     }
 }

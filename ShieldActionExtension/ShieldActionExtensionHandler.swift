@@ -3,10 +3,12 @@ import Foundation
 
 /// Shield 화면의 버튼 탭을 처리한다.
 ///
-/// - primary (돌아가기): Shield 유지. 큐에 '되돌림' 이벤트 기록.
-/// - secondary (10초 기다리고 계속): 큐에 인터셉트 요청 기록 후 `.defer` 반환.
-///   메인 앱이 포그라운드로 들어오면 큐를 읽어 InterceptView 를 자동 프레젠테이션한다.
-///   `NSExtensionContext.open(_:)` 으로의 자동 포그라운드화는 실기기 검증 후 결정.
+/// - primary (돌아가기): Shield 유지. 큐에 '되돌림' 이벤트 기록 + 즉시 +5 점.
+/// - secondary (메인 앱에서 풀기): 큐에 인터셉트 요청 + pendingIntentRoute=intercept
+///   적재. ShieldActionExtension 은 메인 앱을 직접 포그라운드화할 수 없으므로
+///   사용자가 직접 LockinFocus 앱을 열면 RootView.drainPendingIntentRoute() 가
+///   route 를 RouterStore 에 전달하고 DashboardView 가 InterceptView 시트
+///   (10초 카운트다운 → "그래도 열기") 를 자동으로 띄운다.
 class ShieldActionExtensionHandler: ShieldActionDelegate {
     override func handle(
         action: ShieldAction,
@@ -19,6 +21,7 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             completionHandler(.none)
         case .secondaryButtonPressed:
             enqueue(type: "intercept_requested", subjectKind: "application")
+            requestMainAppIntercept()
             completionHandler(.defer)
         @unknown default:
             completionHandler(.none)
@@ -36,6 +39,7 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             completionHandler(.none)
         case .secondaryButtonPressed:
             enqueue(type: "intercept_requested", subjectKind: "category")
+            requestMainAppIntercept()
             completionHandler(.defer)
         @unknown default:
             completionHandler(.none)
@@ -53,10 +57,18 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             completionHandler(.none)
         case .secondaryButtonPressed:
             enqueue(type: "intercept_requested", subjectKind: "webDomain")
+            requestMainAppIntercept()
             completionHandler(.defer)
         @unknown default:
             completionHandler(.none)
         }
+    }
+
+    /// secondary 버튼 처리 — pendingIntentRoute 키에 "intercept" 적재. 메인 앱 다음
+    /// 진입 시 RootView 가 큐에서 빼서 RouterStore 에 전달.
+    private func requestMainAppIntercept() {
+        guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else { return }
+        defaults.set("intercept", forKey: SharedKeys.pendingIntentRoute)
     }
 
     private func enqueue(type: String, subjectKind: String) {

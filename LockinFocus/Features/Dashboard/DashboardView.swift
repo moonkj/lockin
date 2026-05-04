@@ -20,6 +20,8 @@ struct DashboardView: View {
         case quoteDetail
         case leaderboard
         case passcodeSetup
+        /// Shield 의 secondary 버튼 → 메인 앱 진입 시 자동 띄움 (10초 카운트다운).
+        case intercept
 
         var id: String {
             switch self {
@@ -32,6 +34,7 @@ struct DashboardView: View {
             case .quoteDetail:     return "quoteDetail"
             case .leaderboard:     return "leaderboard"
             case .passcodeSetup:   return "passcodeSetup"
+            case .intercept:       return "intercept"
             }
         }
     }
@@ -156,6 +159,9 @@ struct DashboardView: View {
             case .showFocusScore:
                 // Siri "집중 점수 보여줘" — Dashboard 가 이미 점수를 보여주므로 추가 동작 없음.
                 break
+            case .intercept:
+                // Shield secondary → 메인 앱 진입 시 InterceptView 시트 자동 표시.
+                activeSheet = .intercept
             }
             deps.consumeRoute()
         }
@@ -192,6 +198,9 @@ struct DashboardView: View {
             LeaderboardView().environmentObject(deps)
         case .passcodeSetup:
             AppPasscodeSetupView { _ in }
+        case .intercept:
+            // ShieldExtension 이 이 경로에서 점수 부여 안 함 — InterceptView 가 자체 핸들.
+            InterceptView(skipReturnScore: false).environmentObject(deps)
         }
     }
 

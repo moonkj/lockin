@@ -17,6 +17,10 @@ final class RouterStore: ObservableObject {
         case startFocus
         case endFocus
         case showFocusScore
+        /// Shield 의 secondary 버튼이 눌렸을 때 메인 앱이 받을 라우트. 메인 앱은
+        /// 진입 즉시 InterceptView 시트를 띄워 10초 카운트다운 → "그래도 열기" 흐름을
+        /// 제공한다.
+        case intercept
     }
 
     /// 위젯 탭 같은 외부 deep link 가 열렸을 때 갱신된다. 일회성 값.
