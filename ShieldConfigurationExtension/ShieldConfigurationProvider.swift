@@ -41,14 +41,17 @@ class ShieldConfigurationProvider: ShieldConfigurationDataSource {
     }
 
     private func lockinShield(title: String, subtitle: String) -> ShieldConfiguration {
+        // secondary 버튼은 의도적으로 미설정. ShieldActionExtension 에서 메인 앱을
+        // 자동 포그라운드화할 수 없는 Apple API 제약 때문에, 누름 후 "아무것도 동작
+        // 안 함" 으로 보이는 사용자 혼동이 컸음. 메인 앱에서 별도 진입점으로 임시
+        // 해제 흐름을 제공할 예정.
         ShieldConfiguration(
             backgroundBlurStyle: .systemMaterial,
             backgroundColor: .white,
             title: ShieldConfiguration.Label(text: title, color: .black),
             subtitle: ShieldConfiguration.Label(text: subtitle, color: .darkGray),
             primaryButtonLabel: ShieldConfiguration.Label(text: "돌아가기", color: .white),
-            primaryButtonBackgroundColor: .black,
-            secondaryButtonLabel: ShieldConfiguration.Label(text: "메인 앱에서 풀기", color: .darkGray)
+            primaryButtonBackgroundColor: .black
         )
     }
 }

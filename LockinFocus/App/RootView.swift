@@ -44,6 +44,11 @@ struct RootView: View {
                 deps.resumeTicker()
                 drainQueue()
                 drainPendingIntentRoute()
+                // ShieldExtension 이 백그라운드에서 점수 등 App Group UserDefaults 를
+                // 갱신했더라도 메인 앱 SwiftUI 는 자동 갱신 안 됨. 포그라운드 복귀 시
+                // 한 번 강제 재평가해서 DashboardView 의 점수 표시 등이 stale 한 채로
+                // 머무르지 않도록 한다.
+                deps.objectWillChange.send()
             case .background:
                 // 백그라운드에선 tick 을 완전히 끄고, 시스템에 wake-up 을 맡긴다
                 // (Live Activity / DeviceActivity / 로컬 알림 이 이미 설치돼 있어

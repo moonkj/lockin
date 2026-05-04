@@ -4,11 +4,8 @@ import Foundation
 /// Shield 화면의 버튼 탭을 처리한다.
 ///
 /// - primary (돌아가기): Shield 유지. 큐에 '되돌림' 이벤트 기록 + 즉시 +5 점.
-/// - secondary (메인 앱에서 풀기): 큐에 인터셉트 요청 + pendingIntentRoute=intercept
-///   적재. ShieldActionExtension 은 메인 앱을 직접 포그라운드화할 수 없으므로
-///   사용자가 직접 LockinFocus 앱을 열면 RootView.drainPendingIntentRoute() 가
-///   route 를 RouterStore 에 전달하고 DashboardView 가 InterceptView 시트
-///   (10초 카운트다운 → "그래도 열기") 를 자동으로 띄운다.
+/// - secondary: ShieldConfiguration 에서 의도적으로 노출하지 않음. 자동 포그라운드화
+///   불가능 (Apple 제약) 으로 인한 사용자 혼동 방지. 도달 시 안전 처리만.
 class ShieldActionExtensionHandler: ShieldActionDelegate {
     override func handle(
         action: ShieldAction,
@@ -20,9 +17,9 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             enqueue(type: "returned", subjectKind: "application")
             completionHandler(.none)
         case .secondaryButtonPressed:
-            enqueue(type: "intercept_requested", subjectKind: "application")
-            requestMainAppIntercept()
-            completionHandler(.defer)
+            // ShieldConfiguration 에서 secondary 버튼을 노출하지 않으므로 이 경로는
+            // 도달하지 않음. iOS 가 어떤 이유로 호출하더라도 안전하게 .none 으로 처리.
+            completionHandler(.none)
         @unknown default:
             completionHandler(.none)
         }
@@ -38,9 +35,7 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             enqueue(type: "returned", subjectKind: "category")
             completionHandler(.none)
         case .secondaryButtonPressed:
-            enqueue(type: "intercept_requested", subjectKind: "category")
-            requestMainAppIntercept()
-            completionHandler(.defer)
+            completionHandler(.none)
         @unknown default:
             completionHandler(.none)
         }
@@ -56,19 +51,10 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
             enqueue(type: "returned", subjectKind: "webDomain")
             completionHandler(.none)
         case .secondaryButtonPressed:
-            enqueue(type: "intercept_requested", subjectKind: "webDomain")
-            requestMainAppIntercept()
-            completionHandler(.defer)
+            completionHandler(.none)
         @unknown default:
             completionHandler(.none)
         }
-    }
-
-    /// secondary 버튼 처리 — pendingIntentRoute 키에 "intercept" 적재. 메인 앱 다음
-    /// 진입 시 RootView 가 큐에서 빼서 RouterStore 에 전달.
-    private func requestMainAppIntercept() {
-        guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else { return }
-        defaults.set("intercept", forKey: SharedKeys.pendingIntentRoute)
     }
 
     private func enqueue(type: String, subjectKind: String) {
