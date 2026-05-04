@@ -417,21 +417,13 @@ struct SettingsView: View {
     private func save() {
         deps.persistence.selection = selection
         deps.persistence.schedule = schedule
-
-        // 스케줄 활성 구간 안에 있을 때만 shield 즉시 적용.
-        // 외부 (e.g. 토요일에 평일 스케줄) 이면 DeviceActivity 등록만 하고
-        // 실제 시간 도달 시 Extension 이 자동 발동.
-        if schedule.isEnabled {
-            try? deps.monitoring.startSchedule(schedule, name: "block_main")
-            if schedule.isCurrentlyActive() {
-                deps.blocking.applyWhitelist(for: selection)
-            } else {
-                deps.blocking.clearShield()
-            }
-        } else {
-            deps.blocking.clearShield()
-            deps.monitoring.stopMonitoring(name: "block_main")
-        }
+        ScheduleApplier.apply(
+            schedule: schedule,
+            selection: selection,
+            blocking: deps.blocking,
+            monitoring: deps.monitoring,
+            manualFocusActive: deps.persistence.isManualFocusActive
+        )
     }
 
 }

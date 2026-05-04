@@ -11,11 +11,26 @@ enum DailySummaryScheduler {
     private static let identifier = "lockinFocus.dailySummary"
 
     /// 권한 요청 후 스케줄 등록.
+    /// - 이미 거부된 상태면 system prompt 가 안 뜨고 즉시 false → 사용자 입장에선
+    ///   "토글이 안 켜진다" 로 보임. 사전에 status 를 확인해 호출부에 명확한 신호 전달.
     static func enable(completion: @escaping (Bool) -> Void = { _ in }) {
         let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-            if granted { schedule() }
-            DispatchQueue.main.async { completion(granted) }
+        center.getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .denied:
+                // 거부 상태 — request 시도해도 false 반환만 받게 됨. 호출부가 alert 띄우도록.
+                DispatchQueue.main.async { completion(false) }
+            case .authorized, .provisional, .ephemeral:
+                schedule()
+                DispatchQueue.main.async { completion(true) }
+            case .notDetermined:
+                fallthrough
+            @unknown default:
+                center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+                    if granted { schedule() }
+                    DispatchQueue.main.async { completion(granted) }
+                }
+            }
         }
     }
 

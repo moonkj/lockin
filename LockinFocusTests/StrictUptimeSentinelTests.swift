@@ -67,4 +67,26 @@ final class StrictUptimeSentinelTests: XCTestCase {
         XCTAssertFalse(s.isStrictModeActive)
         XCTAssertEqual(s.strictModeRemainingSeconds, 0)
     }
+
+    // MARK: - Round 7: onTick 가 sentinel 우회하지 않는지 (CRITICAL 회귀 가드)
+
+    /// 시계 +미래 조작 후 ticker 가 keys 를 정리해버리면 strict 영구 해제 — Debugger Round 2 발견.
+    /// 수정: AppDependencies.onTick 이 isStrictModeActive 를 신뢰. 이 테스트는 protocol 계약을
+    /// 다시 확인 (uptime 미달이면 wallclock 만료여도 active 유지) + AppDependencies 수정 후 ticker
+    /// 가 keys 를 안 정리하는 동작은 시간 기반이라 단위 테스트 어려움. 대신 protocol-level 가드.
+    func testWallclockManipulation_uptimeStillValid_keysNotEligibleForCleanup() {
+        let s = makeStore()
+        let now = Date()
+        let uptimeNow = ProcessInfo.processInfo.systemUptime
+        // 1h strict 시작 30분 경과 시점에 사용자가 시계 +2h 조작.
+        s.strictModeStartAt = now.addingTimeInterval(-7200)   // 시계상 2h 전 시작 (조작됨)
+        s.strictModeEndAt = now.addingTimeInterval(-3600)     // 시계상 1h 전 종료 (조작됨)
+        s.strictModeStartUptime = uptimeNow - 1800            // 실제 uptime 30분
+        s.strictModeDurationSeconds = 3600                    // duration 1시간
+        // wallclock 은 만료지만 uptime 미달 → sentinel 이 active 유지.
+        XCTAssertTrue(
+            s.isStrictModeActive,
+            "wallclock 조작 후에도 uptime 이 duration 미달이면 strict 활성 — onTick 도 cleanup 진입 안 함"
+        )
+    }
 }

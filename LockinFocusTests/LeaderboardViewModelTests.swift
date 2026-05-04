@@ -306,4 +306,50 @@ final class LeaderboardViewModelTests: XCTestCase {
         vm.refreshMyUserIDIfChanged()
         XCTAssertEqual(vm.myUserID, store.leaderboardUserID)
     }
+
+    // MARK: - Round 7: connect() swap 보존
+
+    /// LeaderboardView 가 stub 으로 init 한 VM 을 .task 에서 실제 deps 로 swap 한다.
+    /// swap 이후 entries / period / scope 같은 상태가 유지되고, myUserID 는 새 store 값으로
+    /// 갱신되는지 확인.
+    func testConnect_swapsServiceAndPersistence_preservesPeriodAndEntries() async {
+        // 1. stub 으로 시작 — initialEntries 주입.
+        let stubSvc = MockLeaderboardService()
+        let stubStore = InMemoryPersistenceStore()
+        let initialEntries = [makeEntry(userID: "a"), makeEntry(userID: "b")]
+        let vm = LeaderboardViewModel(
+            service: stubSvc,
+            persistence: stubStore,
+            initialPeriod: .weekly,
+            initialEntries: initialEntries,
+            initialMyUserID: "stub-user"
+        )
+        XCTAssertEqual(vm.entries.count, 2)
+        XCTAssertEqual(vm.period, .weekly)
+        XCTAssertEqual(vm.myUserID, "stub-user")
+
+        // 2. 실제 deps 로 swap.
+        let realStore = InMemoryPersistenceStore()
+        let realSvc = MockLeaderboardService()
+        vm.connect(service: realSvc, persistence: realStore)
+
+        // 3. 검증: period · entries 는 유지, myUserID 는 새 store 의 UUID.
+        XCTAssertEqual(vm.period, .weekly, "period 보존")
+        XCTAssertEqual(vm.entries.count, 2, "entries 보존")
+        XCTAssertEqual(vm.myUserID, realStore.leaderboardUserID, "myUserID 새 store 로 갱신")
+        XCTAssertNotEqual(vm.myUserID, "stub-user")
+    }
+
+    func testConnect_doesNotResetEntriesIfStubHadData() async {
+        let stubSvc = MockLeaderboardService()
+        let stubStore = InMemoryPersistenceStore()
+        let vm = LeaderboardViewModel(
+            service: stubSvc,
+            persistence: stubStore,
+            initialEntries: [makeEntry(userID: "x"), makeEntry(userID: "y"), makeEntry(userID: "z")]
+        )
+        let beforeIDs = vm.entries.map(\.userID)
+        vm.connect(service: MockLeaderboardService(), persistence: InMemoryPersistenceStore())
+        XCTAssertEqual(vm.entries.map(\.userID), beforeIDs, "swap 은 entries 를 비우지 않음")
+    }
 }

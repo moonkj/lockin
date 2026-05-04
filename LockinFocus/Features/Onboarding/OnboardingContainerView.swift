@@ -150,22 +150,15 @@ struct OnboardingContainerView: View {
         deps.persistence.schedule = scheduleToSave
         deps.persistence.hasCompletedOnboarding = true
 
-        // **버그 수정 (2026-04-25)**: 이전 코드는 스케줄 토글이 켜져있기만 하면 즉시
-        // applyWhitelist 했으나, 그러면 토요일에 평일(월-금) 스케줄을 등록하면 토요일에도
-        // shield 가 켜져 잠겨버렸다. 이제 "현재 시각이 스케줄 활성 구간 안에 있을 때만"
-        // shield 적용. 그 외엔 DeviceActivity 에 등록만 해두고 Extension 이 활성 시간에
-        // 자동으로 켜고/끄도록 위임.
-        if scheduleToSave.isEnabled {
-            try? deps.monitoring.startSchedule(scheduleToSave, name: "block_main")
-            if scheduleToSave.isCurrentlyActive() {
-                deps.blocking.applyWhitelist(for: draftSelection)
-            } else {
-                deps.blocking.clearShield()
-            }
-        } else {
-            deps.blocking.clearShield()
-            deps.monitoring.stopMonitoring(name: "block_main")
-        }
+        // 스케줄 적용은 ScheduleApplier 단일 경로로 통합 — Onboarding/Settings/Dashboard
+        // 셋이 동일한 게이팅 (활성 시간일 때만 shield 즉시 적용) 보장.
+        ScheduleApplier.apply(
+            schedule: scheduleToSave,
+            selection: draftSelection,
+            blocking: deps.blocking,
+            monitoring: deps.monitoring,
+            manualFocusActive: deps.persistence.isManualFocusActive
+        )
 
         // 주간 리포트 로컬 알림 등록 (권한 요청 포함).
         WeeklyReportScheduler.enable()

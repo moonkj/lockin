@@ -255,13 +255,17 @@ final class AppDependencies: ObservableObject {
         if currentStrict || secondsSinceLastPublish >= 10 {
             tick = now
         }
-        if let end = persistence.strictModeEndAt, end <= now {
-            // 시계 조작 의심 — start 가 미래면 (사용자가 시간 되돌림) 아직 만료 안 된 것으로 간주.
-            if let start = persistence.strictModeStartAt, now < start {
-                return
-            }
-            // end 뿐 아니라 start 도 함께 정리 — 다음 엄격 모드 시작 시 오래된 start 가 남지 않도록.
-            // uptime/duration 은 strictModeEndAt setter 가 자동 정리.
+        // **CRITICAL fix (R7)**: 이전 코드는 wallclock (`end <= now`) 만 보고
+        // strictModeEndAt/StartAt 을 정리했음. 사용자가 시계를 +2h 미래로 이동하면
+        // 1초 안에 ticker 가 만료로 판단해 키를 모두 지우고, 시계를 정상으로 되돌려도
+        // strict mode 가 영구 해제되는 우회 가능. R3 의 uptime sentinel
+        // (`isStrictModeActive` 안에 wallclock 만료 + uptime 미달 처리) 이 view 차원에서는
+        // active 를 유지했지만 ticker 가 그 효과를 매초 무력화.
+        // 수정: protocol 의 isStrictModeActive 를 신뢰. 그 값이 false 일 때만 정리.
+        if let end = persistence.strictModeEndAt,
+           end <= now,
+           !persistence.isStrictModeActive {
+            // sentinel 통과 → 진짜 만료. wallclock + uptime 둘 다 만료 확인됨.
             persistence.strictModeEndAt = nil
             persistence.strictModeStartAt = nil
             // 엄격 모드 완주 — 긍정 햅틱.

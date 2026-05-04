@@ -56,8 +56,11 @@ struct RootView: View {
             Button("취소", role: .cancel) { deps.consumeFriendInvite() }
         } message: { payload in
             // 외부 URL 로 들어온 닉네임은 항상 sanitize 후 표시.
-            // bidi/개행/욕설/길이 초과 시 "친구" 익명 라벨.
-            Text("\(AppDependencies.safeDisplayName(for: payload.nickname))님을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
+            // sanitize 발동 시 (닉네임이 "친구" 익명 라벨로 떨어진 경우) 사용자가 누군지
+            // 식별할 수 있도록 userID 끝 4자리를 보조 표기.
+            let display = AppDependencies.safeDisplayName(for: payload.nickname)
+            let suffix = String(payload.userID.suffix(4))
+            Text("\(display)님 (ID …\(suffix)) 을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
         }
         .sheet(isPresented: $showIntercept) {
             InterceptView()

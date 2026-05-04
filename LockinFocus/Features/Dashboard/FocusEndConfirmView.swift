@@ -245,12 +245,11 @@ struct FocusEndConfirmView: View {
     @EnvironmentObject private var deps: AppDependencies
 
     private var passcodeStep: some View {
-        // Face ID 는 "오늘 목표 달성 후" 에만 비번 단축 키로 동작.
-        // 목표 미달이면 토글이 켜져있어도 6자리 입력 그대로 유지 — 마찰이 핵심 가치라
-        // 누구나 매일 우회되면 의미가 없음. 목표를 넘긴 보상으로만 제공.
-        let p = deps.persistence
-        let goalReached = p.focusGoalScore > 0 && p.focusScoreToday >= p.focusGoalScore
-        let allowBiometric = p.useBiometricForPasscode && goalReached
+        let allowBiometric = Self.allowBiometric(
+            toggle: deps.persistence.useBiometricForPasscode,
+            score: deps.persistence.focusScoreToday,
+            goal: deps.persistence.focusGoalScore
+        )
         return AppPasscodeEntryView(
             onSuccess: {
                 onConfirm()
@@ -258,6 +257,16 @@ struct FocusEndConfirmView: View {
             },
             useBiometric: allowBiometric
         )
+    }
+
+    /// Face ID 는 "오늘 목표 달성 후" 에만 비번 단축 키로 동작.
+    /// 목표 미달이면 토글이 켜져있어도 6자리 입력 그대로 유지 — 마찰이 핵심 가치라
+    /// 누구나 매일 우회되면 의미가 없음. 목표를 넘긴 보상으로만 제공.
+    /// 순수 함수로 추출 — UI 무관 단위 테스트 가능.
+    static func allowBiometric(toggle: Bool, score: Int, goal: Int) -> Bool {
+        guard toggle else { return false }
+        guard goal > 0 else { return false }
+        return score >= goal
     }
 
     // MARK: - Ripples

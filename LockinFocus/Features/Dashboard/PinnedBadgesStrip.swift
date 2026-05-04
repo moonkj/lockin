@@ -6,8 +6,18 @@ struct PinnedBadgesStrip: View {
     let pinnedIDs: [String]
     let onTap: (Badge) -> Void
 
+    /// id → Badge dict 캐시. body 재평가마다 Badge.allCases.first(where:) × 핀 수
+    /// (최대 26 × 3 = 78 비교) 를 반복하던 cost 제거. static let 은 thread-safe.
+    private static let badgesByID: [String: Badge] = {
+        var dict: [String: Badge] = [:]
+        for badge in Badge.allCases {
+            dict[badge.id] = badge
+        }
+        return dict
+    }()
+
     private var pinnedBadges: [Badge] {
-        pinnedIDs.compactMap { id in Badge.allCases.first(where: { $0.id == id }) }
+        pinnedIDs.compactMap { Self.badgesByID[$0] }
     }
 
     var body: some View {
