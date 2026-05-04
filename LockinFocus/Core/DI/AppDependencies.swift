@@ -279,6 +279,11 @@ final class PreviewPersistenceStore: PersistenceStore {
 
     // Admin debug no-op
     func debugSetDailyFocusHistory(_ entries: [DailyFocus]) {}
+    func clearTodayFocusData() {
+        focusScoreToday = 0
+        manualFocusStartedAt = nil
+        interceptQueue = []
+    }
 
     // Leaderboard (preview)
     var nickname: String? = nil

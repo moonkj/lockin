@@ -190,6 +190,19 @@ final class InMemoryPersistenceStore: PersistenceStore {
         history = entries
     }
 
+    /// 관리자 전용: 오늘 데이터만 초기화. UserDefaults 구현과 동일 시맨틱.
+    func clearTodayFocusData() {
+        let today = Self.todayString()
+        focusScoreToday = 0
+        focusScoreDate = today
+        todayReturnPoints = 0
+        lastReturnAt = nil
+        if lastSessionBonusDate == today { lastSessionBonusDate = "" }
+        if lastDailyLoginDate == today { lastDailyLoginDate = "" }
+        manualFocusStartedAt = nil
+        interceptQueue = []
+    }
+
     // Leaderboard (in-memory)
     var nickname: String?
     private var _leaderboardUserID: String = UUID().uuidString

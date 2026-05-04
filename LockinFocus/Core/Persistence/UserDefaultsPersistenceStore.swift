@@ -226,6 +226,31 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
         }
     }
 
+    /// 관리자 전용: 내 오늘 데이터만 초기화. 어제 이전 history / 누적 카운터 / 뱃지 /
+    /// 닉네임 / 친구 / 랭킹 record 는 건드리지 않음.
+    func clearTodayFocusData() {
+        let today = Self.todayString()
+        // 점수 + 날짜 마커. 오늘로 다시 0 점에서 시작.
+        defaults.set(0, forKey: SharedKeys.focusScoreToday)
+        defaults.set(today, forKey: PersistenceKeys.focusScoreDateKey)
+        // 돌아가기 카운터 + 쿨다운.
+        defaults.set(0, forKey: PersistenceKeys.todayReturnPoints)
+        defaults.removeObject(forKey: PersistenceKeys.lastReturnAt)
+        // 세션 보너스 / 데일리 로그인 — 오늘 마킹된 경우만 제거하여 다시 받을 수 있게.
+        // 이전 날짜 마커는 history rollover 와 무관하니 건드리지 않음.
+        if defaults.string(forKey: PersistenceKeys.lastSessionBonusDate) == today {
+            defaults.removeObject(forKey: PersistenceKeys.lastSessionBonusDate)
+        }
+        if defaults.string(forKey: PersistenceKeys.lastDailyLoginDate) == today {
+            defaults.removeObject(forKey: PersistenceKeys.lastDailyLoginDate)
+        }
+        // 진행 중 manual focus 도 시작점 제거 (실제 차단 해제는 별도 forceUnlock 책임).
+        defaults.removeObject(forKey: PersistenceKeys.manualFocusStartedAt)
+        // 회상 큐 — 오늘 들어온 미소비 이벤트들. raw + codable 양쪽 비움.
+        defaults.removeObject(forKey: PersistenceKeys.rawInterceptQueue)
+        defaults.removeObject(forKey: PersistenceKeys.codableInterceptQueue)
+    }
+
     // MARK: - Leaderboard
 
     /// iCloud KV → 로컬 cache → 없음 순서로 조회. 쓰기는 양쪽에.

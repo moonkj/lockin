@@ -45,6 +45,13 @@ protocol FocusScoreStore: AnyObject {
 
     /// 관리자 전용: 주간 리포트 원천 기록 덮어쓰기.
     func debugSetDailyFocusHistory(_ entries: [DailyFocus])
+
+    /// 관리자 전용: 내 **오늘 데이터** 만 초기화. 어제 이전 history / 누적 카운터 / 뱃지 /
+    /// 닉네임 / 친구 목록 / 랭킹 record 는 건드리지 않는다 — 사용자 전체 데이터 삭제 아님.
+    /// 초기화 대상: focusScoreToday, todayReturnPoints, lastReturnAt(쿨다운),
+    /// lastSessionBonusDate(오늘이면 제거), lastDailyLoginDate(오늘이면 제거),
+    /// manualFocusStartedAt, interceptQueue.
+    func clearTodayFocusData()
 }
 
 /// Intercept 큐 + 지연 해제 카운터 + "그래도 열기" 카운트.
