@@ -262,6 +262,30 @@ struct SettingsView: View {
                         }
                         #endif
                         .listRowBackground(AppColors.surface)
+
+                        Link(destination: URL(string: "https://moonkj.github.io/lockin/Support/")!) {
+                            HStack {
+                                Text("지원 · 문의").foregroundStyle(AppColors.primaryText)
+                                Spacer()
+                                Image(systemName: "arrow.up.right.square")
+                                    .scaledFont(13)
+                                    .foregroundStyle(AppColors.secondaryText)
+                                    .accessibilityHidden(true)
+                            }
+                        }
+                        .listRowBackground(AppColors.surface)
+
+                        Link(destination: URL(string: "https://moonkj.github.io/lockin/PrivacyPolicy/")!) {
+                            HStack {
+                                Text("개인정보 처리방침").foregroundStyle(AppColors.primaryText)
+                                Spacer()
+                                Image(systemName: "arrow.up.right.square")
+                                    .scaledFont(13)
+                                    .foregroundStyle(AppColors.secondaryText)
+                                    .accessibilityHidden(true)
+                            }
+                        }
+                        .listRowBackground(AppColors.surface)
                     } header: {
                         sectionHeader("앱 정보")
                     }
