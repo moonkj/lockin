@@ -109,19 +109,25 @@ struct ScheduleStepView: View {
     }
 
     private func applyAndNext() {
+        // 시간/요일 preset 은 저장하되 isEnabled 는 false 로 시작 — 온보딩 직후
+        // 즉시 잠겨 사용자가 곤란해지는 상황 방지. 대시보드의 "다음 스케줄" 카드에서
+        // 사용자가 명시적으로 켜야 작동.
         switch selected {
         case .now:
             schedule = Schedule(
                 startHour: 0, startMinute: 0,
                 endHour: 23, endMinute: 59,
                 weekdays: [1, 2, 3, 4, 5, 6, 7],
-                isEnabled: true
+                isEnabled: false
             )
         case .weekdayWork:
-            schedule = .weekdayWorkHours
+            var s = Schedule.weekdayWorkHours
+            s.isEnabled = false
+            schedule = s
         case .custom:
-            // 커스텀은 이미 sheet 에서 설정됨.
-            break
+            // 커스텀 sheet 에서 이미 설정됨 — isEnabled 도 사용자가 토글했을 수 있으니
+            // 그대로 유지. 다만 "처음 설정 후 즉시 잠김 방지" 정책에 따라 강제 off.
+            schedule.isEnabled = false
         }
         onNext()
     }
