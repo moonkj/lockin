@@ -1,4 +1,5 @@
 import SwiftUI
+import FamilyControls
 
 /// 앱 최상단 뷰. 온보딩 완료 여부에 따라 분기하고, Extension 이 쌓은
 /// interceptQueue 를 포그라운드 전환 시마다 비워 `InterceptView` 를 자동 프레젠테이션.
@@ -8,12 +9,26 @@ struct RootView: View {
 
     @State private var showIntercept: Bool = false
 
+    /// `hasCompletedOnboarding` 이 true 라도 FamilyControls 권한이 미부여 (`.notDetermined`)
+    /// 라면 차단 자체가 작동하지 않으므로 온보딩으로 강제 회귀.
+    /// 발생 케이스:
+    ///   1) devicectl install 로 덮어쓸 때 App Group container 데이터는 잔존하지만
+    ///      FamilyControls 권한 상태는 새 빌드 기준으로 재초기화된 경우.
+    ///   2) iOS 설정에서 사용자가 권한을 회수한 후 앱 재시작.
+    /// 이 가드 없이는 사용자가 온보딩 단계를 못 거쳐서 권한 요청 자체가 뜨지 않고,
+    /// 차단도 동작하지 않는 dead state 에 빠진다.
+    private var shouldShowOnboarding: Bool {
+        if !deps.persistence.hasCompletedOnboarding { return true }
+        let status = AuthorizationCenter.shared.authorizationStatus
+        return status == .notDetermined
+    }
+
     var body: some View {
         Group {
-            if deps.persistence.hasCompletedOnboarding {
-                DashboardView()
-            } else {
+            if shouldShowOnboarding {
                 OnboardingContainerView()
+            } else {
+                DashboardView()
             }
         }
         .background(AppColors.background.ignoresSafeArea())
