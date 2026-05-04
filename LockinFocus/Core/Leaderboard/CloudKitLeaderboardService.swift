@@ -76,7 +76,17 @@ final class CloudKitLeaderboardService: ObservableObject {
                 try await database.record(for: recordID)
             }
         } catch let error as CKError where error.code == .unknownItem {
+            // 첫 submit — 기존 record 없음 → 새로 만든다 (정상 흐름).
             record = CKRecord(recordType: LeaderboardEntry.recordType, recordID: recordID)
+        } catch let error as ServiceError {
+            // withRetry 가 wrap 한 ServiceError 안의 CKError 가 unknownItem 이면 동일 처리.
+            if case .underlying(let inner) = error,
+               let ck = inner as? CKError,
+               ck.code == .unknownItem {
+                record = CKRecord(recordType: LeaderboardEntry.recordType, recordID: recordID)
+            } else {
+                throw error
+            }
         } catch {
             throw mapError(error)
         }
