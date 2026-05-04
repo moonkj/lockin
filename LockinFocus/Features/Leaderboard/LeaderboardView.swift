@@ -381,6 +381,7 @@ struct LeaderboardContent: View {
                 Image(systemName: "trophy.fill")
                     .scaledFont(rank == 1 ? 26 : 22, weight: .semibold)
                     .foregroundStyle(.white)
+                    .accessibilityHidden(true)
             }
 
             Text("\(rank)등")
@@ -411,6 +412,7 @@ struct LeaderboardContent: View {
                 Image(systemName: "trophy.fill")
                     .scaledFont(rank == 1 ? 26 : 22, weight: .semibold)
                     .foregroundStyle(AppColors.secondaryText.opacity(0.5))
+                    .accessibilityHidden(true)
             }
             Text("\(rank)등")
                 .scaledFont(11, weight: .semibold)

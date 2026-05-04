@@ -31,22 +31,9 @@ struct SettingsView: View {
 
     @State private var selection: FamilyActivitySelection = FamilyActivitySelection()
     @State private var schedule: Schedule = .weekdayWorkHours
-    private var strictEndAt: Date? { deps.persistence.strictModeEndAt }
 
     private var strictActive: Bool {
         deps.persistence.isStrictModeActive
-    }
-
-    private var strictRemainingText: String {
-        let now = deps.tick
-        guard let end = strictEndAt, end > now else { return "" }
-        let total = Int(end.timeIntervalSince(now))
-        let h = total / 3600
-        let m = (total % 3600) / 60
-        let s = total % 60
-        if h > 0 { return String(format: "%d시간 %d분", h, m) }
-        if m > 0 { return String(format: "%d분 %d초", m, s) }
-        return String(format: "%d초", s)
     }
 
     /// 엄격 모드 프리셋 (라벨, 지속 시간 초).
@@ -96,10 +83,10 @@ struct SettingsView: View {
                                         .scaledFont(16, weight: .semibold)
                                         .foregroundStyle(AppColors.primaryText)
                                     Spacer()
-                                    Text(strictRemainingText)
-                                        .scaledFont(15, weight: .semibold, design: .rounded)
-                                        .foregroundStyle(AppColors.accent)
-                                        .monospacedDigit()
+                                    StrictRemainingTimeText(
+                                        ticker: deps.ticker,
+                                        endAt: deps.persistence.strictModeEndAt
+                                    )
                                 }
                                 Text("설정한 시간이 끝나기 전에는 어떤 방법으로도 해제할 수 없어요.")
                                     .scaledFont(12)
