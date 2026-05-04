@@ -520,10 +520,13 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
             else {
                 return nil
             }
+            // Extension 이 미리 점수 부여 시 true. 기존 큐 (이전 빌드) 에는 키 누락이라 false 폴백.
+            let alreadyScored = (entry["alreadyScored"] as? Bool) ?? false
             return InterceptEvent(
                 timestamp: Date(timeIntervalSince1970: ts),
                 type: type,
-                subjectKind: subjectKind
+                subjectKind: subjectKind,
+                alreadyScored: alreadyScored
             )
         }
 

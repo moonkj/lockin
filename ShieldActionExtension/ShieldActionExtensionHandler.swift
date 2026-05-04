@@ -63,11 +63,19 @@ class ShieldActionExtensionHandler: ShieldActionDelegate {
         guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else {
             return
         }
+        // "돌아가기" 경로는 즉시 +5 점 보상 (점수 규칙 B). 쿨다운·한도 적용된 경우 false.
+        // 메인 앱이 다음 진입 시 InterceptView 의 awardReturnPoint() 를 다시 부르지 않도록
+        // 큐 이벤트에 alreadyScored 플래그를 표기해서 이중 지급을 막는다.
+        var alreadyScored = false
+        if type == "returned" {
+            alreadyScored = ReturnPointAwarder.awardIfEligible()
+        }
         var queue = defaults.array(forKey: SharedKeys.interceptQueue) as? [[String: Any]] ?? []
         queue.append([
             "timestamp": Date().timeIntervalSince1970,
             "type": type,
-            "subjectKind": subjectKind
+            "subjectKind": subjectKind,
+            "alreadyScored": alreadyScored
         ])
         defaults.set(queue, forKey: SharedKeys.interceptQueue)
     }

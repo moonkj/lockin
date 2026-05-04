@@ -15,6 +15,15 @@ struct InterceptView: View {
     @State private var remaining: Int = 10
     @State private var timer: Timer?
 
+    /// Shield "돌아가기" 가 ShieldActionExtension 경로로 이미 +5 를 부여한 경우 true.
+    /// 이때 InterceptView 의 "돌아가기" 핸들러는 점수를 다시 주지 않는다. 기본값 false 는
+    /// 메인 앱이 직접 띄우는 (테스트/다른 진입점) 케이스에서 종전 동작 유지.
+    let skipReturnScore: Bool
+
+    init(skipReturnScore: Bool = false) {
+        self.skipReturnScore = skipReturnScore
+    }
+
     private var canExit: Bool { remaining == 0 }
     private var strictActive: Bool { deps.persistence.isStrictModeActive }
 
@@ -131,7 +140,9 @@ struct InterceptView: View {
         // 엄격 모드 중엔 사용자가 "그래도 열기" 를 선택할 수 없어 돌아가기 말고는 길이 없다 —
         // 이 경로에서 점수를 주면 앱을 무의미하게 여닫는 grind exploit 이 된다.
         // strict 중엔 기록만 남기고 점수는 skip.
-        if !strictActive {
+        // skipReturnScore 가 true 면 ShieldActionExtension 이 이미 점수를 부여했으니
+        // 이중 지급 방지를 위해 다시 부르지 않는다.
+        if !strictActive && !skipReturnScore {
             deps.persistence.awardReturnPoint()
         }
         deps.persistence.interceptQueue.append(

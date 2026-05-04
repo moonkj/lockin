@@ -8,6 +8,9 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var showIntercept: Bool = false
+    /// 직전 drain 한 큐의 returned 이벤트 중 하나라도 Extension 이 이미 +5 부여했으면 true.
+    /// InterceptView 의 "돌아가기" 가 같은 행위에 점수를 다시 주지 않도록 전달.
+    @State private var lastDrainHadScoredReturn: Bool = false
 
     /// `hasCompletedOnboarding` 이 true 라도 FamilyControls 권한이 미부여 (`.notDetermined`)
     /// 라면 차단 자체가 작동하지 않으므로 온보딩으로 강제 회귀.
@@ -78,7 +81,7 @@ struct RootView: View {
             Text("\(display)님 (ID …\(suffix)) 을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
         }
         .sheet(isPresented: $showIntercept) {
-            InterceptView()
+            InterceptView(skipReturnScore: lastDrainHadScoredReturn)
                 .environmentObject(deps)
         }
         .fullScreenCover(item: Binding(
@@ -98,6 +101,11 @@ struct RootView: View {
     private func drainQueue() {
         let events = deps.persistence.drainInterceptQueue()
         guard !events.isEmpty else { return }
+        // returned 타입이고 Extension 이 이미 점수 부여한 케이스가 한 건이라도 있으면
+        // 이 sheet 회상 흐름에선 점수 skip.
+        lastDrainHadScoredReturn = events.contains {
+            $0.type == .returned && $0.alreadyScored
+        }
         showIntercept = true
     }
 
