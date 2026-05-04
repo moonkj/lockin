@@ -9,7 +9,8 @@ final class DashboardViewTests: XCTestCase {
     func testDashboardView_rendersHeaderTitle() throws {
         try XCTSkipIfViewInspectorBlocked()
         let view = DashboardView().environmentObject(AppDependencies.preview())
-        XCTAssertNoThrow(try view.inspect().find(text: L("락인 포커스")))
+        // 헤더는 앱 이름 대신 기능 중심 라벨 사용 (CLAUDE.md 규약).
+        XCTAssertNoThrow(try view.inspect().find(text: L("오늘의 집중")))
     }
 
     func testDashboardView_rendersFocusScoreCard() throws {

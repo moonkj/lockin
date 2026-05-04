@@ -272,7 +272,8 @@ struct DashboardView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Text("락인 포커스")
+            // CLAUDE.md UX 카피 규칙: 앱 이름 노출 금지. 화면 상단은 기능 중심으로 표기.
+            Text("오늘의 집중")
                 .scaledFont(20, weight: .semibold)
                 .foregroundStyle(AppColors.primaryText)
 

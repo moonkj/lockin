@@ -43,7 +43,7 @@ final class LeaderboardViewBranchTests: XCTestCase {
     /// entries.count <= 3 이면 placeholder 가 보이는 분기로 들어간다.
     func testLeaderboard_emptyEntries_triggersPlaceholderBranch() throws {
         let vm = LeaderboardViewModel(
-            service: MockEmptyService(),
+            service: StubEmptyLeaderboardService(),
             persistence: InMemoryPersistenceStore(),
             initialPeriod: .daily,
             initialEntries: []
@@ -60,7 +60,7 @@ final class LeaderboardViewBranchTests: XCTestCase {
             entries.append(entry(userID: i == 9 ? "me" : "u-\(i)", nickname: "p\(i)", score: 100 - i))
         }
         let vm = LeaderboardViewModel(
-            service: MockEmptyService(),
+            service: StubEmptyLeaderboardService(),
             persistence: InMemoryPersistenceStore(),
             initialPeriod: .daily,
             initialEntries: entries,
@@ -70,17 +70,4 @@ final class LeaderboardViewBranchTests: XCTestCase {
         XCTAssertEqual(vm.myPercentile, 10)
     }
 
-    /// 빈 결과를 돌려주는 테스트용 stub.
-    private final class MockEmptyService: LeaderboardServiceProtocol {
-        func accountAvailable() async -> Bool { false }
-        func submit(
-            userID: String, nickname: String,
-            dailyScore: Int, weeklyTotal: Int, monthlyTotal: Int, now: Date
-        ) async throws -> LeaderboardEntry {
-            throw CloudKitLeaderboardService.ServiceError.iCloudUnavailable
-        }
-        func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry] { [] }
-        func fetchAllRaw(limit: Int) async throws -> [LeaderboardEntry] { [] }
-        func deleteRecord(userID: String) async throws -> Bool { false }
-    }
 }

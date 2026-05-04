@@ -84,7 +84,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
             entry(userID: "me", nickname: "나야나", daily: 70)
         ]
         let vm = LeaderboardViewModel(
-            service: MockEmptyServiceForRender(),
+            service: StubEmptyLeaderboardService(),
             persistence: InMemoryPersistenceStore(),
             initialPeriod: .daily,
             initialEntries: entries,
@@ -105,7 +105,7 @@ final class LeaderboardViewRenderTests: XCTestCase {
         // 35번째 (index 34, rank 35) 가 나 — 30위 밖.
         entries[34] = entry(userID: "me", nickname: "지각생", daily: 66)
         let vm = LeaderboardViewModel(
-            service: MockEmptyServiceForRender(),
+            service: StubEmptyLeaderboardService(),
             persistence: InMemoryPersistenceStore(),
             initialPeriod: .daily,
             initialEntries: entries,
@@ -126,17 +126,4 @@ final class LeaderboardViewRenderTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: L("2명")))
     }
 
-    /// VM-level 검증용 stub.
-    private final class MockEmptyServiceForRender: LeaderboardServiceProtocol {
-        func accountAvailable() async -> Bool { false }
-        func submit(
-            userID: String, nickname: String,
-            dailyScore: Int, weeklyTotal: Int, monthlyTotal: Int, now: Date
-        ) async throws -> LeaderboardEntry {
-            throw CloudKitLeaderboardService.ServiceError.iCloudUnavailable
-        }
-        func fetchRanking(period: LeaderboardPeriod, limit: Int) async throws -> [LeaderboardEntry] { [] }
-        func fetchAllRaw(limit: Int) async throws -> [LeaderboardEntry] { [] }
-        func deleteRecord(userID: String) async throws -> Bool { false }
-    }
 }

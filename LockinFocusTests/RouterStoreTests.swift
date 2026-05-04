@@ -90,6 +90,30 @@ final class RouterStoreTests: XCTestCase {
         XCTAssertNil(store.pendingFriendInvite)
     }
 
+    /// 외부 URL 로 들어온 잘못된 닉네임 (1자, 금칙어, control char 등) 은
+    /// safeDisplayName 폴백으로 위치 기반 익명 라벨이 캐시에 들어가야 함 — 외부 입력 sanitize 의 통합 흐름.
+    func testAcceptFriendInvite_invalidNickname_fallsToAnonLabel() {
+        let persistence = InMemoryPersistenceStore()
+        let store = RouterStore(persistence: persistence) { "me" }
+        // 1자 닉네임 — NicknameValidator.tooShort 로 거부됨.
+        let p = FriendInviteLink.Payload(userID: "BAD", nickname: "X")
+        store.requestFriendInvite(p)
+        store.acceptFriendInvite()
+        XCTAssertEqual(persistence.friendUserIDs, ["BAD"])
+        // 위치 1 기반 익명 라벨이 캐시에 저장되어야 함.
+        XCTAssertEqual(persistence.friendNicknameCache["BAD"], "친구 1")
+    }
+
+    /// control 문자 / 개행 포함 닉네임 — UI 깨뜨리는 주입 공격 차단 후 익명 라벨 사용.
+    func testAcceptFriendInvite_controlCharNickname_fallsToAnonLabel() {
+        let persistence = InMemoryPersistenceStore()
+        let store = RouterStore(persistence: persistence) { "me" }
+        let payload = FriendInviteLink.Payload(userID: "CTRL", nickname: "정상\n주입")
+        store.requestFriendInvite(payload)
+        store.acceptFriendInvite()
+        XCTAssertEqual(persistence.friendNicknameCache["CTRL"], "친구 1")
+    }
+
     func testAcceptFriendInvite_duplicate_doesNotDouble() {
         let persistence = InMemoryPersistenceStore()
         persistence.friendUserIDs = ["F1"]
