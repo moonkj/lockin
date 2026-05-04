@@ -15,7 +15,14 @@ struct OnboardingContainerView: View {
 
     @State private var step: Int
     @State private var draftSelection: FamilyActivitySelection = FamilyActivitySelection()
-    @State private var draftSchedule: Schedule = .weekdayWorkHours
+    /// 온보딩 직후 사용자가 의도하지 않은 즉시 차단을 막기 위해 기본값은 꺼짐.
+    /// 사용자가 ScheduleStepView 에서 명시적으로 켜야만 활성. 평일 09–17 시각/요일은
+    /// 그대로 보여줘서 한 번에 toggle on 으로 시작 가능.
+    @State private var draftSchedule: Schedule = {
+        var s = Schedule.weekdayWorkHours
+        s.isEnabled = false
+        return s
+    }()
     @State private var authorizationDenied: Bool = false
 
     private let totalSteps = 6

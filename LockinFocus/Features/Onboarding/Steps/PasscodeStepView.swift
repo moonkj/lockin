@@ -21,7 +21,7 @@ struct PasscodeStepView: View {
                     .foregroundStyle(AppColors.primaryText)
 
                 Text(step == .first
-                     ? "하루 첫 집중 해제 때 확인용으로 써요. iPhone 잠금 암호와는 별개예요."
+                     ? "하루 첫 집중 해제 때 확인용으로 써요. 기기 잠금 암호와는 별개예요."
                      : "확인을 위해 방금 정한 6자리를 한 번 더 입력해주세요.")
                     .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)

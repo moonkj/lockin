@@ -40,7 +40,7 @@ struct AppPasscodeSetupView: View {
                         .foregroundStyle(AppColors.primaryText)
 
                     Text(step == .first
-                         ? "엄격 모드를 해제할 때 쓸 6자리 숫자 비번을 정해주세요. iPhone 잠금 암호와는 별개예요."
+                         ? "엄격 모드를 해제할 때 쓸 6자리 숫자 비번을 정해주세요. 기기 잠금 암호와는 별개예요."
                          : "확인을 위해 한 번 더 입력해주세요.")
                         .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)

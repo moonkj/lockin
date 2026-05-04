@@ -86,7 +86,7 @@
 "먼저 권한이 필요해요" = "Permission needed first";
 "앱 비밀번호를 정해주세요" = "Set your app passcode";
 "다시 한 번 입력해주세요" = "Enter it once more";
-"하루 첫 집중 해제 때 확인용으로 써요. iPhone 잠금 암호와는 별개예요." = "Used to verify the first focus unlock each day. Separate from your iPhone passcode.";
+"하루 첫 집중 해제 때 확인용으로 써요. 기기 잠금 암호와는 별개예요." = "Used to verify the first focus unlock each day. Separate from your device passcode.";
 "확인을 위해 방금 정한 6자리를 한 번 더 입력해주세요." = "Re-enter the 6 digits you just chose.";
 "숫자 6자리" = "6 digits";
 "비밀번호가 달라요. 처음부터 다시 입력해주세요." = "Passcode doesn't match. Start over.";
