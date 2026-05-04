@@ -72,6 +72,10 @@ struct NextScheduleCard: View {
                         Text("꺼짐")
                             .scaledFont(18, weight: .semibold)
                             .foregroundStyle(AppColors.secondaryText)
+                        Text("켜두면 차단 시작/종료 시각이 여기 보여요")
+                            .scaledFont(13)
+                            .foregroundStyle(AppColors.secondaryText)
+                            .padding(.top, 2)
                     }
                 }
 
