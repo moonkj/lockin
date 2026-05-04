@@ -203,3 +203,36 @@ MVP 배포를 막지 않는다. Phase 5 착수 시 우선 처리 권고.
 - `deps.pendingRoute` / `pendingFriendInvite` callsite 를 `deps.router` 직접 구독으로 마이그레이션 — 재렌더 비용은 미미하나 명시성 향상 목적.
 - LeaderboardView 의 toolbar/Image를 `accessibilityLabel` 일원화 (VoiceOver UX 검증 후).
 - Instruments 로 실측 (Time Profiler / Allocations) — 사용자 환경에서.
+
+---
+
+## 12. 가격 정책 — Paid Up-Front $0.99 (2026-05-04 결정)
+
+**모델**: App Store 단순 유료 다운로드. IAP / 구독 없음. 서버 운영도 없음.
+
+### 12.1 코드 영향
+- **없음**. 앱 코드 변경 0줄.
+- StoreKit / IAP 도입 안 함. 영수증 검증·복원·sandbox 테스트 코드 모두 불필요.
+- 단, 사용자가 결제 후 다운로드하는 모델이므로 첫 실행 paywall 도 없음.
+
+### 12.2 App Store Connect 설정
+- [ ] App Store Connect → 앱 → **가격 및 사용 가능 여부**
+- [ ] **Tier 1** 선택 (USD $0.99 / KRW ₩1,500)
+       - 정확한 $1.00 티어는 없음. Tier 1 이 표준 진입가.
+       - 한국 KRW: 환율 기준 ₩1,500 자동 설정 (Apple 이 통화별 매핑)
+- [ ] 판매 시작일 / 지역별 가격 차등 여부 결정 (기본은 모든 지역 Tier 1)
+- [ ] 무료 → 유료 전환은 Apple 이 자동 처리 (사용자 입장에선 새 다운로드 시 결제)
+
+### 12.3 출시 전 안내
+- 이미 무료로 출시한 앱을 후일 유료로 전환할 수도 있지만, **첫 출시부터 유료** 가 마케팅상 깔끔.
+- 가격 변경은 출시 후에도 App Store Connect 에서 언제든 가능 (즉시 반영).
+- 기존 다운로드 사용자에겐 자동 무료 유지, 신규 다운로드만 유료.
+
+### 12.4 마케팅 메시지 권장
+- "광고 없음, 추적 없음, 서버 없음 — 한 번 결제로 영구 사용"
+- 개인정보 정책 (`docs/PrivacyPolicy.md`) 와 일관: 외부 서버 통신 없음, 사용 데이터 수집 없음.
+
+### 12.5 차후 옵션 (필요 시)
+- 가격 인상 / 인하: App Store Connect 에서 즉시.
+- Free + IAP unlock 으로 모델 전환: 코드 추가 (StoreKit 2 + Transaction.currentEntitlements + Restore 버튼) 필요. 현재 모델로 운영하다 다운로드 수가 정체되면 검토.
+- 추가 컨텐츠 IAP (premium 뱃지 등): 별도 설계 필요.
