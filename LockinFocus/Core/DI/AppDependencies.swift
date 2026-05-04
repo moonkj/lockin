@@ -34,7 +34,9 @@ final class AppDependencies: ObservableObject {
     @Published var pendingFriendInvite: FriendInviteLink.Payload?
 
     /// 연속 호출 (악성 링크 스팸 · universal link 리다이렉트 반복) 을 방어하기 위한
-    /// 레이트 리미터. 같은 payload 가 1초 이내 반복되면 무시.
+    /// 레이트 리미터.
+    /// - 같은 UID 가 1초 이내 반복: 무시 (이전 동작)
+    /// - 어떤 UID 든 200ms 이내 연속 호출: 무시 (다른 UID 폭주 공격 방어)
     private var lastInviteRequestAt: Date?
     private var lastInviteRequestUID: String?
 
@@ -43,17 +45,31 @@ final class AppDependencies: ObservableObject {
 
     func requestFriendInvite(_ payload: FriendInviteLink.Payload) {
         guard payload.userID != persistence.leaderboardUserID else { return }
-        // 1초 디바운스: 같은 UID 연속 호출 무시.
         let now = Date()
-        if let lastAt = lastInviteRequestAt,
-           let lastUID = lastInviteRequestUID,
-           lastUID == payload.userID,
-           now.timeIntervalSince(lastAt) < 1.0 {
-            return
+        if let lastAt = lastInviteRequestAt {
+            // 글로벌 throttle: 다른 UID 라도 200ms 이내 연속 호출은 무시.
+            if now.timeIntervalSince(lastAt) < 0.2 { return }
+            // 같은 UID 1초 이내 중복 무시.
+            if let lastUID = lastInviteRequestUID,
+               lastUID == payload.userID,
+               now.timeIntervalSince(lastAt) < 1.0 {
+                return
+            }
         }
         lastInviteRequestAt = now
         lastInviteRequestUID = payload.userID
         pendingFriendInvite = payload
+    }
+
+    /// 표시 안전한 닉네임 — alert · 친구 목록 · 랭킹 행 등 외부 노출 시 항상 이 함수를 거친다.
+    /// NicknameValidator 통과면 cleaned, 실패면 위치 기반 익명 라벨 ("친구 N").
+    /// `position` 은 1-based; 알 수 없으면 nil 로 두면 그냥 "친구".
+    static func safeDisplayName(for raw: String, position: Int? = nil) -> String {
+        if case .success(let cleaned) = NicknameValidator.validate(raw) {
+            return cleaned
+        }
+        if let position { return "친구 \(position)" }
+        return "친구"
     }
 
     func consumeFriendInvite() { pendingFriendInvite = nil }
@@ -112,6 +128,7 @@ final class AppDependencies: ObservableObject {
     }
 
     /// 현재 payload 를 확정: 친구 목록에 추가하고 닉네임 캐시 갱신.
+    /// 캐시 닉네임은 항상 `safeDisplayName(for:position:)` 을 거친 값만 저장.
     func acceptFriendInvite() {
         guard let p = pendingFriendInvite else { return }
         var ids = persistence.friendUserIDs
@@ -124,7 +141,8 @@ final class AppDependencies: ObservableObject {
             persistence.friendUserIDs = ids
         }
         var cache = persistence.friendNicknameCache
-        cache[p.userID] = p.nickname
+        let position = (ids.firstIndex(of: p.userID) ?? 0) + 1
+        cache[p.userID] = Self.safeDisplayName(for: p.nickname, position: position)
         // 캐시도 친구 목록에 실제 있는 키만 유지.
         let allowed = Set(ids)
         cache = cache.filter { allowed.contains($0.key) }

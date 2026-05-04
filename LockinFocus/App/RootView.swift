@@ -55,7 +55,9 @@ struct RootView: View {
             Button("추가") { deps.acceptFriendInvite() }
             Button("취소", role: .cancel) { deps.consumeFriendInvite() }
         } message: { payload in
-            Text("\(payload.nickname)님을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
+            // 외부 URL 로 들어온 닉네임은 항상 sanitize 후 표시.
+            // bidi/개행/욕설/길이 초과 시 "친구" 익명 라벨.
+            Text("\(AppDependencies.safeDisplayName(for: payload.nickname))님을 친구로 추가하시겠어요?\n추가하면 그룹 랭킹에서 함께 비교할 수 있어요.")
         }
         .sheet(isPresented: $showIntercept) {
             InterceptView()
