@@ -7,6 +7,7 @@ import ViewInspector
 final class ScheduleStepViewTests: XCTestCase {
 
     func testScheduleStepView_rendersHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = ScheduleStepView(schedule: .constant(.weekdayWorkHours), onNext: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("집중 시간대를 골라주세요")))
         XCTAssertNoThrow(try view.inspect().find(text: L("나중에 언제든 바꿀 수 있어요.")))

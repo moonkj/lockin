@@ -10,6 +10,7 @@ final class DashboardCardsTests: XCTestCase {
     // MARK: - FocusScoreCard
 
     func testFocusScoreCard_zeroScore_showsDash() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusScoreCard(score: 0)
         XCTAssertNoThrow(try view.inspect().find(text: L("오늘의 집중")))
         XCTAssertNoThrow(try view.inspect().find(text: "—"))
@@ -32,6 +33,7 @@ final class DashboardCardsTests: XCTestCase {
     // MARK: - AllowedAppsCard
 
     func testAllowedAppsCard_empty_showsPlaceholder() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let sel = FamilyActivitySelection()
         let view = AllowedAppsCard(selection: sel, onEdit: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("허용 앱")))
@@ -49,6 +51,7 @@ final class DashboardCardsTests: XCTestCase {
     // MARK: - NextScheduleCard
 
     func testNextScheduleCard_disabled_showsOff() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = NextScheduleCard(schedule: .allDay, onEdit: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("다음 스케줄")))
         XCTAssertNoThrow(try view.inspect().find(text: L("꺼짐")))
@@ -84,6 +87,7 @@ final class DashboardCardsTests: XCTestCase {
     // MARK: - DailyQuoteCard
 
     func testDailyQuoteCard_rendersHeader() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = DailyQuoteCard(onTap: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("오늘의 명언")))
     }

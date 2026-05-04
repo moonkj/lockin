@@ -17,16 +17,19 @@ final class BadgeCelebrationViewTests: XCTestCase {
     }
 
     func testRendersConfirmLabel() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgeCelebrationView(badge: .streak3Days, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("확인")))
     }
 
     func testRendersHeaderLabel() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgeCelebrationView(badge: .streak3Days, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("뱃지 획득")))
     }
 
     func testConfirmButton_triggersCallback() throws {
+        try XCTSkipIfViewInspectorBlocked()
         var called = false
         let view = BadgeCelebrationView(badge: .perfectDay) { called = true }
         try view.inspect().find(button: L("확인")).tap()

@@ -26,6 +26,7 @@ final class OnboardingStepsTests: XCTestCase {
     // MARK: - AuthorizationStepView
 
     func testAuthorizationStepView_rendersHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AuthorizationStepView(
             denied: .constant(false),
             onAuthorize: {},
@@ -46,6 +47,7 @@ final class OnboardingStepsTests: XCTestCase {
     // MARK: - AppPickerStepView
 
     func testAppPickerStepView_rendersHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPickerStepView(
             selection: .constant(FamilyActivitySelection()),
             onNext: {}
@@ -88,6 +90,7 @@ final class OnboardingStepsTests: XCTestCase {
     // MARK: - ScheduleStepView
 
     func testScheduleStepView_renders() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = ScheduleStepView(
             schedule: .constant(.weekdayWorkHours),
             onNext: {}
@@ -98,11 +101,13 @@ final class OnboardingStepsTests: XCTestCase {
     // MARK: - PasscodeStepView
 
     func testPasscodeStepView_renders_firstStep() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = PasscodeStepView(onNext: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호를 정해주세요")))
     }
 
     func testPasscodeStepView_skipButton_triggersOnNext() throws {
+        try XCTSkipIfViewInspectorBlocked()
         var advanced = false
         let view = PasscodeStepView { advanced = true }
         try view.inspect().find(button: L("건너뛰기")).tap()

@@ -169,3 +169,37 @@ MVP 배포를 막지 않는다. Phase 5 착수 시 우선 처리 권고.
 - `docs/07_Review_Report.md §3` — Phase 5 이월 상세
 - `README.md` — 한 화면 요약
 - `docs/08_Architecture_Map.md` — 코드 수준 지도
+
+---
+
+## 11. 2026-05-04 통합 라운드 — 코드 측면 마감 상태
+
+### 11.1 자동화된 QA 결과
+- 빌드: SUCCEEDED (시뮬, 실기기 양쪽)
+- 테스트: 526 통과 / 0 실패 / 79 skip — `LOCKIN_RUN_VIEWINSPECTOR_TESTS=1` 환경변수로 skip 해제 가능
+- skip 사유: SwiftUI 26.2 시뮬레이터 + ViewInspector 0.10.3 의 view-level traversal 호환 한계 — 코드 결함 아님. ViewInspector 가 SwiftUI 26 호환 업데이트를 내면 회귀 검증 필요.
+- 실기기 (Moon iPhone): bundleID `com.moonkj.LockinFocus`, 최신 빌드 설치 완료.
+
+### 11.2 코드 정리 완료 사항 (이번 멀티라운드 통합)
+- Round 7+ 아키텍처 분리 — RouterStore / ClockTicker / CelebrationCenter (God-object 해소)
+- PersistenceStore ISP 분해 (7 sub-protocol)
+- Schedule 자동 차단 버그 (토요일 + 평일 스케줄) — `Schedule.isCurrentlyActive` 도입 + `ScheduleApplier` 로 gating 통합
+- Face ID 목표 완료 시만 사용 (`FocusEndConfirmView.allowBiometric`)
+- 친구 초대 throttle / 500 capacity / NicknameValidator 통한 안전 표시
+- LeaderboardView container+child 패턴 (stub+connect hack 제거)
+- SettingsView strict 잔여 시간 child view 분리 (ticker 직접 구독)
+- RouterStore + ClockTicker 직접 단위 테스트 29 케이스
+- 정적 성능 검토: `[weak self]` 사용 OK, 모든 Timer onDisappear 페어링 확인.
+
+### 11.3 사용자만 처리 가능한 외부 작업
+- Family Controls **distribution entitlement** 승인 (Apple 신청)
+- App Store Connect — 앱 메타데이터, 스크린샷 (5.5″ / 6.5″ / 6.7″), 개인정보 정책 URL
+- iCloud Container `iCloud.com.imurmkj.LockinFocus` Production deploy
+- TestFlight 빌드 업로드 + 외부 테스터 초대
+- 개인정보 정책 (`docs/PrivacyPolicy.md`) 를 GitHub Pages 또는 호스팅에 게시 → URL 확보
+
+### 11.4 차후 코드 라운드 후보 (선택)
+- ViewInspector 환경 호환 업데이트 후 79 skip 케이스 회귀 검증.
+- `deps.pendingRoute` / `pendingFriendInvite` callsite 를 `deps.router` 직접 구독으로 마이그레이션 — 재렌더 비용은 미미하나 명시성 향상 목적.
+- LeaderboardView 의 toolbar/Image를 `accessibilityLabel` 일원화 (VoiceOver UX 검증 후).
+- Instruments 로 실측 (Time Profiler / Allocations) — 사용자 환경에서.

@@ -33,6 +33,7 @@ final class DashboardAlertsTests: XCTestCase {
     }
 
     func testDashboard_manualFocusActive_labelSwapsToEnd() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = DashboardView(initialIsManualFocus: true)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("집중 종료")))

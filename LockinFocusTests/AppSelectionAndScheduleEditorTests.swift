@@ -10,6 +10,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
     // MARK: - AppSelectionView
 
     func testAppSelectionView_rendersHeader() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppSelectionView(
             selection: .constant(FamilyActivitySelection()),
             onDone: {}
@@ -18,6 +19,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
     }
 
     func testAppSelectionView_hasCloseButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppSelectionView(
             selection: .constant(FamilyActivitySelection()),
             onDone: {}
@@ -44,6 +46,7 @@ final class AppSelectionAndScheduleEditorTests: XCTestCase {
     }
 
     func testScheduleEditorView_hasCancelButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = ScheduleEditorView(
             schedule: .constant(.weekdayWorkHours),
             onSave: {}

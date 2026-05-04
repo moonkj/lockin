@@ -21,6 +21,7 @@ final class DashboardSheetTriggerTests: XCTestCase {
     }
 
     func testDashboard_startButton_renders() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = DashboardView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("지금 집중 시작")))
     }

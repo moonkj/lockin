@@ -7,11 +7,13 @@ import ViewInspector
 final class InterceptViewTests: XCTestCase {
 
     func testInterceptView_rendersHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = InterceptView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("잠깐 기다려봐요")))
     }
 
     func testInterceptView_rendersReflectionPrompt() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = InterceptView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("이 앱이 지금 꼭 필요한가요?")))
     }

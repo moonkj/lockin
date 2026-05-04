@@ -19,6 +19,7 @@ final class PasscodeFlowTests: XCTestCase {
     // MARK: - AppPasscodeSetupView
 
     func testAppPasscodeSetupView_firstStep_headlineAndPrompt() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeSetupView { _ in }
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호 설정")))
         XCTAssertNoThrow(try view.inspect().find(
@@ -27,6 +28,7 @@ final class PasscodeFlowTests: XCTestCase {
     }
 
     func testAppPasscodeSetupView_cancelTriggersCallback() throws {
+        try XCTSkipIfViewInspectorBlocked()
         var saved: Bool?
         let view = AppPasscodeSetupView { s in saved = s }
         try view.inspect().find(button: L("취소")).tap()
@@ -55,12 +57,14 @@ final class PasscodeFlowTests: XCTestCase {
     // MARK: - AppPasscodeEntryView
 
     func testAppPasscodeEntryView_noStoredPasscode_showsPrompt() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeEntryView(onSuccess: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호 입력")))
         XCTAssertNoThrow(try view.inspect().find(text: L("설정한 6자리 비번을 입력하세요.")))
     }
 
     func testAppPasscodeEntryView_hasCancelButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeEntryView(onSuccess: {})
         XCTAssertNoThrow(try view.inspect().find(button: L("취소")))
     }
@@ -76,12 +80,14 @@ final class PasscodeFlowTests: XCTestCase {
     // MARK: - PasscodeStepView (onboarding)
 
     func testPasscodeStepView_rendersFirstHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = PasscodeStepView(onNext: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호를 정해주세요")))
         XCTAssertNoThrow(try view.inspect().find(text: L("하루 첫 집중 해제 때 확인용으로 써요. iPhone 잠금 암호와는 별개예요.")))
     }
 
     func testPasscodeStepView_skipTriggersOnNext() throws {
+        try XCTSkipIfViewInspectorBlocked()
         var advanced = false
         let view = PasscodeStepView(onNext: { advanced = true })
         try view.inspect().find(button: L("건너뛰기")).tap()

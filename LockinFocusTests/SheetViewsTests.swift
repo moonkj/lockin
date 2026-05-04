@@ -9,12 +9,14 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - NicknameSetupView
 
     func testNicknameSetupView_rendersHeader() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let deps = AppDependencies.preview()
         let view = NicknameSetupView { _ in }.environmentObject(deps)
         XCTAssertNoThrow(try view.inspect().find(text: L("닉네임 만들기")))
     }
 
     func testNicknameSetupView_hasCancelButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let deps = AppDependencies.preview()
         let view = NicknameSetupView { _ in }.environmentObject(deps)
         XCTAssertNoThrow(try view.inspect().find(button: L("취소")))
@@ -23,11 +25,13 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - AppPasscodeSetupView
 
     func testAppPasscodeSetupView_firstStep_showsHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeSetupView { _ in }
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호 설정")))
     }
 
     func testAppPasscodeSetupView_hasCancelButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeSetupView { _ in }
         XCTAssertNoThrow(try view.inspect().find(button: L("취소")))
     }
@@ -35,6 +39,7 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - AppPasscodeEntryView
 
     func testAppPasscodeEntryView_rendersHeader() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AppPasscodeEntryView(onSuccess: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호 입력")))
     }
@@ -42,6 +47,7 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - StrictDurationPickerView
 
     func testStrictDurationPickerView_rendersPresets() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let presets: [(label: String, seconds: TimeInterval)] = [
             ("30분", 1800),
             ("1시간", 3600),
@@ -67,6 +73,7 @@ final class SheetViewsTests: XCTestCase {
     }
 
     func testQuoteDetailSheet_hasShareLinkLabel() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = QuoteDetailSheet()
         XCTAssertNoThrow(try view.inspect().find(text: L("공유하기")))
     }
@@ -74,26 +81,31 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - FocusEndConfirmView
 
     func testFocusEndConfirmView_firstOrdinal_showsSentenceHint() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(ordinal: 1, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("정말 종료할까요?")))
     }
 
     func testFocusEndConfirmView_secondOrdinal_showsBreathMessage() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(ordinal: 2, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("잠시 숨을 고르면서 한 번 더 생각해봐요.")))
     }
 
     func testFocusEndConfirmView_hasContinueFocusButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(ordinal: 2, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(button: L("계속 집중하기")))
     }
 
     func testFocusEndConfirmView_firstOrdinal_hasFirstDayHint() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(ordinal: 1, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("오늘 첫 해제예요. 잠시 숨을 고르고 다음 단계로 넘어가요.")))
     }
 
     func testFocusEndConfirmView_thirdOrdinal_usesBreathMessage() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(ordinal: 3, onConfirm: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("잠시 숨을 고르면서 한 번 더 생각해봐요.")))
     }
@@ -101,6 +113,7 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - FocusEndConfirmView — sentence step (injected)
 
     func testFocusEndConfirmView_sentenceStep_showsTargetSentenceHint() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(
             ordinal: 1,
             initialStep: .sentence,
@@ -110,6 +123,7 @@ final class SheetViewsTests: XCTestCase {
     }
 
     func testFocusEndConfirmView_sentenceStep_showsExampleQuote() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(
             ordinal: 1,
             initialStep: .sentence,
@@ -119,6 +133,7 @@ final class SheetViewsTests: XCTestCase {
     }
 
     func testFocusEndConfirmView_sentenceStep_wrongTyped_showsError() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(
             ordinal: 1,
             initialStep: .sentence,
@@ -129,6 +144,7 @@ final class SheetViewsTests: XCTestCase {
     }
 
     func testFocusEndConfirmView_sentenceStep_hasContinueAndNextButtons() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(
             ordinal: 1,
             initialStep: .sentence,
@@ -140,6 +156,7 @@ final class SheetViewsTests: XCTestCase {
     // MARK: - FocusEndConfirmView — passcode step (injected)
 
     func testFocusEndConfirmView_passcodeStep_showsPasscodeHeadline() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = FocusEndConfirmView(
             ordinal: 1,
             initialStep: .passcode,

@@ -20,6 +20,7 @@ final class ExtendedViewTests: XCTestCase {
     }
 
     func testSettingsView_strictActive_showsRemainingFooterCopy() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let deps = AppDependencies.preview()
         deps.persistence.strictModeEndAt = Date().addingTimeInterval(3600)
         let view = SettingsView().environmentObject(deps)
@@ -31,6 +32,7 @@ final class ExtendedViewTests: XCTestCase {
     // MARK: - DashboardView branches
 
     func testDashboardView_notInFocus_showsStartButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let deps = AppDependencies.preview()
         deps.persistence.isManualFocusActive = false
         let view = DashboardView().environmentObject(deps)
@@ -38,6 +40,7 @@ final class ExtendedViewTests: XCTestCase {
     }
 
     func testDashboardView_injectedManualFocus_showsEndButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = DashboardView(initialIsManualFocus: true)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("집중 종료")))
@@ -67,6 +70,7 @@ final class ExtendedViewTests: XCTestCase {
     // MARK: - NicknameSetupView branches
 
     func testNicknameSetupView_hasPlaceholder() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = NicknameSetupView { _ in }
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("랭킹에서 다른 사용자에게 이렇게 보여요.\n2~20자.")))

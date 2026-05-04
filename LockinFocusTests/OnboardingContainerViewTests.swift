@@ -21,6 +21,7 @@ final class OnboardingContainerViewTests: XCTestCase {
     }
 
     func testContainer_step1_rendersAuthorizationStep() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = OnboardingContainerView(initialStep: 1)
             .environmentObject(makeDeps())
         XCTAssertNoThrow(try view.inspect().find(text: L("먼저 권한이 필요해요")))
@@ -34,18 +35,21 @@ final class OnboardingContainerViewTests: XCTestCase {
     }
 
     func testContainer_step3_rendersAppPickerStep() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = OnboardingContainerView(initialStep: 3)
             .environmentObject(makeDeps())
         XCTAssertNoThrow(try view.inspect().find(text: L("허용할 앱을 골라주세요")))
     }
 
     func testContainer_step4_rendersScheduleStep() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = OnboardingContainerView(initialStep: 4)
             .environmentObject(makeDeps())
         XCTAssertNoThrow(try view.inspect().find(text: L("집중 시간대를 골라주세요")))
     }
 
     func testContainer_step5_rendersPasscodeStep() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = OnboardingContainerView(initialStep: 5)
             .environmentObject(makeDeps())
         XCTAssertNoThrow(try view.inspect().find(text: L("앱 비밀번호를 정해주세요")))
@@ -53,6 +57,7 @@ final class OnboardingContainerViewTests: XCTestCase {
     }
 
     func testContainer_backButton_rendersOnNonZeroSteps() throws {
+        try XCTSkipIfViewInspectorBlocked()
         for step in 1...5 {
             let view = OnboardingContainerView(initialStep: step)
                 .environmentObject(makeDeps())

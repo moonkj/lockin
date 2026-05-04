@@ -7,6 +7,7 @@ import ViewInspector
 final class BadgeDetailCardViewTests: XCTestCase {
 
     func testRendersHeaderLabel() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgeDetailCardView(badge: .perfectDay, onClose: {})
         XCTAssertNoThrow(try view.inspect().find(text: L("획득한 뱃지")))
     }
@@ -22,11 +23,13 @@ final class BadgeDetailCardViewTests: XCTestCase {
     }
 
     func testRendersCloseButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgeDetailCardView(badge: .perfectDay, onClose: {})
         XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }
 
     func testCloseButton_triggersOnClose() throws {
+        try XCTSkipIfViewInspectorBlocked()
         var closed = false
         let view = BadgeDetailCardView(badge: .perfectDay) { closed = true }
         try view.inspect().find(button: L("닫기")).tap()

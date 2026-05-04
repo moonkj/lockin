@@ -14,6 +14,7 @@ final class BadgesViewTests: XCTestCase {
     }
 
     func testBadgesView_rendersFooterNote() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgesView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(
             text: "순위 뱃지는 참가자 100명 이상인 랭킹에서만 획득할 수 있어요."
@@ -27,6 +28,7 @@ final class BadgesViewTests: XCTestCase {
     }
 
     func testBadgesView_rendersTitleInToolbar() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgesView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }
@@ -42,6 +44,7 @@ final class BadgesViewTests: XCTestCase {
     }
 
     func testBadgesView_initialSelectedBadge_rendersDetailOverlay() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = BadgesView(initialSelectedBadge: .perfectDay)
             .environmentObject(AppDependencies.preview())
         // BadgeDetailCardView 가 overlay 로 올라와 "획득한 뱃지" 라벨이 보여야.

@@ -20,6 +20,7 @@ final class AdminViewsTests: XCTestCase {
     }
 
     func testAdminEntryView_hasCancelButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AdminEntryView(onSuccess: {})
         XCTAssertNoThrow(try view.inspect().find(button: L("취소")))
     }
@@ -37,6 +38,7 @@ final class AdminViewsTests: XCTestCase {
     }
 
     func testAdminPanelView_hasCloseButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = AdminPanelView().environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
     }

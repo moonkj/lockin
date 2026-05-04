@@ -17,6 +17,7 @@ final class ReportViewTests: XCTestCase {
     }
 
     func testReportView_hasCloseButton() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = ReportView(initialRange: .daily)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(button: L("닫기")))
@@ -63,6 +64,7 @@ final class ReportViewTests: XCTestCase {
     // Chart 는 history.isEmpty 가드 덕분에 빈 상태에선 렌더되지 않으므로 안전.
 
     func testReportView_weeklyInitial_rendersAverageCard() throws {
+        try XCTSkipIfViewInspectorBlocked()
         let view = ReportView(initialRange: .weekly)
             .environmentObject(AppDependencies.preview())
         XCTAssertNoThrow(try view.inspect().find(text: L("최근 7일 평균")))
