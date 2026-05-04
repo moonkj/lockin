@@ -23,6 +23,10 @@ enum ReturnPointAwarder {
         static let focusScoreDate = "focusScoreDate"
         static let lastReturnAt = "lastReturnAt"
         static let todayReturnPoints = "todayReturnPoints"
+        /// 진단 — Extension 이 호출/적용된 마지막 시각 + 결과. AdminPanel 에서 노출해
+        /// "Extension 이 도달은 했는지 / 쿨다운/한도로 skip 했는지" 사용자가 자가진단할 수 있게.
+        static let lastShieldAwardAt = "lastShieldAwardAt"
+        static let lastShieldAwardResult = "lastShieldAwardResult"  // String: applied/cooldown/cap/midnight/noStorage
     }
 
     /// 보상 적용 시도. 적용했으면 true, 쿨다운/한도/자정경계/저장소 미접근 등으로 skip
@@ -36,13 +40,19 @@ enum ReturnPointAwarder {
     /// 사용자 영향이 매우 작고, 어제 점수 손실 위험을 피한다.
     @discardableResult
     static func awardIfEligible(now: Date = Date()) -> Bool {
-        guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else { return false }
+        guard let defaults = UserDefaults(suiteName: AppGroup.identifier) else {
+            return false
+        }
+
+        // 진단 마커 — 매 호출마다 시각 업데이트. 메인 앱 AdminPanel 에서 노출.
+        defaults.set(now.timeIntervalSince1970, forKey: Keys.lastShieldAwardAt)
 
         let todayString = ISO8601Date.todayString(now: now)
         let storedDate = defaults.string(forKey: Keys.focusScoreDate)
 
         // 자정 경계 — Extension 은 history rollover 안 함. 메인 앱이 다음 진입 시 처리.
         if let storedDate, storedDate != todayString {
+            defaults.set("midnight", forKey: Keys.lastShieldAwardResult)
             return false
         }
         // 첫 호출 (storedDate 가 nil) 이면 오늘 첫 점수 시작이므로 즉시 진행.
@@ -53,11 +63,17 @@ enum ReturnPointAwarder {
         // 쿨다운.
         if let lastTs = defaults.object(forKey: Keys.lastReturnAt) as? TimeInterval {
             let last = Date(timeIntervalSince1970: lastTs)
-            if now.timeIntervalSince(last) < cooldownSeconds { return false }
+            if now.timeIntervalSince(last) < cooldownSeconds {
+                defaults.set("cooldown", forKey: Keys.lastShieldAwardResult)
+                return false
+            }
         }
         // 하루 한도.
         let today = defaults.integer(forKey: Keys.todayReturnPoints)
-        guard today < dailyCap else { return false }
+        guard today < dailyCap else {
+            defaults.set("cap", forKey: Keys.lastShieldAwardResult)
+            return false
+        }
 
         let awarded = min(unitPoint, dailyCap - today)
         let currentScore = defaults.integer(forKey: Keys.focusScoreToday)
@@ -65,6 +81,7 @@ enum ReturnPointAwarder {
         defaults.set(nextScore, forKey: Keys.focusScoreToday)
         defaults.set(today + awarded, forKey: Keys.todayReturnPoints)
         defaults.set(now.timeIntervalSince1970, forKey: Keys.lastReturnAt)
+        defaults.set("applied", forKey: Keys.lastShieldAwardResult)
         return true
     }
 }

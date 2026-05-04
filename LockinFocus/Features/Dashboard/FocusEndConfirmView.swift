@@ -319,7 +319,8 @@ struct FocusEndConfirmView: View {
         guard step == .wave else { return }
         timer?.invalidate()
         announceRemainingIfVO()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+        // .common 모드 등록 — sheet 트래킹 진입에도 카운트다운 유지.
+        let t = Timer(timeInterval: 1.0, repeats: true) { t in
             if remaining > 0 { remaining -= 1 }
             if remaining == 5 || remaining == 3 || remaining == 1 {
                 announceRemainingIfVO()
@@ -329,6 +330,8 @@ struct FocusEndConfirmView: View {
                 announceReadyIfVO()
             }
         }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
     }
 
     private func announceRemainingIfVO() {
