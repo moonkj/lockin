@@ -559,7 +559,9 @@ final class UserDefaultsPersistenceStore: PersistenceStore {
             return (try? decoder.decode([InterceptEvent].self, from: data)) ?? []
         }
         set {
-            if let data = try? encoder.encode(newValue) {
+            // 무제한 성장 방지 — 최근 200개만 보관.
+            let capped = newValue.count > 200 ? Array(newValue.suffix(200)) : newValue
+            if let data = try? encoder.encode(capped) {
                 defaults.set(data, forKey: PersistenceKeys.codableInterceptQueue)
             }
         }

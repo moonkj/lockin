@@ -57,6 +57,7 @@ struct ScheduleEditorView: View {
                             VStack(spacing: 0) {
                                 DatePicker("시작", selection: $startDate, displayedComponents: .hourAndMinute)
                                     .datePickerStyle(.compact)
+                                    .tint(AppColors.primaryText)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 14)
 
@@ -66,6 +67,7 @@ struct ScheduleEditorView: View {
 
                                 DatePicker("종료", selection: $endDate, displayedComponents: .hourAndMinute)
                                     .datePickerStyle(.compact)
+                                    .tint(AppColors.primaryText)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 14)
                             }

@@ -29,7 +29,7 @@ struct AuthorizationStepView: View {
 
             VStack(spacing: 8) {
                 if denied {
-                    Text("권한이 꺼져 있어요. 설정에서 허용을 켜주세요.")
+                    Text("권한이 꺼져 있어요. 설정에서 허용으로 바꿔 주시면 돼요.")
                         .scaledFont(13)
                         .foregroundStyle(AppColors.secondaryText)
                         .multilineTextAlignment(.center)

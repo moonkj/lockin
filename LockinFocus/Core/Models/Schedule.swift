@@ -81,7 +81,7 @@ struct Schedule: Codable, Equatable, Hashable {
                 let nowMinutes = calendar.component(.hour, from: date) * 60 + calendar.component(.minute, from: date)
                 if nowMinutes >= startMinutes {
                     // 오늘 시작 → 내일 endHour 종료.
-                    let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+                    guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) else { return nil }
                     return calendar.date(bySettingHour: endHour, minute: endMinute, second: 0, of: tomorrow)
                 } else {
                     // 어제 시작 → 오늘 endHour 종료.

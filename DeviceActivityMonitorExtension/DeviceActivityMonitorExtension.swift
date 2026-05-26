@@ -17,6 +17,13 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.intervalDidStart(for: activity)
 
         if activity.rawValue == ExtensionActivityName.blockMain {
+            // 사용자가 스케줄을 비활성화한 상태에서 이전 repeats:true 등록이 재발동된 경우:
+            // shield 해제 + 모니터 중단으로 다음 날 재발동을 차단한다.
+            guard readScheduleEnabled() else {
+                clearShield()
+                DeviceActivityCenter().stopMonitoring([DeviceActivityName(activity.rawValue)])
+                return
+            }
             applyWhitelistFromStore()
         }
         // temp_allow_* 구간 시작 시점에는 기존 shield 상태를 유지 (메인 앱에서
@@ -65,6 +72,15 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     // MARK: - Shared storage
 
+    private func readScheduleEnabled() -> Bool {
+        guard
+            let defaults = UserDefaults(suiteName: ExtensionAppGroup.identifier),
+            let data = defaults.data(forKey: ExtensionSharedKeys.schedule)
+        else { return true }
+        struct ScheduleIsEnabled: Decodable { let isEnabled: Bool }
+        return (try? JSONDecoder().decode(ScheduleIsEnabled.self, from: data))?.isEnabled ?? true
+    }
+
     private func readFamilySelection() -> FamilyActivitySelection {
         guard
             let defaults = UserDefaults(suiteName: ExtensionAppGroup.identifier),
@@ -87,6 +103,7 @@ private enum ExtensionAppGroup {
 
 private enum ExtensionSharedKeys {
     static let familySelection = "familySelection"
+    static let schedule = "schedule"
 }
 
 private enum ExtensionActivityName {

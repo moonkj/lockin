@@ -253,7 +253,8 @@ final class ScheduleApplierTests: XCTestCase {
         )
 
         XCTAssertEqual(action, .deferredAwaitingScheduleEnd)
-        XCTAssertEqual(blocking.clearCount, 0, "스케줄 끔에도 차단 유지")
+        XCTAssertEqual(blocking.applyCount, 1, "스케줄 끔에도 applyWhitelist 로 차단 유지")
+        XCTAssertEqual(blocking.clearCount, 0, "스케줄 끔에도 shield 해제 안 함")
         XCTAssertEqual(monitoring.stopCount, 0, "OS 모니터링도 유지")
     }
 

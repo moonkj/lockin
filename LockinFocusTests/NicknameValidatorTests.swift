@@ -112,22 +112,6 @@ final class NicknameValidatorTests: XCTestCase {
         XCTAssertNotNil(NicknameValidator.ValidationError.tooLong.errorDescription)
         XCTAssertNotNil(NicknameValidator.ValidationError.containsBannedWord.errorDescription)
     }
-}
-
-extension NicknameValidator.ValidationError: Equatable {
-    public static func == (
-        lhs: NicknameValidator.ValidationError,
-        rhs: NicknameValidator.ValidationError
-    ) -> Bool {
-        switch (lhs, rhs) {
-        case (.tooShort, .tooShort),
-             (.tooLong, .tooLong),
-             (.containsBannedWord, .containsBannedWord):
-            return true
-        default:
-            return false
-        }
-    }
 
     // MARK: - Hardened strip set (isolated bidi + newlines)
 
@@ -159,5 +143,21 @@ extension NicknameValidator.ValidationError: Equatable {
         // 여기서는 "shit" 의 경우만 확실히 잡는지 확인.
         XCTAssertEqual(NicknameValidator.validate("shhit"), .success("shhit"))  // 완전 일치 안 하면 통과
         XCTAssertEqual(NicknameValidator.validate("sh-it"), .failure(.containsBannedWord))
+    }
+}
+
+extension NicknameValidator.ValidationError: Equatable {
+    public static func == (
+        lhs: NicknameValidator.ValidationError,
+        rhs: NicknameValidator.ValidationError
+    ) -> Bool {
+        switch (lhs, rhs) {
+        case (.tooShort, .tooShort),
+             (.tooLong, .tooLong),
+             (.containsBannedWord, .containsBannedWord):
+            return true
+        default:
+            return false
+        }
     }
 }

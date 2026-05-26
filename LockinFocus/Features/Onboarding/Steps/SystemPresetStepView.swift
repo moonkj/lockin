@@ -36,7 +36,7 @@ struct SystemPresetStepView: View {
                     .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("전화·메시지·설정은 아무것도 안 고르셔도 iOS 가 자동 보호합니다.\n카메라·지도처럼 ⚠️ 표시된 앱은 다음 단계에서 꼭 체크해주세요.")
+                Text("전화·메시지·설정은 아무것도 안 골라도 iOS 가 자동으로 보호해요.\n카메라·지도처럼 ⚠️ 표시된 앱은 다음 단계에서 직접 추가할 수 있어요.")
                     .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)

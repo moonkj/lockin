@@ -25,7 +25,7 @@ struct AppPickerStepView: View {
                     .scaledFont(28, weight: .semibold)
                     .foregroundStyle(AppColors.primaryText)
 
-                Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카메라·지도·시계도 필요하면 체크하세요.")
+                Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카메라·지도·시계도 필요한 앱은 추가할 수 있어요.")
                     .scaledFont(15)
                     .foregroundStyle(AppColors.secondaryText)
                     .lineSpacing(4)

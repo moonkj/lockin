@@ -40,7 +40,7 @@ struct AppPasscodeEntryView: View {
                         .scaledFont(26, weight: .semibold)
                         .foregroundStyle(AppColors.primaryText)
 
-                    Text("설정한 6자리 비번을 입력하세요.")
+                    Text("설정한 6자리 비번으로 잠금을 해제할 수 있어요.")
                         .scaledFont(14)
                         .foregroundStyle(AppColors.secondaryText)
 

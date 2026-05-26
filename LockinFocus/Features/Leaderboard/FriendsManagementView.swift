@@ -145,7 +145,7 @@ struct FriendsManagementView: View {
             } else {
                 VStack(spacing: 6) {
                     ForEach(friendIDs, id: \.self) { uid in
-                        friendRow(uid: uid, nickname: nicknameCache[uid] ?? uid.prefix(6) + "…")
+                        friendRow(uid: uid, nickname: nicknameCache[uid] ?? "알 수 없는 사용자")
                     }
                 }
             }

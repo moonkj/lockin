@@ -20,7 +20,7 @@ struct AppSelectionView: View {
                             .scaledFont(24, weight: .semibold)
                             .foregroundStyle(AppColors.primaryText)
 
-                        Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카테고리 오른쪽 `>` 를 탭해 개별 앱을 체크하세요.")
+                        Text("여기서 고른 앱만 집중 시간에 열 수 있어요.\n카테고리 오른쪽 `>` 를 탭해 개별 앱을 선택할 수 있어요.")
                             .scaledFont(14)
                             .foregroundStyle(AppColors.secondaryText)
                     }

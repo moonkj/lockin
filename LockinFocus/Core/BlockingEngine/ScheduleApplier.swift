@@ -58,6 +58,7 @@ enum ScheduleApplier {
         } else {
             // 스케줄 자체를 끔. 자기 위반 회피 방어 동일 — 이전 활성 중이면 유지.
             if previousLocked {
+                blocking.applyWhitelist(for: selection)
                 return .deferredAwaitingScheduleEnd
             }
             monitoring.stopMonitoring(name: "block_main")

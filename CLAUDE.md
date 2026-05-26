@@ -10,7 +10,7 @@ UX Designer → Architect → Coder-A(Core) + Coder-B(UI) → Debugger → Test 
 
 ## 필수 규약
 1. **activity 이름**: 주 스케줄 `block_main`, 일시 해제 `temp_allow_*` prefix. 메인 앱 호출부 3 곳 + Extension 1 곳 동시 수정해야 함.
-2. **App Group**: `group.com.imurmkj.LockinFocus`. 4 타깃 공유.
+2. **App Group**: `group.com.moonkj.LockinFocus`. 4 타깃 공유.
 3. **InterceptEvent rawValue 고정**: `returned` / `interceptRequested` / `application` / `category` / `webDomain`. Extension 큐 스키마와 계약. 테스트 `InterceptEventTests.testRawValueStability_*` 가 회귀 방어.
 4. **Shield 정책**: `shield.applicationCategories = .all(except: selection.applicationTokens)` 역-화이트리스트.
 5. **3 Extension 타깃**: DeviceActivityMonitor / ShieldConfiguration / ShieldAction. 독립 entitlement.

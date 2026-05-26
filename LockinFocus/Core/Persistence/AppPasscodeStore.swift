@@ -96,7 +96,7 @@ enum AppPasscodeStore {
     }
 
     private static func sharedDefaults() -> UserDefaults? {
-        UserDefaults(suiteName: "group.com.moonkj.LockinFocus")
+        UserDefaults(suiteName: AppGroup.identifier)
     }
 
     /// 비번 삭제.
